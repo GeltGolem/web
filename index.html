@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Glent Code</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F1419;
+    --surface: #1A222C;
+    --surface-light: #252F3B;
+    --primary: #58CC02;
+    --primary-dark: #46A302;
+    --secondary: #1CB0F6;
+    --danger: #FF4B4B;
+    --text: #FFFFFF;
+    --text-muted: #8B95A1;
+    --gold: #FFC800;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background: #000; color: var(--text); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+  
+  .app {
+    width: 100%; max-width: 430px; height: 100%;
+    background: var(--bg); display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+
+  /* TOP BAR */
+  .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg); z-index: 20; }
+  .stat-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 15px; }
+  .hearts { color: var(--danger); }
+  .gems { color: var(--gold); }
+  
+  /* CONTENT & SCREENS */
+  .content { flex: 1; overflow-y: auto; position: relative; }
+  .screen { display: none; padding: 20px; animation: fadeIn 0.25s; min-height: 100%; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* PATH */
+  .path { display: flex; flex-direction: column; align-items: center; gap: 28px; padding-top: 20px; }
+  .node {
+    width: 72px; height: 72px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; cursor: pointer; position: relative;
+    transition: transform 0.1s, border-width 0.1s;
+  }
+  .node:active { transform: scale(0.95);}
+  .node.done { background: var(--primary); box-shadow: 0 8px 0 var(--primary-dark); color: white; }
+  .node.active { background: var(--secondary); box-shadow: 0 8px 0 #1899D6; color: white; animation: pulse 2s infinite; transition: background 0.2s, box-shadow 0.2s; }
+  .node.locked { background: var(--surface-light); color: var(--text-muted); cursor: not-allowed; box-shadow: 0 8px 0 #151A21; }
+  .node:nth-child(odd) { margin-right: 50px; }
+  .node:nth-child(even) { margin-left: 50px; }
+  /* FIX: active node shouldn't scale on :active when locked */
+  .node.locked:active { transform: none; }
+  @keyframes pulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+  /* LESSON */
+  .lesson-head { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; position: sticky; top: 0; background: var(--bg); padding: 10px 0; z-index: 10; }
+  .close-btn { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 4px; line-height: 1; }
+  .close-btn:hover { color: var(--text); }
+  .progress-track { flex: 1; height: 16px; background: var(--surface-light); border-radius: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; border-radius: 8px; }
+  .hearts-lesson { color: var(--danger); font-weight: 800; font-size: 18px; white-space: nowrap; }
+
+  .mascot-row { display: flex; gap: 14px; margin-bottom: 20px; align-items: flex-end; }
+  .golem-svg { width: 64px; height: 64px; flex-shrink: 0; filter: drop-shadow(0 4px 12px rgba(28, 176, 246, 0.5)); }
+  .bubble { background: var(--surface); padding: 14px; border-radius: 16px; border: 2px solid var(--surface-light); font-size: 15px; line-height: 1.4; position: relative; }
+  .bubble::after { content: ''; position: absolute; left: -8px; bottom: 18px; border-width: 8px 8px 8px 0; border-style: solid; border-color: transparent var(--surface) transparent transparent; }
+
+  .q-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; line-height: 1.3; }
+  .code-box { background: #000; padding: 14px; border-radius: 12px; font-family: 'Consolas', monospace; color: var(--primary); margin-bottom: 20px; font-size: 15px; line-height: 1.5; border: 1px solid var(--surface-light); white-space: pre-wrap; }
+  
+  .opts { display: flex; flex-direction: column; gap: 12px; }
+  .opt { background: var(--surface); border: 2px solid var(--surface-light); border-bottom-width: 4px; padding: 16px; border-radius: 16px; font-size: 16px; color: var(--text); text-align: left; cursor: pointer; transition: all 0.1s; width: 100%; }
+  .opt:active { transform: translateY(2px); border-bottom-width: 2px; }
+  .opt.sel { border-color: var(--secondary); background: rgba(28, 176, 246, 0.1); }
+  .opt.ok { border-color: var(--primary); background: rgba(88, 204, 2, 0.1); }
+  .opt.err { border-color: var(--danger); background: rgba(255, 75, 75, 0.1); }
+  /* FIX: disable pointer events on options after answering */
+  .opts.answered .opt { pointer-events: none; }
+
+  /* ACTION BAR — FIX: was position:fixed which caused overlap issues on iOS */
+  .action { position: sticky; left: 0; right: 0; padding: 16px; display: none; z-index: 20; margin-top: 16px; }
+  .action.show { display: block; animation: slideUp 0.25s; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  
+  /* BTN */
+  .btn { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 17px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 rgba(0,0,0,0.3); font-family: 'Nunito', system-ui, sans-serif; }
+  .btn.go { background: var(--primary); color: white; box-shadow: 0 6px 0 var(--primary-dark); }
+  .btn.go:hover:not(:disabled) { background: #66e002; }
+  .btn.bad { background: var(--danger); color: white; box-shadow: 0 6px 0 #B30000; }
+  .btn:disabled { background: var(--surface-light); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+
+  /* PROFILE */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { background: var(--surface); padding: 14px; border-radius: 16px; border: 1px solid var(--surface-light); display: flex; align-items: center; gap: 12px; }
+  .card .icon { font-size: 24px; }
+  .card .val { font-size: 18px; font-weight: 800; }
+  .card .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+
+  /* PROFILE BANNER */
+  .prof-banner {
+    position: relative; margin: -20px -20px 0; padding: 28px 20px 80px;
+    background: linear-gradient(160deg, #1e2d6b 0%, #0d1b3e 60%, var(--bg) 100%);
+    overflow: visible;
+  }
+  .prof-banner-title { font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; margin-left: 10px; }
+
+  /* AVATAR PICKER */
+  .ava-wrap { position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%); text-align: center; }
+  .ava {
+    width: 88px; height: 88px; border-radius: 50%;
+    border: 4px solid var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 42px; cursor: pointer; position: relative;
+    transition: transform 0.15s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .ava:active { transform: scale(0.94); }
+  .ava-edit-badge {
+    position: absolute; bottom: 0; right: 0;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--secondary); border: 2px solid var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .ava-label { font-size: 10px; color: var(--text-muted); margin-top: 6px; font-weight: 700; }
+
+  /* AVATAR MODAL */
+  .modal-overlay {
+    display: none; position: absolute; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 50;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
+  .modal-sheet {
+    width: 100%; background: var(--surface); border-radius: 24px 24px 0 0;
+    padding: 20px; max-height: 80vh; overflow-y: auto;
+  }
+  .modal-title { font-size: 17px; font-weight: 800; margin-bottom: 16px; text-align: center; }
+  .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px; }
+  .avatar-opt {
+    aspect-ratio: 1; border-radius: 50%; font-size: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 3px solid transparent;
+    transition: all 0.15s; background: var(--surface-light);
+  }
+  .avatar-opt:active { transform: scale(0.9); }
+  .avatar-opt.picked { border-color: var(--secondary); background: rgba(28,176,246,0.15); }
+
+  /* EDIT FIELDS */
+  .prof-body { padding-top: 60px; }
+  .edit-section { margin-bottom: 20px; }
+  .edit-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .edit-field {
+    width: 100%; background: var(--surface); border: 2px solid var(--surface-light);
+    border-radius: 14px; padding: 14px 16px; color: var(--text);
+    font-size: 16px; font-family: 'Nunito', sans-serif; font-weight: 700;
+    outline: none; transition: border-color 0.2s;
+  }
+  .edit-field:focus { border-color: var(--secondary); }
+  .edit-field::placeholder { color: var(--text-muted); font-weight: 400; }
+
+  /* USERNAME row */
+  .username-row { display: flex; align-items: center; gap: 8px; }
+  .username-at { font-size: 18px; font-weight: 800; color: var(--text-muted); padding-top: 2px; }
+
+  /* COLOR PICKER for banner */
+  .color-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .color-dot {
+    width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+    border: 3px solid transparent; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .color-dot.picked { border-color: white; transform: scale(1.15); }
+  .color-dot:active { transform: scale(0.9); }
+
+  /* STATS STRIP */
+  .stats-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface); border-radius: 14px; padding: 12px 8px; text-align: center; border: 1px solid var(--surface-light); }
+  .stat-card .s-icon { font-size: 20px; margin-bottom: 4px; }
+  .stat-card .s-val { font-size: 16px; font-weight: 800; }
+  .stat-card .s-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+
+  /* SAVE BTN */
+  .save-wrap { padding: 0 0 16px; }
+  
+  /* COMPLETION */
+  .completion-box { text-align: center; margin-top: 40px; padding: 20px; }
+  .completion-box h2 { font-size: 28px; margin-bottom: 16px; color: var(--gold); }
+  .completion-box p { color: var(--text-muted); line-height: 1.5; margin-bottom: 24px; }
+
+  /* NAV */
+  .nav { display: flex; justify-content: space-around; align-items: center; padding: 8px 12px 10px; background: var(--surface); border-top: 1px solid var(--surface-light); position: absolute; bottom: 0; width: 100%; z-index: 20; height: 62px; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-muted); font-size: 10px; cursor: pointer; padding: 4px 20px; border-radius: 10px; transition: color 0.15s; }
+  .nav-item:hover { color: var(--text); }
+  .nav-item.active { color: var(--secondary); }
+  .nav-icon { font-size: 24px; }
+
+  /* TOAST — новое улучшение */
+  .toast { position: absolute; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--surface-light); color: var(--text); padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 100; border: 1px solid var(--surface-light); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* STREAK BADGE на главной */
+  .section-title { text-align: center; margin-bottom: 16px; color: var(--text-muted); font-size: 13px; letter-spacing: 1px; font-weight: 800; }
+  .lesson-label { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 6px; text-align: center; max-width: 72px; }
+  .node-wrap { display: flex; flex-direction: column; align-items: center; }
+  .path .node-wrap:nth-child(odd) { margin-right: 50px; }
+  .path .node-wrap:nth-child(even) { margin-left: 50px; }
+  /* override old margin rules since we now wrap */
+  .path .node { margin: 0; }
+
+  /* LEAGUE */
+  .league-row {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border-radius: 16px;
+    padding: 14px 16px; border: 2px solid var(--surface-light);
+    transition: all 0.15s;
+  }
+  .league-row.current {
+    border-color: var(--gold);
+    background: rgba(255,200,0,0.06);
+    box-shadow: 0 0 0 1px rgba(255,200,0,0.2);
+  }
+  .league-row.locked-league { opacity: 0.45; }
+  .league-trophy-sm { width: 52px; height: 52px; flex-shrink: 0; }
+  .league-info { flex: 1; }
+  .league-row-name { font-size: 16px; font-weight: 800; }
+  .league-row-req  { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 700; }
+  .league-badge {
+    font-size: 11px; font-weight: 800; padding: 4px 10px;
+    border-radius: 20px; white-space: nowrap;
+  }
+  .badge-current { background: var(--gold); color: #000; }
+  .badge-done    { background: var(--primary); color: #fff; }
+  .badge-locked  { background: var(--surface-light); color: var(--text-muted); }
+
+
+  .node.locked:hover {
+    border: solid 1px red;
+    transform: translateY(-5px);
+    box-shadow: 0 0px 25px 0px rgb(214 29 29 / 66%);
+  }
+  .node.active:hover {
+      background: #49e965;
+      box-shadow: 0 8px 0 #11b52f;
+  }
+
+  #scr-lesson.active {
+    display: flex;
+    flex-direction: column;
+  }
+  #act-area {
+    margin-top: auto;
+  }
+  #path-container, .prof-body {
+    margin-bottom: 10dvh;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top-bar">
+    <div class="stat-pill hearts">❤️ <span id="h-count">5</span></div>
+    <div class="stat-pill gems">⚡ <span id="g-count">0</span></div>
+    <!-- FIX: убрана кракозябра 🇺, заменена на нормальный флаг Pascal -->
+    <div class="stat-pill">📘 Pascal</div>
+  </header>
+
+  <div class="toast" id="toast"></div>
+
+  <main class="content">
+    <div id="scr-home" class="screen active">
+      <h2 class="section-title">МОДУЛЬ 1: ОСНОВЫ PASCAL</h2>
+      <div class="path" id="path-container"></div>
+    </div>
+
+    <div id="scr-lesson" class="screen" style="padding: 16px;">
+      <div class="lesson-head">
+        <button class="close-btn" onclick="closeLesson()">✕</button>
+        <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+        <div class="hearts-lesson">❤️ <span id="h-lesson">5</span></div>
+      </div>
+      <div id="q-area"></div>
+      <!-- FIX: action bar перенесён внутрь контента урока, чтобы не перекрывал -->
+      <div class="action" id="act-area">
+        <button class="btn go" id="act-btn" onclick="actClick()" disabled>ПРОВЕРИТЬ</button>
+      </div>
+    </div>
+
+    <div id="scr-completion" class="screen">
+      <div class="completion-box">
+        <div style="font-size:60px; margin-bottom:20px;">🏆</div>
+        <h2>Модуль пройден!</h2>
+        <p>Ты успешно освоил базовый синтаксис Pascal. Голем гордится тобой! Теперь ты готов к изучению циклов, условий и написанию первых программ.</p>
+        <p style="color:var(--gold); font-weight:700; margin-bottom: 8px;">+100 XP за завершение модуля</p>
+        <button class="btn go" style="margin-top:20px;" onclick="finishModule()">ВЕРНУТЬСЯ НА ГЛАВНУЮ</button>
+      </div>
+    </div>
+
+    <div id="scr-profile" class="screen" style="padding:0; overflow:visible;">
+
+      <!-- BANNER -->
+      <div class="prof-banner" id="prof-banner" style="margin-bottom: 24px;">
+        <div class="prof-banner-title">МОЙ ПРОФИЛЬ</div>
+        <div class="ava-wrap">
+          <div class="ava" id="prof-ava" onclick="openAvaModal()" style="background:linear-gradient(135deg,#5A4FCF,#2C2763);">
+            <span id="prof-ava-emoji">🤖</span>
+            <div class="ava-edit-badge">✏️</div>
+          </div>
+          <!--div class="ava-label">АВАТАР</div-->
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="prof-body" style="padding: 0 20px 20px;">
+
+        <!-- STATS STRIP -->
+        <div class="stats-strip">
+          <div class="stat-card"><div class="s-icon">🔥</div><div class="s-val" id="p-streak">3</div><div class="s-lbl">Серия</div></div>
+          <div class="stat-card"><div class="s-icon">⚡</div><div class="s-val" id="p-xp">0</div><div class="s-lbl">XP</div></div>
+          <div class="stat-card"><div class="s-icon">🏆</div><div class="s-val" id="p-league-val" style="font-size:13px;">—</div><div class="s-lbl">Лига</div></div>
+          <div class="stat-card"><div class="s-icon">✅</div><div class="s-val" id="p-lessons">0/5</div><div class="s-lbl">Уроки</div></div>
+        </div>
+
+        <!-- NAME -->
+        <div class="edit-section">
+          <div class="edit-label">Имя</div>
+          <input class="edit-field" id="edit-name" type="text" maxlength="24" placeholder="Твоё имя" value="Akim"/>
+        </div>
+
+        <!-- USERNAME -->
+        <div class="edit-section">
+          <div class="edit-label">Имя пользователя</div>
+          <div class="username-row">
+            <span class="username-at">@</span>
+            <input class="edit-field" id="edit-username" type="text" maxlength="20" placeholder="username" value="AkimCode" style="flex:1;"/>
+          </div>
+        </div>
+
+        <!-- BIO -->
+        <div class="edit-section">
+          <div class="edit-label">О себе</div>
+          <textarea class="edit-field" id="edit-bio" maxlength="80" placeholder="Расскажи о себе..." rows="2" style="resize:none; line-height:1.5;">Учу Pascal 🚀</textarea>
+        </div>
+
+        <!-- BANNER COLOR -->
+        <div class="edit-section">
+          <div class="edit-label">Цвет баннера</div>
+          <div class="color-row" id="color-row"></div>
+        </div>
+
+        <!-- SAVE -->
+        <div class="save-wrap">
+          <button class="btn go" onclick="saveProfile()">СОХРАНИТЬ</button>
+        </div>
+
+      </div><!-- /prof-body -->
+
+      <!-- AVATAR MODAL -->
+      <div class="modal-overlay" id="ava-modal" onclick="closeAvaModal(event)">
+        <div class="modal-sheet">
+          <div class="modal-title">Выбери аватар</div>
+          <div class="avatar-grid" id="avatar-grid"></div>
+          <button class="btn go" onclick="confirmAvatar()">ГОТОВО</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="scr-league" class="screen" style="padding:0;">
+      <!-- Trophy banner -->
+      <div id="league-banner" style="padding:28px 20px 24px; text-align:center; position:relative;margin-bottom: 24px;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:12px;">ТЕКУЩАЯ ЛИГА</div>
+        <div id="league-trophy" style="margin:0 auto 10px;"></div>
+        <div id="league-name-big" style="font-size:26px;font-weight:900;color:white;text-shadow:0 2px 12px rgba(0,0,0,0.4);"></div>
+        <div id="league-xp-range" style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px;font-weight:700;"></div>
+      </div>
+
+      <!-- XP progress to next league -->
+      <div style="padding:0 20px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:800;color:var(--text-muted);">ПРОГРЕСС ДО СЛЕДУЮЩЕЙ ЛИГИ</span>
+          <span id="league-pct" style="font-size:12px;font-weight:800;color:var(--gold);"></span>
+        </div>
+        <div style="height:14px;background:var(--surface-light);border-radius:7px;overflow:hidden;">
+          <div id="league-bar" style="height:100%;border-radius:7px;transition:width 0.6s;width:0%;"></div>
+        </div>
+        <div id="league-next-label" style="font-size:11px;color:var(--text-muted);margin-top:6px;text-align:right;font-weight:700;"></div>
+      </div>
+
+      <!-- All leagues showcase -->
+      <div style="padding:0 20px 20px;margin-bottom:10dvh">
+        <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:14px;">ВСЕ ЛИГИ</div>
+        <div id="all-leagues" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="nav">
+    <div class="nav-item active" id="nav-home" onclick="goHome(this)"><div class="nav-icon">🏠</div><span>Главная</span></div>
+    <div class="nav-item" id="nav-league" onclick="goLeague(this)"><div class="nav-icon">🏆</div><span>Лига</span></div>
+    <div class="nav-item" id="nav-profile" onclick="goProfile(this)"><div class="nav-icon">👤</div><span>Профиль</span></div>
+  </nav>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let xp = 0;           // FIX: было 450 — XP начинается с нуля
+let hearts = 5;
+let currentLessonIdx = 0;
+let currentQIdx = 0;
+let selectedOption = null;
+let shuffledQuestions = [];
+let lessonCompleted = [false, false, false, false, false];
+let lessonErrors = 0;
+let answered = false;  // FIX: новый флаг, предотвращает повторный клик "Проверить"
+
+// ─── LESSONS DATA ────────────────────────────────────────────────────────────
+const lessonsData = [
+  {
+    title: "Вывод данных",
+    questions: [
+      { q: "Какая команда выводит текст в Pascal?", code: "", opts: ["writeln('Hi')", "print('Hi')", "echo 'Hi'"], correct: 0, exp: "writeln — стандартный вывод с переходом на новую строку." },
+      { q: "Что делает writeln(42)?", code: "", opts: ["Выводит '42'", "Выводит 42", "Вызывает ошибку"], correct: 1, exp: "Числа выводятся без кавычек, как есть." },
+      { q: "Как вывести текст без перевода строки?", code: "", opts: ["write('A')", "writeln('A')", "print('A')"], correct: 0, exp: "write не добавляет перенос строки в конце." },
+      { q: "Где ставится точка с запятой?", code: "writeln('Hello')", opts: ["В начале", "В конце", "Не нужна"], correct: 1, exp: "В Pascal команды разделяются ;" },
+      { q: "Что выведет writeln(2+3)?", code: "", opts: ["2+3", "5", "Ошибка"], correct: 1, exp: "Сначала вычисляется выражение, потом выводится." },
+      { q: "Как вывести переменную x?", code: "var x: integer;", opts: ["writeln(x)", "writeln('x')", "write x"], correct: 0, exp: "Без кавычек выводится значение переменной." },
+      { q: "Какой символ начинает строковый литерал?", code: "", opts: ["Одинарная кавычка '", "Скобки ()", "Решетка #"], correct: 0, exp: "Текст в Pascal пишется в одинарных кавычках." },
+      { q: "Что делает readln?", code: "", opts: ["Читает ввод", "Выводит текст", "Очищает экран"], correct: 0, exp: "readln ждёт ввода от пользователя." },
+      { q: "Как перейти на новую строку вручную?", code: "", opts: ["writeln('')", "write('')", "newline"], correct: 0, exp: "writeln автоматически добавляет перенос." },
+      { q: "Что будет, если забыть ; ?", code: "writeln('A')\nwriteln('B')", opts: ["Ошибка компиляции", "Программа проигнорирует", "Выведет всё сразу"], correct: 0, exp: "Pascal требует ; после каждой команды." }
+    ]
+  },
+  {
+    title: "Переменные и типы",
+    questions: [
+      { q: "Как объявить целую переменную x?", code: "", opts: ["var x: integer;", "int x;", "x := 0;"], correct: 0, exp: "В Pascal переменные объявляются через var имя: тип;" },
+      { q: "Что хранит тип string?", code: "", opts: ["Числа", "Текст", "Логические значения"], correct: 1, exp: "String предназначен для работы с текстовыми данными." },
+      { q: "Где объявляются переменные?", code: "program Test;\n...\nbegin\n...", opts: ["До begin", "После begin", "В конце программы"], correct: 0, exp: "Раздел описания переменных всегда идёт до begin." },
+      { q: "Какой тип для дробных чисел?", code: "", opts: ["real", "integer", "char"], correct: 0, exp: "real хранит числа с плавающей точкой." },
+      { q: "Что такое char?", code: "", opts: ["Символ", "Строка", "Число"], correct: 0, exp: "char хранит один символ." },
+      { q: "Можно ли менять тип переменной?", code: "", opts: ["Нет", "Да, всегда", "Только в циклах"], correct: 0, exp: "В Pascal тип фиксирован при объявлении." },
+      { q: "Как объявить логическую переменную?", code: "", opts: ["var f: boolean;", "var f: bool;", "var f: logic;"], correct: 0, exp: "boolean принимает true или false." },
+      { q: "Что будет при x := 5.5; (x: integer)?", code: "", opts: ["Ошибка", "x станет 5", "x станет 6"], correct: 0, exp: "Нельзя присвоить дробь целой переменной без округления." },
+      { q: "Где можно объявлять константы?", code: "", opts: ["В разделе const", "Везде", "Только в main"], correct: 0, exp: "const объявляется в начале программы." },
+      { q: "Что такое идентификатор?", code: "", opts: ["Имя переменной", "Значение", "Оператор"], correct: 0, exp: "Идентификатор — это имя, которое ты даёшь объекту." }
+    ]
+  },
+  {
+    title: "Присваивание и ввод",
+    questions: [
+      { q: "Какой оператор присваивания в Pascal?", code: "x ... 10;", opts: ["=", "==", ":="], correct: 2, exp: "Двоеточие и равно (:=) — оператор присваивания." },
+      { q: "Что будет после x := 5 + 3?", code: "", opts: ["x станет '5+3'", "x станет 8", "Ошибка синтаксиса"], correct: 1, exp: "Сначала вычисляется выражение, потом результат сохраняется." },
+      { q: "Как прочитать число с клавиатуры в x?", code: "", opts: ["readln(x)", "input(x)", "get(x)"], correct: 0, exp: "readln читает данные и ждёт нажатия Enter." },
+      { q: "Что делает := ?", code: "", opts: ["Сравнивает", "Присваивает", "Умножает"], correct: 1, exp: ":= записывает значение справа в переменную слева." },
+      { q: "Можно ли писать x := x + 1?", code: "", opts: ["Да", "Нет", "Только в цикле"], correct: 0, exp: "Да, это стандартный способ увеличения счётчика." },
+      { q: "Что будет, если не ввести данные для readln?", code: "", opts: ["Программа зависнет", "Ошибка", "Подставит 0"], correct: 0, exp: "readln ждёт ввода бесконечно." },
+      { q: "Как прочитать строку в s?", code: "", opts: ["readln(s)", "read(s)", "input s"], correct: 0, exp: "readln читает всю строку до Enter." },
+      { q: "Что вернёт readln, если ввести 'abc' в integer?", code: "", opts: ["Ошибка выполнения", "0", "'abc'"], correct: 0, exp: "Несоответствие типов вызовет ошибку." },
+      { q: "Можно ли присвоить char в string?", code: "", opts: ["Да", "Нет", "Только через функцию"], correct: 0, exp: "string может хранить один char." },
+      { q: "Что такое выражение?", code: "", opts: ["Код, возвращающий значение", "Команда вывода", "Имя файла"], correct: 0, exp: "Выражение вычисляется до значения." }
+    ]
+  },
+  {
+    title: "Условные конструкции",
+    questions: [
+      { q: "Как начинается условие в Pascal?", code: "", opts: ["if ... then", "when ... do", "case ... of"], correct: 0, exp: "Базовый синтаксис условия: if условие then действие;" },
+      { q: "Что нужно, если в then несколько команд?", code: "if x > 0 then\n  writeln('A');\n  writeln('B');", opts: ["begin ... end", "{ ... }", "( ... )"], correct: 0, exp: "begin и end группируют несколько команд в один блок." },
+      { q: "Какое условие истинно?", code: "", opts: ["5 > 3", "2 = 4", "10 < 5"], correct: 0, exp: "5 действительно больше 3, поэтому условие вернёт true." },
+      { q: "Как проверить равенство?", code: "", opts: ["if x = 5 then", "if x == 5 then", "if x := 5 then"], correct: 0, exp: "В Pascal сравнение — это один знак =." },
+      { q: "Что делает else?", code: "", opts: ["Выполняется если false", "Завершает программу", "Повторяет условие"], correct: 0, exp: "else — альтернативная ветка." },
+      { q: "Можно ли вкладывать if?", code: "", opts: ["Да", "Нет", "Только 2 уровня"], correct: 0, exp: "Условия можно вкладывать сколько угодно." },
+      { q: "Что будет без begin в then?", code: "if true then writeln(1);\nwriteln(2);", opts: ["Выведет 1 и 2", "Выведет только 1", "Ошибка"], correct: 0, exp: "Без begin выполнится только первая команда." },
+      { q: "Как проверить неравенство?", code: "", opts: ["<>", "!=", "!=="], correct: 0, exp: "<> означает 'не равно' в Pascal." },
+      { q: "Что вернёт not true?", code: "", opts: ["false", "true", "nil"], correct: 0, exp: "not инвертирует логическое значение." },
+      { q: "Когда сработает else if?", code: "", opts: ["Если первое условие false", "Всегда", "Никогда"], correct: 0, exp: "else if проверяется только если предыдущее условие ложно." }
+    ]
+  },
+  {
+    title: "Циклы",
+    questions: [
+      { q: "Какой цикл используется, когда известно количество повторений?", code: "", opts: ["for", "while", "repeat"], correct: 0, exp: "for удобен, когда заранее известно число итераций." },
+      { q: "Что делает inc(i)?", code: "", opts: ["Увеличивает i на 1", "Уменьшает i", "Сбрасывает i в 0"], correct: 0, exp: "inc — сокращение от increment, увеличивает переменную." },
+      { q: "Какой оператор прерывает цикл досрочно?", code: "", opts: ["break", "stop", "exit"], correct: 0, exp: "break немедленно выходит из текущего цикла." },
+      { q: "Как записать for от 1 до 10?", code: "", opts: ["for i:=1 to 10 do", "for i=1; i<=10; i++", "loop 1 to 10"], correct: 0, exp: "Синтаксис Pascal: for переменная:=начало to конец do." },
+      { q: "Что делает while x < 5 do?", code: "", opts: ["Повторяет пока x<5", "Повторяет 5 раз", "Ожидает ввод"], correct: 0, exp: "while проверяет условие перед каждой итерацией." },
+      { q: "Чем repeat until отличается от while?", code: "", opts: ["Выполняется минимум 1 раз", "Ничем", "Медленнее"], correct: 0, exp: "repeat проверяет условие после тела цикла." },
+      { q: "Что будет, если условие while всегда true?", code: "", opts: ["Бесконечный цикл", "Ошибка", "Пропуск"], correct: 0, exp: "Программа зависнет без break." },
+      { q: "Как уменьшить счётчик в for?", code: "", opts: ["downto", "to -1", "desc"], correct: 0, exp: "for i:=10 downto 1 do идёт в обратном порядке." },
+      { q: "Можно ли менять счётчик for внутри цикла?", code: "", opts: ["Нет", "Да", "Только в PascalABC"], correct: 0, exp: "Изменение счётчика for запрещено стандартом." },
+      { q: "Что делает continue?", code: "", opts: ["Переходит к следующей итерации", "Завершает цикл", "Пауза"], correct: 0, exp: "continue пропускает остаток тела цикла." }
+    ]
+  }
+];
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  let a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// FIX: функция actClick была объявлена как onclick но нигде не определена — теперь есть
+function actClick() {
+  if (!answered) {
+    checkAnswer();
+  }
+}
+
+function showToast(msg, duration = 1500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function updateStats() {
+  document.getElementById('h-count').textContent = hearts;
+  document.getElementById('h-lesson').textContent = hearts;
+  document.getElementById('g-count').textContent = xp;
+  document.getElementById('p-xp').textContent = xp;
+  document.getElementById('p-lessons').textContent = `${lessonCompleted.filter(Boolean).length}/5`;
+  const curL = getCurrentLeague ? getCurrentLeague() : null;
+  const lEl = document.getElementById('p-league-val');
+  if (lEl && curL) { lEl.textContent = curL.name.slice(0,6); lEl.style.color = curL.color; }
+}
+
+function renderPath() {
+  const container = document.getElementById('path-container');
+  // FIX: изменён формат — каждый узел обёрнут в node-wrap с подписью урока
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    const done = lessonCompleted[i];
+    const unlocked = i === 0 || lessonCompleted[i - 1];
+    const status = done ? 'done' : unlocked ? 'active' : 'locked';
+    const icon = done ? '⭐' : status === 'active' ? '▶' : '🔒';
+    const clickHandler = status !== 'locked' ? `startLesson(${i})` : '';
+    html += `
+      <div class="node-wrap">
+        <div class="node ${status}" onclick="${clickHandler}">${icon}</div>
+        <div class="lesson-label">${lessonsData[i].title}</div>
+      </div>
+    `;
+  }
+  // Финальный узел
+  const allDone = lessonCompleted.every(Boolean);
+  html += `
+    <div class="node-wrap">
+      <div class="node ${allDone ? 'active' : 'locked'}" onclick="${allDone ? 'showScreen(\'scr-completion\')' : ''}">🏆</div>
+      <div class="lesson-label">Финал</div>
+    </div>
+  `;
+  container.innerHTML = html;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // FIX: act-area теперь внутри scr-lesson, не нужно глобально прятать
+  if (id === 'scr-home') {
+    renderPath();
+    updateStats();
+  }
+}
+
+function goHome(el) { showScreen('scr-home'); navActive(el); }
+function goProfile(el) {
+  showScreen('scr-profile');
+  updateStats();
+  renderProfileScreen();
+  navActive(el);
+}
+
+// ─── PROFILE DATA ─────────────────────────────────────────────────────────
+const AVATARS = ['🤖','👾','🧙','🦊','🐺','🦁','🐲','👻','🎃','🤠',
+                 '🥷','👽','🦄','🐸','🐼','🐨','🦋','🌊','🔥','⚡',
+                 '🌙','🌈','💀','🎯','🎮'];
+const BANNER_COLORS = [
+  { id:'blue',   g:'linear-gradient(160deg,#1e2d6b,#0d1b3e,var(--bg))' },
+  { id:'purple', g:'linear-gradient(160deg,#3b1f6b,#1a0d3e,var(--bg))' },
+  { id:'green',  g:'linear-gradient(160deg,#0e3d1e,#071a0d,var(--bg))' },
+  { id:'red',    g:'linear-gradient(160deg,#5a1a1a,#280d0d,var(--bg))' },
+  { id:'teal',   g:'linear-gradient(160deg,#0d3a3a,#051f1f,var(--bg))' },
+  { id:'gold',   g:'linear-gradient(160deg,#4a3800,#221900,var(--bg))' },
+];
+const AVATAR_BG = {
+  '🤖':'linear-gradient(135deg,#4A41C0,#2C2763)',
+  '👾':'linear-gradient(135deg,#7B2FBE,#4A0E8F)',
+  '🧙':'linear-gradient(135deg,#1a6b4a,#0a3020)',
+  '🦊':'linear-gradient(135deg,#C25B1A,#7A3000)',
+  '🐺':'linear-gradient(135deg,#555,#222)',
+  '🦁':'linear-gradient(135deg,#C8962A,#7A5600)',
+  '🐲':'linear-gradient(135deg,#1a6b1a,#0a3a0a)',
+  '👻':'linear-gradient(135deg,#5a5a7a,#2a2a4a)',
+  '🎃':'linear-gradient(135deg,#8B4500,#3a1a00)',
+  '🤠':'linear-gradient(135deg,#7a5500,#3a2800)',
+  '🥷':'linear-gradient(135deg,#222,#111)',
+  '👽':'linear-gradient(135deg,#1a6b2a,#0a3015)',
+  '🦄':'linear-gradient(135deg,#b84fa0,#6b1f60)',
+  '🐸':'linear-gradient(135deg,#2a7a1a,#103a08)',
+  '🐼':'linear-gradient(135deg,#444,#111)',
+  '🐨':'linear-gradient(135deg,#7a7a7a,#333)',
+  '🦋':'linear-gradient(135deg,#6b3fbe,#2a0d6b)',
+  '🌊':'linear-gradient(135deg,#0d5a8b,#062840)',
+  '🔥':'linear-gradient(135deg,#c23a00,#6b1a00)',
+  '⚡':'linear-gradient(135deg,#7a6b00,#3a3200)',
+  '🌙':'linear-gradient(135deg,#1a1a5a,#0a0a2a)',
+  '🌈':'linear-gradient(135deg,#5a3fbe,#1a0d6b)',
+  '💀':'linear-gradient(135deg,#333,#111)',
+  '🎯':'linear-gradient(135deg,#8b1a1a,#3a0808)',
+  '🎮':'linear-gradient(135deg,#1a3a6b,#0a1a3a)',
+};
+
+let profileData = {
+  name: 'Akim',
+  username: 'AkimCode',
+  bio: 'Учу Pascal 🚀',
+  avatar: '🤖',
+  bannerId: 'blue',
+  tempAvatar: null,
+};
+
+function renderProfileScreen() {
+  // fill fields
+  document.getElementById('edit-name').value = profileData.name;
+  document.getElementById('edit-username').value = profileData.username;
+  document.getElementById('edit-bio').value = profileData.bio;
+  document.getElementById('prof-ava-emoji').textContent = profileData.avatar;
+  document.getElementById('prof-ava').style.background = AVATAR_BG[profileData.avatar] || 'linear-gradient(135deg,#4A41C0,#2C2763)';
+  // banner color
+  const banner = document.getElementById('prof-banner');
+  const bc = BANNER_COLORS.find(c => c.id === profileData.bannerId) || BANNER_COLORS[0];
+  banner.style.background = bc.g;
+  // color dots
+  const cr = document.getElementById('color-row');
+  cr.innerHTML = BANNER_COLORS.map(c => `
+    <div class="color-dot ${c.id === profileData.bannerId ? 'picked' : ''}"
+         style="background:${c.g.split(',')[1] || '#1e2d6b'}"
+         onclick="pickBannerColor('${c.id}')">
+      ${c.id === profileData.bannerId ? '✓' : ''}
+    </div>`).join('');
+}
+
+function pickBannerColor(id) {
+  profileData.bannerId = id;
+  const banner = document.getElementById('prof-banner');
+  const bc = BANNER_COLORS.find(c => c.id === id);
+  banner.style.background = bc.g;
+  document.querySelectorAll('.color-dot').forEach(d => {
+    const active = d.getAttribute('onclick').includes(id);
+    d.classList.toggle('picked', active);
+    d.textContent = active ? '✓' : '';
+    if (!active) d.style.cssText += '';
+  });
+}
+
+function openAvaModal() {
+  profileData.tempAvatar = profileData.avatar;
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = AVATARS.map(e => `
+    <div class="avatar-opt ${e === profileData.tempAvatar ? 'picked' : ''}"
+         onclick="pickAvatar('${e}')">${e}</div>`).join('');
+  document.getElementById('ava-modal').classList.add('open');
+}
+
+function closeAvaModal(e) {
+  if (e.target === document.getElementById('ava-modal'))
+    document.getElementById('ava-modal').classList.remove('open');
+}
+
+function pickAvatar(emoji) {
+  profileData.tempAvatar = emoji;
+  document.querySelectorAll('.avatar-opt').forEach(el => {
+    el.classList.toggle('picked', el.textContent === emoji);
+  });
+}
+
+function confirmAvatar() {
+  profileData.avatar = profileData.tempAvatar || profileData.avatar;
+  document.getElementById('ava-modal').classList.remove('open');
+  document.getElementById('prof-ava-emoji').textContent = profileData.avatar;
+  document.getElementById('prof-ava').style.background = AVATAR_BG[profileData.avatar] || 'linear-gradient(135deg,#4A41C0,#2C2763)';
+}
+
+function saveProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  const user = document.getElementById('edit-username').value.trim();
+  const bio  = document.getElementById('edit-bio').value.trim();
+  if (!name) { showToast('❗ Введи имя'); return; }
+  if (!user) { showToast('❗ Введи юзернейм'); return; }
+  profileData.name     = name;
+  profileData.username = user;
+  profileData.bio      = bio;
+  showToast('✅ Профиль сохранён!', 1800);
+}
+
+function navActive(el) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+// ─── LESSON LOGIC ─────────────────────────────────────────────────────────────
+function startLesson(idx) {
+  if (idx >= 5) return;
+  currentLessonIdx = idx;
+  currentQIdx = 0;
+  hearts = 5;
+  lessonErrors = 0;
+  answered = false;
+  updateStats();
+  shuffledQuestions = shuffle(lessonsData[idx].questions);
+  showScreen('scr-lesson');
+  // FIX: скрыть nav при уроке чтобы не перекрывал
+  document.querySelector('.nav').style.display = 'none';
+  renderQuestion();
+}
+
+function closeLesson() {
+  document.querySelector('.nav').style.display = 'flex';
+  showScreen('scr-home');
+  navActive(document.getElementById('nav-home'));
+}
+
+function resetUI() {
+  selectedOption = null;
+  answered = false;
+  const act = document.getElementById('act-area');
+  act.innerHTML = `<button class="btn go" id="act-btn" onclick="actClick()" disabled>ПРОВЕРИТЬ</button>`;
+  act.classList.add('show'); // кнопка всегда видна, просто disabled до выбора
+}
+
+function renderQuestion() {
+  const q = shuffledQuestions[currentQIdx];
+  const area = document.getElementById('q-area');
+
+  // FIX: прогресс-бар теперь показывает реальный прогресс (0→100%)
+  document.getElementById('prog').style.width = `${(currentQIdx / shuffledQuestions.length) * 100}%`;
+
+  // FIX: code экранируется, чтобы HTML-теги не сломали разметку
+  const safeCode = q.code ? q.code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+
+  let html = `
+    <div class="mascot-row">
+      <svg class="golem-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="12" width="48" height="40" rx="12" fill="#4A41C0"/>
+        <rect x="18" y="22" width="10" height="10" rx="4" fill="#00E5FF"/>
+        <rect x="36" y="22" width="10" height="10" rx="4" fill="#00E5FF"/>
+        <path d="M28 38 Q32 42 36 38" stroke="#00E5FF" stroke-width="3" fill="none"/>
+        <circle cx="52" cy="18" r="4" fill="#FFC800" opacity="0.8"/>
+      </svg>
+      <div class="bubble">Вопрос ${currentQIdx + 1} из ${shuffledQuestions.length}</div>
+    </div>
+    <div class="q-title">${q.q}</div>
+    ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
+    <div class="opts" id="opts-container">
+      ${q.opts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${o}</button>`).join('')}
+    </div>
+  `;
+
+  area.innerHTML = html;
+  resetUI();
+}
+
+function selectOption(idx) {
+  if (answered) return; // FIX: нельзя менять ответ после проверки
+  selectedOption = idx;
+  document.querySelectorAll('.opt').forEach((b, i) => b.classList.toggle('sel', i === idx));
+  document.getElementById('act-btn').disabled = false;
+}
+
+function checkAnswer() {
+  if (answered || selectedOption === null) return; // FIX: защита от двойного вызова
+  answered = true;
+
+  const q = shuffledQuestions[currentQIdx];
+  const btns = document.querySelectorAll('.opt');
+  const act = document.getElementById('act-area');
+
+  // FIX: блокируем все кнопки ответов
+  document.getElementById('opts-container').classList.add('answered');
+
+  if (selectedOption === q.correct) {
+    btns[selectedOption].classList.add('ok');
+    xp += 10;
+    updateStats();
+    showToast('🎉 +10 XP');
+    act.innerHTML = `
+      <div style="color:var(--primary);font-weight:800;font-size:18px;margin-bottom:10px;">✅ Верно!</div>
+      <button class="btn go" onclick="nextQuestion()">ДАЛЕЕ</button>
+    `;
+  } else {
+    btns[selectedOption].classList.add('err');
+    btns[q.correct].classList.add('ok');
+    hearts = Math.max(0, hearts - 1);
+    lessonErrors++;
+    updateStats();
+
+    // FIX: если сердец 0 — тоже перезапускаем
+    if (lessonErrors >= 5 || hearts === 0) {
+      act.innerHTML = `
+        <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">💔 Слишком много ошибок!</div>
+        <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;">Урок «${lessonsData[currentLessonIdx].title}» начнётся заново.</div>
+        <button class="btn bad" onclick="startLesson(${currentLessonIdx})">НАЧАТЬ ЗАНОВО</button>
+      `;
+      act.classList.add('show');
+      return;
+    }
+
+    act.innerHTML = `
+      <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">❌ Ошибка</div>
+      <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;line-height:1.4;">💡 ${q.exp}</div>
+      <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>
+    `;
+  }
+  act.classList.add('show');
+}
+
+function nextQuestion() {
+  currentQIdx++;
+  if (currentQIdx < shuffledQuestions.length) {
+    renderQuestion();
+  } else {
+    // SUCCESS — урок завершён
+    lessonCompleted[currentLessonIdx] = true;
+    xp += 20;
+    updateStats();
+    document.querySelector('.nav').style.display = 'flex'; // FIX: возвращаем nav
+    showScreen('scr-home');
+    showToast('🏅 Урок пройден! +20 XP', 2000);
+    navActive(document.getElementById('nav-home'));
+
+    if (lessonCompleted.every(Boolean)) {
+      // FIX: задержка чтобы тост успел показаться
+      setTimeout(() => showScreen('scr-completion'), 800);
+    }
+  }
+}
+
+function finishModule() {
+  showScreen('scr-home');
+  navActive(document.getElementById('nav-home'));
+}
+
+
+// ─── LEAGUE SYSTEM ───────────────────────────────────────────────────────────
+const LEAGUES = [
+  {
+    id: 'stone',
+    name: 'Каменная',
+    minXP: 0,
+    color: '#7a8a9a',
+    barColor: 'linear-gradient(90deg,#7a8a9a,#aab8c2)',
+    bannerBg: 'linear-gradient(160deg,#2a3a4a,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a4a5a" opacity="0.5"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#5a6a7a"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#6a7a8a"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#8a9aaa"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#aab8c2"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#6a7a8a"/>
+      <rect x="10" y="20" width="12" height="18" rx="6" fill="#7a8a9a"/>
+      <rect x="58" y="20" width="12" height="18" rx="6" fill="#7a8a9a"/>
+      <circle cx="40" cy="36" r="8" fill="#c8d8e8" opacity="0.6"/>
+      <text x="40" y="42" text-anchor="middle" font-size="10" font-weight="900" fill="#3a4a5a">I</text>
+    </svg>`,
+  },
+  {
+    id: 'bronze',
+    name: 'Бронзовая',
+    minXP: 100,
+    color: '#cd7f32',
+    barColor: 'linear-gradient(90deg,#cd7f32,#e8a96a)',
+    bannerBg: 'linear-gradient(160deg,#3a2010,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a2010" opacity="0.5"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#8b5520"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#a06030"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#cd7f32"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#e8a96a"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#a06030"/>
+      <rect x="10" y="20" width="12" height="18" rx="6" fill="#cd7f32"/>
+      <rect x="58" y="20" width="12" height="18" rx="6" fill="#cd7f32"/>
+      <circle cx="40" cy="36" r="8" fill="#ffd080" opacity="0.7"/>
+      <text x="40" y="42" text-anchor="middle" font-size="9" font-weight="900" fill="#6a3800">II</text>
+    </svg>`,
+  },
+  {
+    id: 'silver',
+    name: 'Серебряная',
+    minXP: 300,
+    color: '#a8b8c8',
+    barColor: 'linear-gradient(90deg,#8898a8,#d0e0f0)',
+    bannerBg: 'linear-gradient(160deg,#1e2e3e,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#1a2a3a" opacity="0.5"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#607080"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#8898a8"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#a8b8c8"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#d0e0f0"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#8898a8"/>
+      <rect x="10" y="20" width="12" height="18" rx="6" fill="#a8b8c8"/>
+      <rect x="58" y="20" width="12" height="18" rx="6" fill="#a8b8c8"/>
+      <circle cx="40" cy="36" r="9" fill="white" opacity="0.5"/>
+      <polygon points="40,28 42.5,35 50,35 44,39.5 46,47 40,43 34,47 36,39.5 30,35 37.5,35" fill="white" opacity="0.9"/>
+    </svg>`,
+  },
+  {
+    id: 'gold',
+    name: 'Золотая',
+    minXP: 600,
+    color: '#ffc800',
+    barColor: 'linear-gradient(90deg,#e0a800,#ffe066)',
+    bannerBg: 'linear-gradient(160deg,#3a2e00,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a2a00" opacity="0.6"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#a07800"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#c89800"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#e0a800"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#ffe066"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#c89800"/>
+      <rect x="10" y="20" width="12" height="20" rx="6" fill="#e0a800"/>
+      <rect x="58" y="20" width="12" height="20" rx="6" fill="#e0a800"/>
+      <circle cx="40" cy="36" r="10" fill="#fff8d0" opacity="0.6"/>
+      <polygon points="40,26 43,33 51,33 45,38 47,46 40,41 33,46 35,38 29,33 37,33" fill="#fff8d0"/>
+      <circle cx="40" cy="16" r="5" fill="#ffc800"/>
+      <polygon points="40,11 41.5,15 46,15 42.5,17.5 44,22 40,19.5 36,22 37.5,17.5 34,15 38.5,15" fill="#fff"/>
+    </svg>`,
+  },
+  {
+    id: 'sapphire',
+    name: 'Сапфировая',
+    minXP: 1000,
+    color: '#1cb0f6',
+    barColor: 'linear-gradient(90deg,#0d80c0,#60d0ff)',
+    bannerBg: 'linear-gradient(160deg,#002a4a,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#001a3a" opacity="0.6"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#0050a0"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#0080c8"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#0d80c0"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#60d0ff"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#0070b0"/>
+      <rect x="10" y="20" width="12" height="20" rx="6" fill="#0d80c0"/>
+      <rect x="58" y="20" width="12" height="20" rx="6" fill="#0d80c0"/>
+      <polygon points="40,24 46,32 54,32 48,38 50,46 40,42 30,46 32,38 26,32 34,32" fill="#a0e8ff" opacity="0.9"/>
+      <polygon points="40,28 44,34 50,34 45,38.5 47,44.5 40,40.5 33,44.5 35,38.5 30,34 36,34" fill="white" opacity="0.6"/>
+      <circle cx="40" cy="14" r="6" fill="#60d0ff"/>
+      <polygon points="40,8 42,13 47,13 43,16 44.5,21 40,18 35.5,21 37,16 33,13 38,13" fill="white"/>
+    </svg>`,
+  },
+  {
+    id: 'emerald',
+    name: 'Изумрудная',
+    minXP: 1500,
+    color: '#00c060',
+    barColor: 'linear-gradient(90deg,#008040,#40e880)',
+    bannerBg: 'linear-gradient(160deg,#002a18,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#001a10" opacity="0.6"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#005030"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#007840"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#009050"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#40e080"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#007840"/>
+      <rect x="10" y="20" width="12" height="20" rx="6" fill="#009050"/>
+      <rect x="58" y="20" width="12" height="20" rx="6" fill="#009050"/>
+      <polygon points="40,22 48,30 54,38 48,46 40,50 32,46 26,38 32,30" fill="#80ffb0" opacity="0.5"/>
+      <polygon points="40,26 46,32 50,38 46,44 40,47 34,44 30,38 34,32" fill="#c0ffd8" opacity="0.7"/>
+      <circle cx="40" cy="38" r="6" fill="white" opacity="0.5"/>
+      <circle cx="40" cy="12" r="7" fill="#40e080"/>
+      <polygon points="40,5 42.5,10 48,10 43.5,13.5 45.5,19 40,16 34.5,19 36.5,13.5 32,10 37.5,10" fill="white"/>
+    </svg>`,
+  },
+  {
+    id: 'amethyst',
+    name: 'Аметистовая',
+    minXP: 2200,
+    color: '#9b59b6',
+    barColor: 'linear-gradient(90deg,#6c3483,#d498ea)',
+    bannerBg: 'linear-gradient(160deg,#1e0a30,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#180a28" opacity="0.6"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#4a2070"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#6a3090"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#7b3fa0"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#c080e0"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#6a3090"/>
+      <rect x="10" y="20" width="12" height="20" rx="6" fill="#7b3fa0"/>
+      <rect x="58" y="20" width="12" height="20" rx="6" fill="#7b3fa0"/>
+      <polygon points="40,20 50,28 56,38 50,48 40,52 30,48 24,38 30,28" fill="#e0a0ff" opacity="0.4"/>
+      <polygon points="40,24 48,30 52,38 48,46 40,49 32,46 28,38 32,30" fill="#f0c8ff" opacity="0.5"/>
+      <circle cx="40" cy="38" r="7" fill="white" opacity="0.3"/>
+      <circle cx="40" cy="10" r="8" fill="#9b59b6"/>
+      <polygon points="40,2 43,8 50,8 44.5,12 47,18 40,14.5 33,18 35.5,12 30,8 37,8" fill="white"/>
+      <circle cx="40" cy="10" r="3" fill="#f0c8ff" opacity="0.8"/>
+    </svg>`,
+  },
+  {
+    id: 'obsidian',
+    name: 'Обсидиановая',
+    minXP: 3000,
+    color: '#ff4b4b',
+    barColor: 'linear-gradient(90deg,#c00,#ff8060)',
+    bannerBg: 'linear-gradient(160deg,#2a0000,#0f1419)',
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#1a0000" opacity="0.7"/>
+      <rect x="30" y="68" width="20" height="10" rx="4" fill="#3a0000"/>
+      <rect x="22" y="62" width="36" height="8" rx="4" fill="#5a0808"/>
+      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#1a0808"/>
+      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#3a1010"/>
+      <rect x="14" y="16" width="52" height="8" rx="4" fill="#4a0808"/>
+      <rect x="10" y="20" width="12" height="20" rx="6" fill="#2a0808"/>
+      <rect x="58" y="20" width="12" height="20" rx="6" fill="#2a0808"/>
+      <!-- cracks/lava glow -->
+      <path d="M30 30 L38 38 L32 46" stroke="#ff4b4b" stroke-width="1.5" fill="none" opacity="0.8"/>
+      <path d="M50 28 L44 36 L48 44" stroke="#ff8060" stroke-width="1.5" fill="none" opacity="0.8"/>
+      <path d="M38 22 L40 32 L42 22" stroke="#ff4b4b" stroke-width="1" fill="none" opacity="0.6"/>
+      <circle cx="40" cy="38" r="9" fill="#ff4b4b" opacity="0.15"/>
+      <circle cx="40" cy="38" r="5" fill="#ff4b4b" opacity="0.25"/>
+      <!-- crown -->
+      <circle cx="40" cy="10" r="9" fill="#1a0808" stroke="#ff4b4b" stroke-width="1.5"/>
+      <polygon points="40,1 43.5,7 51,5 47,12 52,17 40,14 28,17 33,12 29,5 36.5,7" fill="#ff4b4b" opacity="0.9"/>
+      <circle cx="40" cy="10" r="4" fill="#ff8060" opacity="0.7"/>
+      <circle cx="40" cy="10" r="2" fill="white" opacity="0.5"/>
+    </svg>`,
+  },
+];
+
+function getCurrentLeague() {
+  let league = LEAGUES[0];
+  for (let i = LEAGUES.length - 1; i >= 0; i--) {
+    if (xp >= LEAGUES[i].minXP) { league = LEAGUES[i]; break; }
+  }
+  return league;
+}
+
+function getLeagueIndex(id) { return LEAGUES.findIndex(l => l.id === id); }
+
+function goLeague(el) {
+  showScreen('scr-league');
+  renderLeagueScreen();
+  navActive(el);
+}
+
+function renderLeagueScreen() {
+  const cur = getCurrentLeague();
+  const curIdx = getLeagueIndex(cur.id);
+  const next = LEAGUES[curIdx + 1] || null;
+
+  // Banner
+  document.getElementById('league-banner').style.background = cur.bannerBg;
+  document.getElementById('league-trophy').innerHTML = cur.trophy;
+  document.getElementById('league-trophy').style.cssText = 'width:90px;height:90px;margin:0 auto 10px;filter:drop-shadow(0 4px 16px ' + cur.color + '88);';
+  document.getElementById('league-name-big').textContent = cur.name + ' лига';
+  document.getElementById('league-name-big').style.color = cur.color;
+  document.getElementById('league-xp-range').textContent = next
+    ? cur.minXP + ' – ' + (next.minXP - 1) + ' XP'
+    : cur.minXP + '+ XP (максимальная!)';
+
+  // Progress bar
+  if (next) {
+    const range = next.minXP - cur.minXP;
+    const earned = xp - cur.minXP;
+    const pct = Math.min(100, Math.round((earned / range) * 100));
+    document.getElementById('league-bar').style.width = pct + '%';
+    document.getElementById('league-bar').style.background = cur.barColor;
+    document.getElementById('league-pct').textContent = pct + '%';
+    document.getElementById('league-next-label').textContent =
+      'До ' + next.name.toLowerCase() + ' лиги: ' + Math.max(0, next.minXP - xp) + ' XP';
+  } else {
+    document.getElementById('league-bar').style.width = '100%';
+    document.getElementById('league-bar').style.background = cur.barColor;
+    document.getElementById('league-pct').textContent = '100%';
+    document.getElementById('league-next-label').textContent = '🏅 Высшая лига достигнута!';
+  }
+
+  // All leagues list
+  const list = document.getElementById('all-leagues');
+  list.innerHTML = LEAGUES.map((l, i) => {
+    const isCur = l.id === cur.id;
+    const isDone = i < curIdx;
+    const isLocked = i > curIdx;
+    const badge = isCur
+      ? '<span class="league-badge badge-current">ТЕКУЩАЯ</span>'
+      : isDone
+        ? '<span class="league-badge badge-done">✓ ПРОЙДЕНА</span>'
+        : '<span class="league-badge badge-locked">🔒 ' + l.minXP + ' XP</span>';
+    return `
+      <div class="league-row ${isCur ? 'current' : ''} ${isLocked ? 'locked-league' : ''}">
+        <div class="league-trophy-sm" style="filter:drop-shadow(0 2px 8px ${l.color}66)">${l.trophy}</div>
+        <div class="league-info">
+          <div class="league-row-name" style="color:${isCur ? l.color : isLocked ? 'var(--text-muted)' : 'var(--text)'}">${l.name}</div>
+          <div class="league-row-req">${l.minXP === 0 ? 'Начальная лига' : 'от ' + l.minXP + ' XP'}</div>
+        </div>
+        ${badge}
+      </div>`;
+  }).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderPath();
+updateStats();
+</script>
+</body>
+</html>
