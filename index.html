@@ -259,6 +259,11 @@
   #path-container, .prof-body {
     margin-bottom: 10dvh;
   }
+
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(100dvh - env(safe-area-inset-bottom));
+  }
 </style>
 </head>
 <body>
