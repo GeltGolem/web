@@ -17,6 +17,7 @@
     --text: #FFFFFF;
     --text-muted: #8B95A1;
     --gold: #FFC800;
+    --purple: #9B59B6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
   body { background: #000; color: var(--text); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
@@ -49,12 +50,13 @@
   }
   .node:active { transform: scale(0.95);}
   .node.done { background: var(--primary); box-shadow: 0 8px 0 var(--primary-dark); color: white; }
-  .node.active { background: var(--secondary); box-shadow: 0 8px 0 #1899D6; color: white; animation: pulse 2s infinite; transition: background 0.2s, box-shadow 0.2s; }
+  .node.active { background: var(--secondary); box-shadow: 0 8px 0 #1899D6; color: white; animation: pulse 2s infinite; }
   .node.locked { background: var(--surface-light); color: var(--text-muted); cursor: not-allowed; box-shadow: 0 8px 0 #151A21; }
+  .node.locked:active { transform: none; }
+  .node.trophy-node { background: linear-gradient(135deg,#ffc800,#ff8c00); box-shadow: 0 8px 0 #b85c00; color: white; font-size: 32px; }
+  .node.trophy-node.locked { background: var(--surface-light); color: var(--text-muted); box-shadow: 0 8px 0 #151A21; }
   .node:nth-child(odd) { margin-right: 50px; }
   .node:nth-child(even) { margin-left: 50px; }
-  /* FIX: active node shouldn't scale on :active when locked */
-  .node.locked:active { transform: none; }
   @keyframes pulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
   /* LESSON */
@@ -79,10 +81,31 @@
   .opt.sel { border-color: var(--secondary); background: rgba(28, 176, 246, 0.1); }
   .opt.ok { border-color: var(--primary); background: rgba(88, 204, 2, 0.1); }
   .opt.err { border-color: var(--danger); background: rgba(255, 75, 75, 0.1); }
-  /* FIX: disable pointer events on options after answering */
   .opts.answered .opt { pointer-events: none; }
 
-  /* ACTION BAR — FIX: was position:fixed which caused overlap issues on iOS */
+  /* TYPING QUESTION */
+  .type-input-wrap { position: relative; margin-bottom: 4px; }
+  .type-input {
+    width: 100%; background: var(--surface); border: 2px solid var(--surface-light);
+    border-radius: 14px; padding: 14px 16px; color: var(--text);
+    font-size: 16px; font-family: 'Consolas', monospace; font-weight: 700;
+    outline: none; transition: border-color 0.2s; caret-color: var(--secondary);
+    min-height: 56px; resize: none; line-height: 1.5;
+  }
+  .type-input:focus { border-color: var(--secondary); }
+  .type-input.ok { border-color: var(--primary); background: rgba(88,204,2,0.07); }
+  .type-input.err { border-color: var(--danger); background: rgba(255,75,75,0.07); }
+  .hint-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .hint-chip {
+    background: var(--surface); border: 2px solid var(--surface-light); border-bottom-width: 3px;
+    padding: 8px 14px; border-radius: 10px; font-size: 14px; font-family: 'Consolas', monospace;
+    color: var(--text); cursor: pointer; transition: all 0.1s; font-weight: 700;
+    user-select: none;
+  }
+  .hint-chip:active { transform: translateY(2px); border-bottom-width: 1px; }
+  .hint-chip.used { opacity: 0.3; pointer-events: none; }
+
+  /* ACTION BAR */
   .action { position: sticky; left: 0; right: 0; padding: 16px; display: none; z-index: 20; margin-top: 16px; }
   .action.show { display: block; animation: slideUp 0.25s; }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -92,7 +115,31 @@
   .btn.go { background: var(--primary); color: white; box-shadow: 0 6px 0 var(--primary-dark); }
   .btn.go:hover:not(:disabled) { background: #66e002; }
   .btn.bad { background: var(--danger); color: white; box-shadow: 0 6px 0 #B30000; }
+  .btn.trophy-btn { background: linear-gradient(135deg,#ffc800,#ff8c00); color: white; box-shadow: 0 6px 0 #b85c00; }
   .btn:disabled { background: var(--surface-light); color: var(--text-muted); box-shadow: none; cursor: not-allowed; }
+
+  /* ── TROPHY TEST ─────────────────────────────────────────────── */
+  #scr-trophy.active { display: flex; flex-direction: column; }
+  .trophy-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: linear-gradient(135deg,#2a1a00,#1a1000); border-bottom: 1px solid #3a2a00; }
+  .trophy-head-title { font-size: 16px; font-weight: 800; color: var(--gold); flex: 1; text-align: center; }
+  .trophy-progress-track { flex: 1; height: 14px; background: rgba(0,0,0,0.4); border-radius: 7px; overflow: hidden; }
+  .trophy-progress-fill { height: 100%; background: linear-gradient(90deg,#ffc800,#ff8c00); width: 0%; transition: width 0.4s; border-radius: 7px; }
+  .trophy-content { flex: 1; overflow-y: auto; padding: 20px 16px; }
+  .trophy-q-label {
+    font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .trophy-q-title { font-size: 19px; font-weight: 700; margin-bottom: 18px; line-height: 1.35; }
+  .trophy-result-box { text-align: center; padding: 30px 20px; }
+  .trophy-result-box .big-icon { font-size: 72px; margin-bottom: 16px; display: block; animation: bounceIn 0.6s; }
+  @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+  .trophy-result-box h2 { font-size: 26px; font-weight: 900; margin-bottom: 10px; }
+  .trophy-result-box p { color: var(--text-muted); line-height: 1.5; font-size: 15px; }
+  .score-stars { font-size: 36px; margin: 16px 0; letter-spacing: 4px; }
+  .trophy-score-detail { background: var(--surface); border-radius: 14px; padding: 16px; margin: 16px 0; display: flex; justify-content: space-around; }
+  .trophy-score-item { text-align: center; }
+  .trophy-score-item .ts-val { font-size: 22px; font-weight: 900; }
+  .trophy-score-item .ts-lbl { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 2px; }
 
   /* PROFILE */
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -101,35 +148,45 @@
   .card .val { font-size: 18px; font-weight: 800; }
   .card .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
 
-  /* PROFILE BANNER */
+  /* ── PROFILE REDESIGN ─────────────────────────────────── */
   .prof-banner {
-    position: relative; margin: -20px -20px 0; padding: 28px 20px 80px;
-    background: linear-gradient(160deg, #1e2d6b 0%, #0d1b3e 60%, var(--bg) 100%);
+    position: relative; margin: -20px -20px 0; padding: 20px 20px 90px;
     overflow: visible;
   }
-  .prof-banner-title { font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; margin-left: 10px; }
+  .prof-banner-title { font-size: 13px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,0.7); margin-bottom: 4px; text-transform: uppercase; margin-left: 10px; }
 
-  /* AVATAR PICKER */
-  .ava-wrap { position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%); text-align: center; }
+  /* CHARACTER AVATAR */
+  .ava-wrap { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 5; }
   .ava {
-    width: 88px; height: 88px; border-radius: 50%;
+    width: 100px; height: 100px; border-radius: 50%;
     border: 4px solid var(--bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: 42px; cursor: pointer; position: relative;
+    font-size: 0; cursor: pointer; position: relative;
     transition: transform 0.15s;
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
   }
   .ava:active { transform: scale(0.94); }
   .ava-edit-badge {
-    position: absolute; bottom: 0; right: 0;
-    width: 24px; height: 24px; border-radius: 50%;
+    position: absolute; bottom: 4px; right: 4px;
+    width: 26px; height: 26px; border-radius: 50%;
     background: var(--secondary); border: 2px solid var(--bg);
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
+    font-size: 12px; z-index: 2;
   }
-  .ava-label { font-size: 10px; color: var(--text-muted); margin-top: 6px; font-weight: 700; }
+  .character-svg { width: 100%; height: 100%; }
 
-  /* AVATAR MODAL */
+  /* TITLE BADGE on profile */
+  .title-badge-display {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, rgba(255,200,0,0.2), rgba(255,140,0,0.1));
+    border: 1px solid rgba(255,200,0,0.4); border-radius: 20px;
+    padding: 4px 12px; font-size: 13px; font-weight: 800; color: var(--gold);
+    margin: 0 auto 4px; cursor: pointer;
+  }
+  .title-badge-display.none-title { color: var(--text-muted); background: var(--surface); border-color: var(--surface-light); }
+
+  /* AVATAR MODAL redesign */
   .modal-overlay {
     display: none; position: absolute; inset: 0;
     background: rgba(0,0,0,0.75); z-index: 50;
@@ -138,21 +195,40 @@
   .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
   .modal-sheet {
     width: 100%; background: var(--surface); border-radius: 24px 24px 0 0;
-    padding: 20px; max-height: 80vh; overflow-y: auto;
+    padding: 20px; max-height: 90vh; overflow-y: auto;
   }
-  .modal-title { font-size: 17px; font-weight: 800; margin-bottom: 16px; text-align: center; }
-  .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px; }
-  .avatar-opt {
-    aspect-ratio: 1; border-radius: 50%; font-size: 28px;
+  .modal-title { font-size: 17px; font-weight: 800; margin-bottom: 4px; text-align: center; }
+  .modal-subtitle { font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 16px; }
+  
+  /* Char customizer tabs */
+  .char-tabs { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .char-tabs::-webkit-scrollbar { display: none; }
+  .char-tab {
+    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 800;
+    cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    background: var(--surface-light); color: var(--text-muted); border: none;
+  }
+  .char-tab.active { background: var(--secondary); color: white; }
+
+  .char-preview-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+  .char-preview { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid var(--surface-light); background: #111; }
+
+  /* Grid for customization items */
+  .custom-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .custom-item {
+    aspect-ratio: 1; border-radius: 14px; font-size: 24px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; border: 3px solid transparent;
     transition: all 0.15s; background: var(--surface-light);
+    position: relative; overflow: hidden;
   }
-  .avatar-opt:active { transform: scale(0.9); }
-  .avatar-opt.picked { border-color: var(--secondary); background: rgba(28,176,246,0.15); }
+  .custom-item:active { transform: scale(0.9); }
+  .custom-item.picked { border-color: var(--secondary); background: rgba(28,176,246,0.15); }
+  .custom-item .locked-over { position: absolute; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 16px; border-radius: 12px; }
+  .custom-item.bg-item { font-size: 0; }
 
   /* EDIT FIELDS */
-  .prof-body { padding-top: 60px; }
+  .prof-body { padding-top: 64px; }
   .edit-section { margin-bottom: 20px; }
   .edit-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
   .edit-field {
@@ -163,20 +239,8 @@
   }
   .edit-field:focus { border-color: var(--secondary); }
   .edit-field::placeholder { color: var(--text-muted); font-weight: 400; }
-
-  /* USERNAME row */
   .username-row { display: flex; align-items: center; gap: 8px; }
   .username-at { font-size: 18px; font-weight: 800; color: var(--text-muted); padding-top: 2px; }
-
-  /* COLOR PICKER for banner */
-  .color-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .color-dot {
-    width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
-    border: 3px solid transparent; transition: all 0.15s;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .color-dot.picked { border-color: white; transform: scale(1.15); }
-  .color-dot:active { transform: scale(0.9); }
 
   /* STATS STRIP */
   .stats-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
@@ -184,10 +248,44 @@
   .stat-card .s-icon { font-size: 20px; margin-bottom: 4px; }
   .stat-card .s-val { font-size: 16px; font-weight: 800; }
   .stat-card .s-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
-
-  /* SAVE BTN */
   .save-wrap { padding: 0 0 16px; }
-  
+
+  /* ── ACHIEVEMENTS ─────────────────────────────────────────── */
+  .ach-header { text-align: center; margin-bottom: 24px; }
+  .ach-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .ach-header p { font-size: 13px; color: var(--text-muted); }
+  .ach-section-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; margin-top: 20px; }
+  .ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 4px; }
+  .ach-card {
+    background: var(--surface); border: 2px solid var(--surface-light);
+    border-radius: 16px; padding: 14px 10px; text-align: center;
+    position: relative; transition: all 0.2s; cursor: default;
+  }
+  .ach-card.unlocked { border-color: var(--gold); background: rgba(255,200,0,0.06); }
+  .ach-card.unlocked:active { transform: scale(0.97); }
+  .ach-icon { font-size: 32px; margin-bottom: 6px; display: block; }
+  .ach-name { font-size: 11px; font-weight: 800; color: var(--text); line-height: 1.2; margin-bottom: 3px; }
+  .ach-desc { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
+  .ach-card.locked-ach { opacity: 0.45; }
+  .ach-card.locked-ach .ach-icon { filter: grayscale(1); }
+  .ach-locked-icon { position: absolute; top: 8px; right: 8px; font-size: 10px; color: var(--text-muted); }
+  /* Title cards */
+  .titles-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+  .title-card {
+    background: var(--surface); border: 2px solid var(--surface-light);
+    border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .title-card.unlocked { border-color: rgba(255,200,0,0.4); }
+  .title-card.equipped { border-color: var(--gold); background: rgba(255,200,0,0.07); }
+  .title-card .t-icon { font-size: 28px; flex-shrink: 0; }
+  .title-card .t-info { flex: 1; }
+  .title-card .t-name { font-size: 15px; font-weight: 800; color: var(--gold); }
+  .title-card.locked-title .t-name { color: var(--text-muted); }
+  .title-card .t-req { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .title-card .t-equipped { font-size: 11px; font-weight: 800; color: var(--primary); background: rgba(88,204,2,0.1); padding: 3px 10px; border-radius: 10px; }
+  .title-card.locked-title { opacity: 0.4; cursor: not-allowed; }
+
   /* COMPLETION */
   .completion-box { text-align: center; margin-top: 40px; padding: 20px; }
   .completion-box h2 { font-size: 28px; margin-bottom: 16px; color: var(--gold); }
@@ -195,75 +293,89 @@
 
   /* NAV */
   .nav { display: flex; justify-content: space-around; align-items: center; padding: 8px 12px 10px; background: var(--surface); border-top: 1px solid var(--surface-light); position: absolute; bottom: 0; width: 100%; z-index: 20; height: 62px; }
-  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-muted); font-size: 10px; cursor: pointer; padding: 4px 20px; border-radius: 10px; transition: color 0.15s; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--text-muted); font-size: 10px; cursor: pointer; padding: 4px 16px; border-radius: 10px; transition: color 0.15s; }
   .nav-item:hover { color: var(--text); }
   .nav-item.active { color: var(--secondary); }
-  .nav-icon { font-size: 24px; }
+  .nav-icon { font-size: 22px; }
 
-  /* TOAST — новое улучшение */
+  /* TOAST */
   .toast { position: absolute; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--surface-light); color: var(--text); padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 100; border: 1px solid var(--surface-light); }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* STREAK BADGE на главной */
   .section-title { text-align: center; margin-bottom: 16px; color: var(--text-muted); font-size: 13px; letter-spacing: 1px; font-weight: 800; }
   .lesson-label { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 6px; text-align: center; max-width: 72px; }
   .node-wrap { display: flex; flex-direction: column; align-items: center; }
   .path .node-wrap:nth-child(odd) { margin-right: 50px; }
   .path .node-wrap:nth-child(even) { margin-left: 50px; }
-  /* override old margin rules since we now wrap */
   .path .node { margin: 0; }
 
   /* LEAGUE */
-  .league-row {
-    display: flex; align-items: center; gap: 14px;
-    background: var(--surface); border-radius: 16px;
-    padding: 14px 16px; border: 2px solid var(--surface-light);
-    transition: all 0.15s;
-  }
-  .league-row.current {
-    border-color: var(--gold);
-    background: rgba(255,200,0,0.06);
-    box-shadow: 0 0 0 1px rgba(255,200,0,0.2);
-  }
+  .league-row { display: flex; align-items: center; gap: 14px; background: var(--surface); border-radius: 16px; padding: 14px 16px; border: 2px solid var(--surface-light); transition: all 0.15s; }
+  .league-row.current { border-color: var(--gold); background: rgba(255,200,0,0.06); box-shadow: 0 0 0 1px rgba(255,200,0,0.2); }
   .league-row.locked-league { opacity: 0.45; }
   .league-trophy-sm { width: 52px; height: 52px; flex-shrink: 0; }
   .league-info { flex: 1; }
   .league-row-name { font-size: 16px; font-weight: 800; }
   .league-row-req  { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 700; }
-  .league-badge {
-    font-size: 11px; font-weight: 800; padding: 4px 10px;
-    border-radius: 20px; white-space: nowrap;
-  }
+  .league-badge { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
   .badge-current { background: var(--gold); color: #000; }
   .badge-done    { background: var(--primary); color: #fff; }
   .badge-locked  { background: var(--surface-light); color: var(--text-muted); }
 
+  .node.locked:hover { border: solid 1px red; transform: translateY(-5px); box-shadow: 0 0px 25px 0px rgb(214 29 29 / 66%); }
+  .node.active:hover { background: #49e965; box-shadow: 0 8px 0 #11b52f; }
+  #scr-lesson.active { display: flex; flex-direction: column; }
+  #act-area { margin-top: auto; }
+  #path-container, .prof-body { margin-bottom: 10dvh; }
+  body { padding-bottom: env(safe-area-inset-bottom); height: calc(100dvh - env(safe-area-inset-bottom)); }
 
-  .node.locked:hover {
-    border: solid 1px red;
-    transform: translateY(-5px);
-    box-shadow: 0 0px 25px 0px rgb(214 29 29 / 66%);
-  }
-  .node.active:hover {
-      background: #49e965;
-      box-shadow: 0 8px 0 #11b52f;
-  }
+  /* BANNER PATTERNS */
+  .pattern-dots { background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px); background-size: 16px 16px; }
+  .pattern-grid { background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 20px 20px; }
+  .pattern-diag { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0, rgba(255,255,255,0.06) 1px, transparent 0, transparent 50%); background-size: 14px 14px; }
+  .pattern-waves { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='12'%3E%3Cpath d='M0 6 Q10 0 20 6 Q30 12 40 6' stroke='rgba(255,255,255,0.12)' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: repeat; }
 
-  #scr-lesson.active {
-    display: flex;
-    flex-direction: column;
+  /* Dev neon titles */
+  @keyframes neon-blood {
+    0%, 100% { text-shadow: 0 0 6px #ff0000, 0 0 14px #cc0000, 0 0 28px #880000; }
+    50%       { text-shadow: 0 0 10px #ff2222, 0 0 22px #ff0000, 0 0 40px #aa0000; }
   }
-  #act-area {
-    margin-top: auto;
+  @keyframes neon-tech {
+    0%, 100% { text-shadow: 0 0 6px #00ff88, 0 0 14px #00cc66, 0 0 28px #008844; }
+    50%       { text-shadow: 0 0 10px #22ffaa, 0 0 22px #00ff88, 0 0 40px #00aa55; }
   }
-  #path-container, .prof-body {
-    margin-bottom: 10dvh;
+  .title-neon-blood {
+    color: #ff3333 !important;
+    animation: neon-blood 2s ease-in-out infinite;
   }
+  .title-neon-tech {
+    color: #00ff88 !important;
+    animation: neon-tech 2s ease-in-out infinite;
+  }
+  .title-badge-blood {
+    background: rgba(180,0,0,0.18) !important;
+    border-color: rgba(255,0,0,0.5) !important;
+    animation: neon-blood 2s ease-in-out infinite;
+    color: #ff3333 !important;
+  }
+  .title-badge-tech {
+    background: rgba(0,180,80,0.12) !important;
+    border-color: rgba(0,255,136,0.5) !important;
+    animation: neon-tech 2s ease-in-out infinite;
+    color: #00ff88 !important;
+  }
+  .prof-username-display { text-align: center; padding-top: 58px; margin-bottom: 8px; }
+  .prof-username-display .disp-name { font-size: 20px; font-weight: 900; }
+  .prof-username-display .disp-user { font-size: 13px; color: var(--text-muted); font-weight: 700; }
 
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-    height: calc(100dvh - env(safe-area-inset-bottom));
-  }
+  /* Tabs on profile */
+  .prof-tabs { display: flex; gap: 0; margin-bottom: 20px; background: var(--surface); border-radius: 14px; padding: 4px; }
+  .prof-tab { flex: 1; text-align: center; padding: 10px 6px; border-radius: 10px; font-size: 13px; font-weight: 800; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .prof-tab.active { background: var(--bg); color: var(--text); }
+
+  /* XP/streak highlight */
+  .streak-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+  .streak-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); border-radius: 20px; padding: 8px 16px; font-weight: 800; font-size: 14px; border: 1px solid var(--surface-light); }
 </style>
 </head>
 <body>
@@ -272,18 +384,19 @@
   <header class="top-bar">
     <div class="stat-pill hearts">❤️ <span id="h-count">5</span></div>
     <div class="stat-pill gems">⚡ <span id="g-count">0</span></div>
-    <!-- FIX: убрана кракозябра 🇺, заменена на нормальный флаг Pascal -->
     <div class="stat-pill">📘 Pascal</div>
   </header>
 
   <div class="toast" id="toast"></div>
 
   <main class="content">
+    <!-- HOME -->
     <div id="scr-home" class="screen active">
       <h2 class="section-title">МОДУЛЬ 1: ОСНОВЫ PASCAL</h2>
       <div class="path" id="path-container"></div>
     </div>
 
+    <!-- LESSON -->
     <div id="scr-lesson" class="screen" style="padding: 16px;">
       <div class="lesson-head">
         <button class="close-btn" onclick="closeLesson()">✕</button>
@@ -291,102 +404,233 @@
         <div class="hearts-lesson">❤️ <span id="h-lesson">5</span></div>
       </div>
       <div id="q-area"></div>
-      <!-- FIX: action bar перенесён внутрь контента урока, чтобы не перекрывал -->
       <div class="action" id="act-area">
         <button class="btn go" id="act-btn" onclick="actClick()" disabled>ПРОВЕРИТЬ</button>
       </div>
     </div>
 
+    <!-- TROPHY TEST -->
+    <div id="scr-trophy" class="screen" style="padding:0;">
+      <div class="trophy-head" style="position:sticky;top:0;z-index:10;">
+        <button class="close-btn" onclick="closeTrophy()">✕</button>
+        <div class="trophy-head-title">🏆 ФИНАЛЬНЫЙ ТЕСТ</div>
+        <div class="trophy-progress-track"><div class="trophy-progress-fill" id="trophy-prog"></div></div>
+        <div id="trophy-hearts-disp" style="color:var(--danger);font-weight:800;font-size:16px;white-space:nowrap;">❤️5</div>
+      </div>
+      <div class="trophy-content" id="trophy-area"></div>
+      <div class="action" id="trophy-act-area" style="margin-top:auto;">
+        <button class="btn trophy-btn" id="trophy-act-btn" onclick="trophyActClick()" disabled>ПРОВЕРИТЬ</button>
+      </div>
+    </div>
+
+    <!-- COMPLETION -->
     <div id="scr-completion" class="screen">
       <div class="completion-box">
         <div style="font-size:60px; margin-bottom:20px;">🏆</div>
         <h2>Модуль пройден!</h2>
-        <p>Ты успешно освоил базовый синтаксис Pascal. Голем гордится тобой! Теперь ты готов к изучению циклов, условий и написанию первых программ.</p>
+        <p>Ты успешно освоил базовый синтаксис Pascal. Голем гордится тобой!</p>
         <p style="color:var(--gold); font-weight:700; margin-bottom: 8px;">+100 XP за завершение модуля</p>
         <button class="btn go" style="margin-top:20px;" onclick="finishModule()">ВЕРНУТЬСЯ НА ГЛАВНУЮ</button>
       </div>
     </div>
 
+    <!-- PROFILE -->
     <div id="scr-profile" class="screen" style="padding:0; overflow:visible;">
-
-      <!-- BANNER -->
-      <div class="prof-banner" id="prof-banner" style="margin-bottom: 24px;">
-        <div class="prof-banner-title">МОЙ ПРОФИЛЬ</div>
+      <div class="prof-banner" id="prof-banner">
+        <div id="prof-banner-pattern" style="position:absolute;inset:0;border-radius:0;opacity:1;pointer-events:none;"></div>
+        <div class="prof-banner-title" style="position:relative;z-index:2;">МОЙ ПРОФИЛЬ</div>
         <div class="ava-wrap">
-          <div class="ava" id="prof-ava" onclick="openAvaModal()" style="background:linear-gradient(135deg,#5A4FCF,#2C2763);">
-            <span id="prof-ava-emoji">🤖</span>
-            <div class="ava-edit-badge">✏️</div>
+          <div class="ava" id="prof-ava" onclick="onAvaTap()">
+            <svg class="character-svg" id="char-display-svg" viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"></svg>
+            <canvas id="ava-upload-canvas" width="200" height="200" style="display:none;width:100%;height:100%;border-radius:50%;"></canvas>
+            <div class="ava-edit-badge" id="ava-edit-badge">✏️</div>
           </div>
-          <!--div class="ava-label">АВАТАР</div-->
+          <input type="file" id="ava-file-input" accept="image/*" style="display:none;">
         </div>
       </div>
 
-      <!-- BODY -->
       <div class="prof-body" style="padding: 0 20px 20px;">
-
-        <!-- STATS STRIP -->
-        <div class="stats-strip">
-          <div class="stat-card"><div class="s-icon">🔥</div><div class="s-val" id="p-streak">3</div><div class="s-lbl">Серия</div></div>
-          <div class="stat-card"><div class="s-icon">⚡</div><div class="s-val" id="p-xp">0</div><div class="s-lbl">XP</div></div>
-          <div class="stat-card"><div class="s-icon">🏆</div><div class="s-val" id="p-league-val" style="font-size:13px;">—</div><div class="s-lbl">Лига</div></div>
-          <div class="stat-card"><div class="s-icon">✅</div><div class="s-val" id="p-lessons">0/5</div><div class="s-lbl">Уроки</div></div>
+        <div class="prof-username-display">
+          <div class="disp-name" id="prof-disp-name">Akim</div>
+          <div class="disp-user" id="prof-disp-user">@AkimCode</div>
         </div>
 
-        <!-- NAME -->
-        <div class="edit-section">
-          <div class="edit-label">Имя</div>
-          <input class="edit-field" id="edit-name" type="text" maxlength="24" placeholder="Твоё имя" value="Akim"/>
+        <!-- Avatar crop controls – shown after EMPEROR77 unlock -->
+        <div id="ava-crop-controls" style="display:none;background:var(--surface);border-radius:14px;padding:14px;border:1px solid var(--surface-light);margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:10px;font-weight:800;color:var(--text-muted);width:52px;">МАСШТАБ</span>
+            <input type="range" id="ava-zoom" min="100" max="300" value="100" step="1" style="flex:1;" oninput="drawAvaUpload()">
+            <span id="ava-zoom-val" style="font-size:10px;font-weight:800;color:var(--text-muted);width:32px;">100%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:10px;font-weight:800;color:var(--text-muted);width:52px;">ПО X</span>
+            <input type="range" id="ava-ox" min="-100" max="100" value="0" step="1" style="flex:1;" oninput="drawAvaUpload()">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <span style="font-size:10px;font-weight:800;color:var(--text-muted);width:52px;">ПО Y</span>
+            <input type="range" id="ava-oy" min="-100" max="100" value="0" step="1" style="flex:1;" oninput="drawAvaUpload()">
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn go" style="flex:1;padding:10px;" onclick="applyAvaUpload()">✓ ПРИМЕНИТЬ</button>
+            <button class="btn" style="flex:0 0 auto;padding:10px 14px;background:var(--surface-light);color:var(--text-muted);box-shadow:none;font-size:16px;" onclick="document.getElementById('ava-file-input').click()">📷</button>
+          </div>
         </div>
-
-        <!-- USERNAME -->
-        <div class="edit-section">
-          <div class="edit-label">Имя пользователя</div>
-          <div class="username-row">
-            <span class="username-at">@</span>
-            <input class="edit-field" id="edit-username" type="text" maxlength="20" placeholder="username" value="AkimCode" style="flex:1;"/>
+        <div style="text-align:center;margin-bottom:16px;">
+          <div class="title-badge-display none-title" id="equipped-title-badge" onclick="goAchievements(document.getElementById('nav-ach'))">
+            <span id="equipped-title-icon">🎖️</span>
+            <span id="equipped-title-text">Нет титула</span>
           </div>
         </div>
 
-        <!-- BIO -->
-        <div class="edit-section">
-          <div class="edit-label">О себе</div>
-          <textarea class="edit-field" id="edit-bio" maxlength="80" placeholder="Расскажи о себе..." rows="2" style="resize:none; line-height:1.5;">Учу Pascal 🚀</textarea>
+        <div class="streak-row">
+          <div class="streak-pill">🔥 <span id="p-streak">3</span> дней</div>
+          <div class="streak-pill">⚡ <span id="p-xp">0</span> XP</div>
+          <div class="streak-pill">✅ <span id="p-lessons">0/5</span></div>
         </div>
 
-        <!-- BANNER COLOR -->
-        <div class="edit-section">
-          <div class="edit-label">Цвет баннера</div>
-          <div class="color-row" id="color-row"></div>
+        <!-- Profile Tabs -->
+        <div class="prof-tabs">
+          <div class="prof-tab active" id="ptab-edit" onclick="switchProfTab('edit')">Профиль</div>
+          <div class="prof-tab" id="ptab-look" onclick="switchProfTab('look')">Внешний вид</div>
         </div>
 
-        <!-- SAVE -->
-        <div class="save-wrap">
-          <button class="btn go" onclick="saveProfile()">СОХРАНИТЬ</button>
+        <!-- Tab: Edit -->
+        <div id="ptab-content-edit">
+          <div class="edit-section">
+            <div class="edit-label">Имя</div>
+            <input class="edit-field" id="edit-name" type="text" maxlength="24" placeholder="Твоё имя" value="Akim"/>
+          </div>
+          <div class="edit-section">
+            <div class="edit-label">Имя пользователя</div>
+            <div class="username-row">
+              <span class="username-at">@</span>
+              <input class="edit-field" id="edit-username" type="text" maxlength="20" placeholder="username" value="AkimCode" style="flex:1;"/>
+            </div>
+          </div>
+          <div class="edit-section">
+            <div class="edit-label">О себе</div>
+            <textarea class="edit-field" id="edit-bio" maxlength="80" placeholder="Расскажи о себе..." rows="2" style="resize:none; line-height:1.5;">Учу Pascal 🚀</textarea>
+          </div>
+          <div class="save-wrap">
+            <button class="btn go" onclick="saveProfile()">СОХРАНИТЬ</button>
+          </div>
         </div>
 
-      </div><!-- /prof-body -->
+        <!-- Tab: Look -->
+        <div id="ptab-content-look" style="display:none;">
+          <div class="edit-section">
+            <div class="edit-label">Цвет фона баннера</div>
+            <div id="banner-bg-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;"></div>
+          </div>
+          <div class="edit-section">
+            <div class="edit-label">Узор баннера</div>
+            <div id="banner-pattern-row" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+          </div>
+          <div style="padding-bottom:20px;">
+            <button class="btn go" onclick="saveProfile()">СОХРАНИТЬ</button>
+          </div>
+          <!-- SECRET CODE PANEL -->
+          <div class="edit-section" style="margin-top:8px;">
+            <div class="edit-label" style="letter-spacing:2px;">🔒 СЕКРЕТНЫЙ КОД</div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input class="edit-field" id="secret-code-input" type="text" maxlength="20"
+                placeholder="Введи код..." style="flex:1;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"
+                oninput="this.value=this.value.toUpperCase()"/>
+              <button class="btn go" style="width:auto;padding:14px 20px;white-space:nowrap;" onclick="trySecretCode()">ВВЕСТИ</button>
+            </div>
+            <div id="secret-result" style="font-size:12px;font-weight:800;margin-top:8px;min-height:18px;"></div>
+          </div>
+
+          <!-- EXPORT / IMPORT SAVE -->
+          <div class="edit-section" style="margin-top:8px;">
+            <div class="edit-label" style="letter-spacing:2px;">💾 ПЕРЕНОС ПРОГРЕССА</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <textarea id="save-export-code" rows="2" class="edit-field" readonly
+                placeholder="Нажми — получишь код для переноса"
+                style="flex:1;font-family:monospace;font-size:11px;resize:none;line-height:1.4;"></textarea>
+              <button class="btn go" style="width:auto;padding:14px 14px;white-space:nowrap;align-self:stretch;" onclick="exportSave()">📤</button>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <input class="edit-field" id="save-import-code" type="text"
+                placeholder="Вставь код для загрузки прогресса"
+                style="flex:1;font-family:monospace;font-size:12px;"/>
+              <button class="btn" style="width:auto;padding:14px 14px;background:var(--surface-light);color:var(--text-muted);box-shadow:none;" onclick="importSave()">📥</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Скопируй код → вставь на другом устройстве</div>
+          </div>
+
+        </div>
+      </div>
 
       <!-- AVATAR MODAL -->
       <div class="modal-overlay" id="ava-modal" onclick="closeAvaModal(event)">
         <div class="modal-sheet">
-          <div class="modal-title">Выбери аватар</div>
-          <div class="avatar-grid" id="avatar-grid"></div>
+          <div class="modal-title">Настроить персонажа</div>
+          <div class="modal-subtitle">Выбери внешний вид своего героя</div>
+
+          <div class="char-preview-wrap">
+            <div class="char-preview" id="modal-char-preview">
+              <svg id="modal-char-svg" viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg" width="120" height="120"></svg>
+            </div>
+          </div>
+
+          <div class="char-tabs">
+            <button class="char-tab active" onclick="switchCharTab('body')">🧍 Тело</button>
+            <button class="char-tab" onclick="switchCharTab('outfit')">👕 Одежда</button>
+            <button class="char-tab" onclick="switchCharTab('mask')">🎭 Маска</button>
+            <button class="char-tab" onclick="switchCharTab('bg')">🌈 Фон</button>
+          </div>
+
+          <div id="char-tab-body">
+            <div class="edit-label">Скин</div>
+            <div class="custom-grid" id="body-grid"></div>
+          </div>
+          <div id="char-tab-outfit" style="display:none;">
+            <div class="edit-label">Наряд</div>
+            <div class="custom-grid" id="outfit-grid"></div>
+          </div>
+          <div id="char-tab-mask" style="display:none;">
+            <div class="edit-label">Маска / Аксессуар</div>
+            <div class="custom-grid" id="mask-grid"></div>
+          </div>
+          <div id="char-tab-bg" style="display:none;">
+            <div class="edit-label">Фон аватара</div>
+            <div class="custom-grid" id="bg-grid"></div>
+          </div>
+
           <button class="btn go" onclick="confirmAvatar()">ГОТОВО</button>
         </div>
       </div>
-
     </div>
 
+    <!-- ACHIEVEMENTS -->
+    <div id="scr-ach" class="screen" style="padding-bottom:10dvh;">
+      <div class="ach-header">
+        <h2>🏅 Достижения</h2>
+        <p id="ach-count-label">0 из 12 разблокировано</p>
+      </div>
+
+      <div class="ach-section-title">ПРОГРЕСС</div>
+      <div class="ach-grid" id="ach-grid-progress"></div>
+
+      <div class="ach-section-title">СЕРИИ И АКТИВНОСТЬ</div>
+      <div class="ach-grid" id="ach-grid-streak"></div>
+
+      <div class="ach-section-title">ТЕСТЫ И МАСТЕРСТВО</div>
+      <div class="ach-grid" id="ach-grid-mastery"></div>
+
+      <div class="ach-section-title">ТИТУЛЫ</div>
+      <div class="titles-list" id="titles-list"></div>
+    </div>
+
+    <!-- LEAGUE -->
     <div id="scr-league" class="screen" style="padding:0;">
-      <!-- Trophy banner -->
       <div id="league-banner" style="padding:28px 20px 24px; text-align:center; position:relative;margin-bottom: 24px;">
         <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:12px;">ТЕКУЩАЯ ЛИГА</div>
-        <div id="league-trophy" style="margin:0 auto 10px;"></div>
+        <div id="league-trophy"></div>
         <div id="league-name-big" style="font-size:26px;font-weight:900;color:white;text-shadow:0 2px 12px rgba(0,0,0,0.4);"></div>
         <div id="league-xp-range" style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px;font-weight:700;"></div>
       </div>
-
-      <!-- XP progress to next league -->
       <div style="padding:0 20px 20px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <span style="font-size:12px;font-weight:800;color:var(--text-muted);">ПРОГРЕСС ДО СЛЕДУЮЩЕЙ ЛИГИ</span>
@@ -397,8 +641,6 @@
         </div>
         <div id="league-next-label" style="font-size:11px;color:var(--text-muted);margin-top:6px;text-align:right;font-weight:700;"></div>
       </div>
-
-      <!-- All leagues showcase -->
       <div style="padding:0 20px 20px;margin-bottom:10dvh">
         <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:14px;">ВСЕ ЛИГИ</div>
         <div id="all-leagues" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -410,23 +652,993 @@
   <nav class="nav">
     <div class="nav-item active" id="nav-home" onclick="goHome(this)"><div class="nav-icon">🏠</div><span>Главная</span></div>
     <div class="nav-item" id="nav-league" onclick="goLeague(this)"><div class="nav-icon">🏆</div><span>Лига</span></div>
+    <div class="nav-item" id="nav-ach" onclick="goAchievements(this)"><div class="nav-icon">🏅</div><span>Успехи</span></div>
     <div class="nav-item" id="nav-profile" onclick="goProfile(this)"><div class="nav-icon">👤</div><span>Профиль</span></div>
   </nav>
 </div>
 
 <script>
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let xp = 0;           // FIX: было 450 — XP начинается с нуля
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let xp = 0;
 let hearts = 5;
 let currentLessonIdx = 0;
 let currentQIdx = 0;
 let selectedOption = null;
 let shuffledQuestions = [];
 let lessonCompleted = [false, false, false, false, false];
+let trophyTestDone = false;
 let lessonErrors = 0;
-let answered = false;  // FIX: новый флаг, предотвращает повторный клик "Проверить"
+let answered = false;
 
-// ─── LESSONS DATA ────────────────────────────────────────────────────────────
+// ─── TROPHY TEST STATE ────────────────────────────────────────────────────────
+let trophyQuestions = [];
+let trophyQIdx = 0;
+let trophyHearts = 5;
+let trophyErrors = 0;
+let trophyCorrect = 0;
+let trophyAnswered = false;
+let trophyTypedAnswer = '';
+
+// ─── CHARACTER STATE ──────────────────────────────────────────────────────────
+let charState = {
+  body: 0, outfit: 0, mask: 0, bg: 0,
+  tempBody: 0, tempOutfit: 0, tempMask: 0, tempBg: 0,
+};
+
+// ─── SAVE / LOAD ──────────────────────────────────────────────────────────────
+const SAVE_KEY = 'glentcode_save_v1';
+
+function saveState() {
+  try {
+    const data = {
+      xp, hearts,
+      lessonCompleted,
+      trophyTestDone, trophyErrors,
+      charState: { body: charState.body, outfit: charState.outfit, mask: charState.mask, bg: charState.bg },
+      unlockedSecrets: [...unlockedSecrets],
+      profileData,
+      emperorMode: _emperorMode,
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.xp !== undefined) xp = d.xp;
+    if (d.hearts !== undefined) hearts = d.hearts;
+    if (d.lessonCompleted) lessonCompleted = d.lessonCompleted;
+    if (d.trophyTestDone !== undefined) trophyTestDone = d.trophyTestDone;
+    if (d.trophyErrors !== undefined) trophyErrors = d.trophyErrors;
+    if (d.charState) {
+      charState.body = d.charState.body || 0;
+      charState.outfit = d.charState.outfit || 0;
+      charState.mask = d.charState.mask || 0;
+      charState.bg = d.charState.bg || 0;
+    }
+    if (d.unlockedSecrets) unlockedSecrets = new Set(d.unlockedSecrets);
+    if (d.profileData) profileData = Object.assign(profileData, d.profileData);
+    if (d.emperorMode) {
+      setTimeout(() => initAvaUpload(), 200);
+    }
+  } catch(e) {}
+}
+
+function exportSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY) || '{}';
+    const code = btoa(unescape(encodeURIComponent(raw)));
+    const el = document.getElementById('save-export-code');
+    el.value = code;
+    el.select();
+    document.execCommand('copy');
+    showToast('📋 Код скопирован!');
+  } catch(e) { showToast('❌ Ошибка экспорта'); }
+}
+
+function importSave() {
+  const code = document.getElementById('save-import-code').value.trim();
+  if (!code) { showToast('❗ Вставь код'); return; }
+  try {
+    const raw = decodeURIComponent(escape(atob(code)));
+    localStorage.setItem(SAVE_KEY, raw);
+    showToast('✅ Прогресс загружен! Перезагружаю...');
+    setTimeout(() => location.reload(), 1200);
+  } catch(e) { showToast('❌ Неверный код'); }
+}
+
+const CHAR_BODIES = [
+  // idx 0 – Dragon Anonymous (default)
+  { label: '🐲', colors: ['#1e6b10','#0f3a06'], name: 'Дракон', special: 'dragon_anon' },
+  // idx 1-5 – standard humans
+  { label: '🧑', colors: ['#FDBCB4','#c97b5a'], name: 'Светлый' },
+  { label: '🧑🏻', colors: ['#F0C896','#b07a3a'], name: 'Загорелый' },
+  { label: '🧑🏿', colors: ['#8D5524','#5c3010'], name: 'Тёмный' },
+  { label: '🤖', colors: ['#4A41C0','#2C2763'], name: 'Робот' },
+  { label: '👽', colors: ['#1a6b2a','#0a3015'], name: 'Инопланетянин' },
+  { label: '💀', colors: ['#333','#111'], name: 'Скелет' },
+  // idx 7 – SECRET: Raccoon Dev (code: RACCOONDEV)
+  { label: '🦝', colors: ['#555566','#333344'], name: '???', special: 'raccoon_dev', secret: true },
+  // idx 8 – SECRET: Emperor (code: EMPEROR77)
+  { label: '⚔️', colors: ['#f2e4da','#d4b8a8'], name: '???', special: 'emperor', secret: true },
+];
+
+// Secret character unlock codes
+const SECRET_CODES = {
+  'RACCOONDEV': 7,
+  'EMPEROR77': 8,
+};
+let unlockedSecrets = new Set();
+
+// Outfits: full SVG torso drawn in buildCharSVG based on id
+const CHAR_OUTFITS = [
+  { id:'tshirt_blue',  name:'Синяя футболка',   c1:'#3a7bd5', c2:'#2a5ba5', c3:'#1e4a8a' },
+  { id:'tshirt_green', name:'Зелёная футболка',  c1:'#27ae60', c2:'#1e8a48', c3:'#145e30' },
+  { id:'hoodie',       name:'Худи',              c1:'#555e6b', c2:'#3a434f', c3:'#252d38' },
+  { id:'robe',         name:'Мантия',            c1:'#1a1a5a', c2:'#10103a', c3:'#0a0a28' },
+  { id:'armor',        name:'Броня',             c1:'#8a9aaa', c2:'#6a7a8a', c3:'#4a5a6a' },
+  { id:'ninja',        name:'Костюм ниндзя',     c1:'#1a1a1a', c2:'#111',    c3:'#000'    },
+  { id:'wizard',       name:'Мантия мага',       c1:'#6b2fa0', c2:'#4a1a70', c3:'#2a0a40' },
+  { id:'king',         name:'Королевский наряд', c1:'#c0880a', c2:'#906000', c3:'#603e00' },
+  // SECRET: Raccoon Dev hoodie (only for raccoon_dev body)
+  { id:'dev_hoodie',     name:'Худи разраба',      c1:'#1a1a2a', c2:'#0d0d1a', c3:'#050510', secret:'raccoon_dev' },
+  // SECRET: Emperor cloak (only for emperor body)
+  { id:'emperor_cloak',  name:'Форма Ракузана',    c1:'#8b0000', c2:'#6a0000', c3:'#440000', secret:'emperor' },
+];
+
+// Masks: each has an svg() function that draws it directly on face coords
+const CHAR_MASKS = [
+  {
+    id:'none', name:'Нет маски', noMask:true,
+    svg: () => ''
+  },
+  {
+    id:'glasses', name:'Очки',
+    preview:'😎',
+    svg: () => `
+      <!-- Glasses sitting right on eyes (eyes at y~31) -->
+      <rect x="27" y="26" width="18" height="12" rx="6" fill="none" stroke="#111" stroke-width="2.5"/>
+      <rect x="55" y="26" width="18" height="12" rx="6" fill="none" stroke="#111" stroke-width="2.5"/>
+      <rect x="27" y="26" width="18" height="12" rx="6" fill="#111" opacity="0.25"/>
+      <rect x="55" y="26" width="18" height="12" rx="6" fill="#111" opacity="0.25"/>
+      <line x1="45" y1="32" x2="55" y2="32" stroke="#333" stroke-width="2"/>
+      <line x1="27" y1="32" x2="21" y2="30" stroke="#333" stroke-width="2"/>
+      <line x1="73" y1="32" x2="79" y2="30" stroke="#333" stroke-width="2"/>
+    `
+  },
+  {
+    id:'fox', name:'Маска лисы',
+    preview:'🦊',
+    svg: () => `
+      <!-- Fox ear horns -->
+      <path d="M23 22 L31 12 L39 22 Z" fill="#e0681a" stroke="#c04a00" stroke-width="0.8"/>
+      <path d="M77 22 L69 12 L61 22 Z" fill="#e0681a" stroke="#c04a00" stroke-width="0.8"/>
+      <path d="M26 22 L31 16 L36 22 Z" fill="#f5a87a"/>
+      <path d="M74 22 L69 16 L64 22 Z" fill="#f5a87a"/>
+      <!-- Fox face mask covering eyes+nose -->
+      <path d="M24 18 Q50 10 76 18 Q78 28 76 40 Q50 48 24 40 Q22 28 24 18Z" fill="#e0681a" opacity="0.9"/>
+      <!-- Eye holes -->
+      <ellipse cx="37" cy="30" rx="9" ry="9" fill="#1a0800" opacity="0.85"/>
+      <ellipse cx="63" cy="30" rx="9" ry="9" fill="#1a0800" opacity="0.85"/>
+      <ellipse cx="37" cy="30" rx="6.5" ry="6.5" fill="#ffc060" opacity="0.95"/>
+      <ellipse cx="63" cy="30" rx="6.5" ry="6.5" fill="#ffc060" opacity="0.95"/>
+      <circle cx="37" cy="30" r="4" fill="#1a0800"/>
+      <circle cx="63" cy="30" r="4" fill="#1a0800"/>
+      <circle cx="38.5" cy="28.5" r="1.5" fill="white" opacity="0.85"/>
+      <circle cx="64.5" cy="28.5" r="1.5" fill="white" opacity="0.85"/>
+      <!-- White muzzle area -->
+      <ellipse cx="50" cy="42" rx="12" ry="7" fill="#fff5ee" opacity="0.9"/>
+      <!-- Nose -->
+      <ellipse cx="50" cy="40" rx="4" ry="3" fill="#c04a00"/>
+      <circle cx="50" cy="39" r="2" fill="#8a2800"/>
+      <!-- Smile -->
+      <path d="M43 44 Q50 50 57 44" stroke="#8a2800" stroke-width="1.5" fill="none"/>
+      <!-- Whiskers -->
+      <line x1="30" y1="42" x2="43" y2="43" stroke="#8a2800" stroke-width="0.8" opacity="0.7"/>
+      <line x1="57" y1="43" x2="70" y2="42" stroke="#8a2800" stroke-width="0.8" opacity="0.7"/>
+      <line x1="30" y1="44" x2="43" y2="44" stroke="#8a2800" stroke-width="0.8" opacity="0.5"/>
+      <line x1="57" y1="44" x2="70" y2="44" stroke="#8a2800" stroke-width="0.8" opacity="0.5"/>
+    `
+  },
+  {
+    id:'skull', name:'Маска черепа',
+    preview:'💀',
+    svg: () => `
+      <!-- Full skull mask -->
+      <ellipse cx="50" cy="32" rx="26" ry="28" fill="#eeeee0" opacity="0.97"/>
+      <ellipse cx="50" cy="44" rx="15" ry="13" fill="#eeeee0" opacity="0.97"/>
+      <!-- Cracks -->
+      <path d="M50 8 L48 14 L52 20 L49 26" stroke="#ccc" stroke-width="1.2" fill="none"/>
+      <path d="M36 12 Q30 16 32 24" stroke="#ccc" stroke-width="1" fill="none"/>
+      <!-- Eye sockets -->
+      <ellipse cx="36" cy="30" rx="10" ry="11" fill="#1a1a1a" opacity="0.95"/>
+      <ellipse cx="64" cy="30" rx="10" ry="11" fill="#1a1a1a" opacity="0.95"/>
+      <circle cx="36" cy="30" r="4" fill="#2a2aff" opacity="0.35"/>
+      <circle cx="64" cy="30" r="4" fill="#2a2aff" opacity="0.35"/>
+      <!-- Nose hole -->
+      <path d="M46 40 L50 46 L54 40 Q50 36 46 40Z" fill="#222" opacity="0.7"/>
+      <!-- Teeth grin -->
+      <rect x="33" y="50" width="34" height="13" rx="5" fill="#ddd"/>
+      <rect x="37" y="50" width="5" height="13" fill="#1a1a1a" opacity="0.8"/>
+      <rect x="46" y="50" width="5" height="13" fill="#1a1a1a" opacity="0.8"/>
+      <rect x="55" y="50" width="5" height="13" fill="#1a1a1a" opacity="0.8"/>
+      <!-- Jaw detail -->
+      <path d="M33 50 Q50 47 67 50" stroke="#bbb" stroke-width="1.5" fill="none"/>
+    `
+  },
+  {
+    id:'lightning', name:'Маска молнии',
+    preview:'⚡',
+    svg: () => `
+      <!-- Full lightning mask -->
+      <path d="M24 16 Q50 8 76 16 Q80 32 76 52 Q50 58 24 52 Q20 32 24 16Z" fill="rgba(15,15,55,0.92)"/>
+      <!-- Eye lenses glowing -->
+      <ellipse cx="37" cy="31" rx="10" ry="9" fill="rgba(0,0,0,0.4)"/>
+      <ellipse cx="63" cy="31" rx="10" ry="9" fill="rgba(0,0,0,0.4)"/>
+      <ellipse cx="37" cy="31" rx="8" ry="7" fill="#ffd700" opacity="0.92"/>
+      <ellipse cx="63" cy="31" rx="8" ry="7" fill="#ffd700" opacity="0.92"/>
+      <ellipse cx="37" cy="31" rx="5" ry="4" fill="#ff8c00"/>
+      <ellipse cx="63" cy="31" rx="5" ry="4" fill="#ff8c00"/>
+      <circle cx="37" cy="31" r="2.5" fill="#1a0500"/>
+      <circle cx="63" cy="31" r="2.5" fill="#1a0500"/>
+      <circle cx="38.5" cy="29.5" r="1.2" fill="white" opacity="0.7"/>
+      <circle cx="64.5" cy="29.5" r="1.2" fill="white" opacity="0.7"/>
+      <!-- Lightning bolt center -->
+      <polygon points="53,16 48,28 53,27 47,44 56,28 51,29" fill="#ffd700" opacity="0.98"/>
+      <!-- Glowing mouth slit -->
+      <path d="M36 48 Q50 54 64 48" stroke="#ffd700" stroke-width="2.5" fill="none" opacity="0.8"/>
+      <!-- Side accents -->
+      <circle cx="23" cy="32" r="3" fill="#ffd700" opacity="0.6"/>
+      <circle cx="77" cy="32" r="3" fill="#ffd700" opacity="0.6"/>
+    `
+  },
+  {
+    id:'dragon', name:'Маска дракона',
+    preview:'🐲',
+    svg: () => `
+      <!-- Dragon horns -->
+      <path d="M28 16 Q24 4 32 8 Q36 16 38 20 Z" fill="#2d7a1a" stroke="#1a5010" stroke-width="0.8"/>
+      <path d="M72 16 Q76 4 68 8 Q64 16 62 20 Z" fill="#2d7a1a" stroke="#1a5010" stroke-width="0.8"/>
+      <!-- Scales top -->
+      <ellipse cx="40" cy="14" rx="6" ry="4" fill="#3a8a20" opacity="0.7"/>
+      <ellipse cx="50" cy="11" rx="7" ry="4" fill="#3a8a20" opacity="0.7"/>
+      <ellipse cx="60" cy="14" rx="6" ry="4" fill="#3a8a20" opacity="0.7"/>
+      <!-- Main mask face -->
+      <path d="M22 18 Q50 10 78 18 Q82 34 78 52 Q50 60 22 52 Q18 34 22 18Z" fill="#2d7a1a" opacity="0.95"/>
+      <!-- Eye sockets -->
+      <ellipse cx="37" cy="31" rx="11" ry="10" fill="#1a3a0a" opacity="0.95"/>
+      <ellipse cx="63" cy="31" rx="11" ry="10" fill="#1a3a0a" opacity="0.95"/>
+      <ellipse cx="37" cy="31" rx="8" ry="7" fill="#ff4400" opacity="0.97"/>
+      <ellipse cx="63" cy="31" rx="8" ry="7" fill="#ff4400" opacity="0.97"/>
+      <ellipse cx="37" cy="32" rx="5" ry="7" fill="#1a0000"/>
+      <ellipse cx="63" cy="32" rx="5" ry="7" fill="#1a0000"/>
+      <circle cx="38.5" cy="29.5" r="2" fill="#ff8800" opacity="0.8"/>
+      <circle cx="64.5" cy="29.5" r="2" fill="#ff8800" opacity="0.8"/>
+      <!-- Snout -->
+      <path d="M36 46 Q50 54 64 46 Q64 56 50 60 Q36 56 36 46Z" fill="#1f6012"/>
+      <!-- Nostrils -->
+      <ellipse cx="46" cy="49" rx="3" ry="2" fill="#0f3a08"/>
+      <ellipse cx="54" cy="49" rx="3" ry="2" fill="#0f3a08"/>
+      <!-- Teeth -->
+      <path d="M38 48 L41 55 M50 50 L50 57 M62 48 L59 55" stroke="#ddd" stroke-width="2" stroke-linecap="round"/>
+      <!-- Scale texture lines -->
+      <path d="M28 28 Q32 24 36 28" stroke="#1a5010" stroke-width="0.8" fill="none" opacity="0.5"/>
+      <path d="M64 28 Q68 24 72 28" stroke="#1a5010" stroke-width="0.8" fill="none" opacity="0.5"/>
+    `
+  },
+  {
+    id:'robot', name:'Робо-маска',
+    preview:'🤖',
+    svg: () => `
+      <!-- Robot mask full face plate -->
+      <rect x="22" y="14" width="56" height="46" rx="10" fill="#1e2d3d" opacity="0.97" stroke="#4a5a6a" stroke-width="1.5"/>
+      <rect x="22" y="14" width="56" height="12" rx="10" fill="#2a3d52" opacity="0.8"/>
+      <!-- Side ear nodes -->
+      <rect x="18" y="26" width="6" height="12" rx="3" fill="#1e2d3d" stroke="#4a5a6a" stroke-width="1"/>
+      <rect x="76" y="26" width="6" height="12" rx="3" fill="#1e2d3d" stroke="#4a5a6a" stroke-width="1"/>
+      <circle cx="21" cy="32" r="2" fill="#00e5ff" opacity="0.7"/>
+      <circle cx="79" cy="32" r="2" fill="#00e5ff" opacity="0.7"/>
+      <!-- Visor bar across eyes -->
+      <rect x="26" y="22" width="48" height="20" rx="5" fill="#001a2a" opacity="0.9"/>
+      <!-- Eye screens -->
+      <rect x="28" y="24" width="19" height="16" rx="3" fill="#00e5ff" opacity="0.85"/>
+      <rect x="53" y="24" width="19" height="16" rx="3" fill="#00e5ff" opacity="0.85"/>
+      <circle cx="37" cy="32" r="5" fill="#003a4a"/>
+      <circle cx="63" cy="32" r="5" fill="#003a4a"/>
+      <circle cx="37" cy="32" r="3" fill="#00e5ff" opacity="0.7"/>
+      <circle cx="63" cy="32" r="3" fill="#00e5ff" opacity="0.7"/>
+      <circle cx="38" cy="31" r="1.5" fill="white" opacity="0.85"/>
+      <circle cx="64" cy="31" r="1.5" fill="white" opacity="0.85"/>
+      <!-- Scanning line animation hint -->
+      <rect x="28" y="31" width="19" height="2" rx="1" fill="white" opacity="0.3"/>
+      <rect x="53" y="31" width="19" height="2" rx="1" fill="white" opacity="0.3"/>
+      <!-- Grill mouth -->
+      <rect x="30" y="47" width="40" height="10" rx="5" fill="#001a2a" opacity="0.9"/>
+      <rect x="34" y="49" width="5" height="6" rx="1" fill="#00e5ff" opacity="0.55"/>
+      <rect x="42" y="49" width="5" height="6" rx="1" fill="#00e5ff" opacity="0.55"/>
+      <rect x="50" y="49" width="5" height="6" rx="1" fill="#00e5ff" opacity="0.55"/>
+      <rect x="58" y="49" width="5" height="6" rx="1" fill="#00e5ff" opacity="0.55"/>
+      <!-- Top vents -->
+      <rect x="36" y="16" width="6" height="2" rx="1" fill="#4a5a6a" opacity="0.7"/>
+      <rect x="45" y="16" width="6" height="2" rx="1" fill="#4a5a6a" opacity="0.7"/>
+      <rect x="54" y="16" width="6" height="2" rx="1" fill="#4a5a6a" opacity="0.7"/>
+    `
+  },
+  {
+    id:'moon', name:'Лунная маска',
+    preview:'🌙',
+    svg: () => `
+      <!-- Moon mask – dark with star eyes -->
+      <path d="M23 16 Q50 8 77 16 Q81 32 77 52 Q50 60 23 52 Q19 32 23 16Z" fill="#050520" opacity="0.94"/>
+      <!-- Crescent detail on side -->
+      <path d="M23 24 Q16 32 23 44 Q19 32 23 24Z" fill="#ffc800" opacity="0.5"/>
+      <!-- Star/moon eyes -->
+      <ellipse cx="37" cy="31" rx="10" ry="9" fill="#0a0a20"/>
+      <ellipse cx="63" cy="31" rx="10" ry="9" fill="#0a0a20"/>
+      <ellipse cx="37" cy="31" rx="8" ry="7" fill="#c8d8ff" opacity="0.9"/>
+      <ellipse cx="63" cy="31" rx="8" ry="7" fill="#c8d8ff" opacity="0.9"/>
+      <ellipse cx="35" cy="30" rx="5" ry="4" fill="#8898ff" opacity="0.55"/>
+      <ellipse cx="61" cy="30" rx="5" ry="4" fill="#8898ff" opacity="0.55"/>
+      <circle cx="37" cy="31" r="3" fill="#1a1a3a"/>
+      <circle cx="63" cy="31" r="3" fill="#1a1a3a"/>
+      <circle cx="38.5" cy="29.5" r="1.2" fill="#c8d8ff" opacity="0.7"/>
+      <circle cx="64.5" cy="29.5" r="1.2" fill="#c8d8ff" opacity="0.7"/>
+      <!-- Moon smile -->
+      <path d="M38 48 Q50 56 62 48" stroke="#8898ff" stroke-width="2.5" fill="none" opacity="0.9"/>
+      <!-- Stars scattered on mask -->
+      <circle cx="30" cy="22" r="1.5" fill="#ffc800" opacity="0.9"/>
+      <circle cx="70" cy="22" r="1.5" fill="#ffc800" opacity="0.9"/>
+      <polygon points="50,14 51.5,18 56,18 52.5,20.5 54,25 50,22.5 46,25 47.5,20.5 44,18 48.5,18" fill="#ffc800" opacity="0.7" transform="scale(0.55) translate(41,6)"/>
+      <circle cx="74" cy="36" r="1" fill="#c8d8ff" opacity="0.5"/>
+      <circle cx="26" cy="44" r="1" fill="#c8d8ff" opacity="0.4"/>
+    `
+  },
+];
+
+const CHAR_BGS = [
+  { id:'dark',    name:'Тёмный',     fill:'#1A222C' },
+  { id:'blue',    name:'Синий',      fill:'#1e2d6b' },
+  { id:'purple',  name:'Фиолетовый', fill:'#3b1f6b' },
+  { id:'green',   name:'Зелёный',    fill:'#0e3d1e' },
+  { id:'red',     name:'Красный',    fill:'#5a1a1a' },
+  { id:'gold',    name:'Золотой',    fill:'#4a3800' },
+  { id:'space',   name:'Космос',     fill:'#0d0d1a', dots:true, reqXP:200 },
+  { id:'forest',  name:'Лес',        fill:'#0a2010', lines:'#1a4a20', reqXP:200 },
+  { id:'volcano', name:'Вулкан',     fill:'#1a0808', lines:'#4a1a00', reqXP:400 },
+  { id:'ocean',   name:'Океан',      fill:'#001a3a', lines:'#003060', reqXP:400 },
+  { id:'galaxy',  name:'Галактика',  fill:'#0d0020', lines:'#3a1a60', reqXP:800 },
+  { id:'golden',  name:'Золото',     fill:'#1a1000', lines:'#5a3a00', reqXP:1500 },
+];
+
+const BANNER_COLORS = [
+  { id:'blue',   g:'linear-gradient(160deg,#1e2d6b,#0d1b3e,var(--bg))', color:'#3a5fbf' },
+  { id:'purple', g:'linear-gradient(160deg,#3b1f6b,#1a0d3e,var(--bg))', color:'#6b3fbf' },
+  { id:'green',  g:'linear-gradient(160deg,#0e3d1e,#071a0d,var(--bg))', color:'#1a6b30' },
+  { id:'red',    g:'linear-gradient(160deg,#5a1a1a,#280d0d,var(--bg))', color:'#8b2020' },
+  { id:'teal',   g:'linear-gradient(160deg,#0d3a3a,#051f1f,var(--bg))', color:'#1a6b6b' },
+  { id:'gold',   g:'linear-gradient(160deg,#4a3800,#221900,var(--bg))', color:'#8b6a00' },
+];
+
+const BANNER_PATTERNS = [
+  { id:'none', label:'Нет', class:'' },
+  { id:'dots', label:'Точки', class:'pattern-dots' },
+  { id:'grid', label:'Сетка', class:'pattern-grid' },
+  { id:'diag', label:'Диаг', class:'pattern-diag' },
+  { id:'waves', label:'Волны', class:'pattern-waves' },
+];
+
+let profileData = {
+  name: 'Akim', username: 'AkimCode', bio: 'Учу Pascal 🚀',
+  bannerId: 'blue', patternId: 'none',
+  equippedTitleId: null,
+};
+
+loadState(); // ← restore saved progress
+
+// ─── CHARACTER SVG BUILDER (Duolingo-style) ────────────────────────────────────
+function buildCharSVG(bodyIdx, outfitIdx, maskIdx, bgIdx) {
+  const body    = CHAR_BODIES[bodyIdx]   || CHAR_BODIES[0];
+  const outfit  = CHAR_OUTFITS[outfitIdx]|| CHAR_OUTFITS[0];
+  const maskDef = CHAR_MASKS[maskIdx]    || CHAR_MASKS[0];
+  const bgDef   = CHAR_BGS[bgIdx]        || CHAR_BGS[0];
+
+  const sk  = body.special === 'dragon_anon' ? '#1e6b10' : (body.special === 'emperor' ? '#f5e8e0' : (body.special === 'raccoon_dev' ? '#7a8090' : body.colors[0]));
+  const skd = body.special === 'dragon_anon' ? '#0f3a06' : (body.special === 'emperor' ? '#e0c8b8' : (body.special === 'raccoon_dev' ? '#555566' : body.colors[1]));
+  const c1  = outfit.c1 || '#3a7bd5';
+  const c2  = outfit.c2 || '#2a5ba5';
+  const c3  = outfit.c3 || '#1e4a8a';
+
+  const isDragonAnon = body.special === 'dragon_anon';
+  const isRaccoonDev = body.special === 'raccoon_dev';
+  const isEmperor    = body.special === 'emperor';
+  const isRobot    = bodyIdx === 4;
+  const isAlien    = bodyIdx === 5;
+  const isSkeleton = bodyIdx === 6;
+
+  // Background
+  const bgFill  = bgDef.fill  || '#1A222C';
+  const bgLines = bgDef.lines || null;
+  const bgDots  = bgDef.dots  || false;
+  let bgSVG = `<rect width="100" height="100" fill="${bgFill}"/>`;
+  if (bgDots) {
+    bgSVG += `<circle cx="15" cy="15" r="1" fill="white" opacity="0.5"/>
+    <circle cx="35" cy="8" r="0.8" fill="white" opacity="0.4"/>
+    <circle cx="60" cy="20" r="1.2" fill="white" opacity="0.6"/>
+    <circle cx="80" cy="10" r="0.7" fill="white" opacity="0.3"/>
+    <circle cx="90" cy="40" r="1" fill="white" opacity="0.5"/>
+    <circle cx="10" cy="70" r="0.8" fill="white" opacity="0.4"/>
+    <circle cx="75" cy="85" r="1" fill="white" opacity="0.3"/>
+    <circle cx="25" cy="90" r="0.6" fill="white" opacity="0.4"/>`;
+  } else if (bgLines) {
+    bgSVG += `<path d="M0 70 Q25 60 50 72 Q75 84 100 70" stroke="${bgLines}" stroke-width="1.5" fill="none" opacity="0.6"/>
+    <path d="M0 80 Q30 70 55 82 Q80 92 100 80" stroke="${bgLines}" stroke-width="1" fill="none" opacity="0.4"/>`;
+  }
+
+  // Arms (behind body) — use special dark tones for secret chars
+  const armSk = (isDragonAnon || isEmperor) ? '#0d0d1a' : (isRaccoonDev ? '#6a7080' : sk);
+  const leftArm = `
+    <rect x="10" y="66" width="20" height="22" rx="9" fill="${c1}"/>
+    <rect x="10" y="66" width="20" height="10" rx="9" fill="${c2}" opacity="0.5"/>
+    <ellipse cx="19" cy="89" rx="9" ry="6" fill="${armSk}"/>`;
+  const rightArm = `
+    <rect x="70" y="66" width="20" height="22" rx="9" fill="${c1}"/>
+    <rect x="70" y="66" width="20" height="10" rx="9" fill="${c2}" opacity="0.5"/>
+    <ellipse cx="81" cy="89" rx="9" ry="6" fill="${armSk}"/>`;
+
+  // Torso / Outfit
+  let torsoExtra = '';
+  let collarSVG  = '';
+  if (outfit.id === 'armor') {
+    torsoExtra = `
+      <rect x="27" y="66" width="46" height="6" rx="3" fill="${c3}" opacity="0.8"/>
+      <rect x="30" y="72" width="17" height="12" rx="3" fill="${c2}"/>
+      <rect x="53" y="72" width="17" height="12" rx="3" fill="${c2}"/>
+      <rect x="27" y="84" width="46" height="5" rx="2" fill="${c3}" opacity="0.7"/>
+      <ellipse cx="25" cy="67" rx="10" ry="5" fill="${c1}"/>
+      <ellipse cx="75" cy="67" rx="10" ry="5" fill="${c1}"/>
+      <ellipse cx="25" cy="66" rx="8" ry="3.5" fill="${c2}"/>
+      <ellipse cx="75" cy="66" rx="8" ry="3.5" fill="${c2}"/>`;
+    collarSVG = `<rect x="43" y="62" width="14" height="2" rx="1" fill="${c3}"/>`;
+  } else if (outfit.id === 'hoodie') {
+    torsoExtra = `
+      <rect x="37" y="80" width="26" height="8" rx="4" fill="${c2}" opacity="0.7"/>
+      <line x1="46" y1="65" x2="44" y2="80" stroke="${c3}" stroke-width="1.5"/>
+      <line x1="54" y1="65" x2="56" y2="80" stroke="${c3}" stroke-width="1.5"/>`;
+    collarSVG = `<path d="M40 63 Q50 69 60 63" stroke="${c3}" stroke-width="2" fill="none"/>`;
+  } else if (outfit.id === 'robe') {
+    torsoExtra = `
+      <rect x="27" y="79" width="46" height="5" rx="2" fill="${c3}" opacity="0.9"/>
+      <rect x="47" y="64" width="6" height="25" fill="${c3}" opacity="0.5"/>`;
+    collarSVG = `<path d="M37 64 Q50 72 63 64" stroke="${c3}" stroke-width="2.5" fill="${c2}" opacity="0.8"/>`;
+  } else if (outfit.id === 'ninja') {
+    torsoExtra = `
+      <rect x="27" y="75" width="46" height="7" rx="3" fill="#ff3030" opacity="0.85"/>
+      <rect x="27" y="74" width="46" height="3" rx="1" fill="#cc0000"/>
+      <line x1="50" y1="63" x2="50" y2="89" stroke="#333" stroke-width="1.5" opacity="0.7"/>`;
+    collarSVG = `<rect x="43" y="62" width="14" height="6" rx="3" fill="#111"/>`;
+  } else if (outfit.id === 'wizard') {
+    torsoExtra = `
+      <circle cx="38" cy="74" r="3" fill="#ffc800" opacity="0.85"/>
+      <circle cx="62" cy="74" r="3" fill="#ffc800" opacity="0.85"/>
+      <rect x="27" y="80" width="46" height="4" rx="2" fill="${c3}"/>`;
+    collarSVG = `<path d="M36 64 Q50 73 64 64" fill="${c3}" stroke="${c3}" stroke-width="1"/>`;
+  } else if (outfit.id === 'king') {
+    torsoExtra = `
+      <rect x="27" y="63" width="46" height="6" rx="3" fill="#f5f0e8"/>
+      <circle cx="36" cy="66" r="2" fill="#111" opacity="0.7"/>
+      <circle cx="46" cy="66" r="2" fill="#111" opacity="0.7"/>
+      <circle cx="56" cy="66" r="2" fill="#111" opacity="0.7"/>
+      <circle cx="66" cy="66" r="2" fill="#111" opacity="0.7"/>
+      <rect x="27" y="80" width="46" height="6" rx="3" fill="#ffc800"/>
+      <rect x="46" y="80" width="8" height="6" rx="2" fill="#ff9900"/>
+      <ellipse cx="26" cy="67" rx="9" ry="4" fill="#ffc800"/>
+      <ellipse cx="74" cy="67" rx="9" ry="4" fill="#ffc800"/>`;
+  } else if (outfit.id === 'dev_hoodie') {
+    torsoExtra = `
+      <rect x="27" y="75" width="46" height="8" rx="4" fill="#0d0d1a" opacity="0.9"/>
+      <rect x="37" y="76" width="26" height="8" rx="4" fill="#050510" opacity="0.8"/>
+      <line x1="50" y1="63" x2="50" y2="89" stroke="#00ff88" stroke-width="1" opacity="0.6"/>
+      <rect x="30" y="68" width="16" height="9" rx="2" fill="#001a0d" stroke="#00ff88" stroke-width="0.8" opacity="0.9"/>
+      <text x="31.5" y="74" font-size="3.5" fill="#00ff88" font-family="monospace">&lt;/&gt;</text>
+      <rect x="27" y="63" width="3" height="37" rx="1" fill="#00ff88" opacity="0.15"/>
+      <rect x="70" y="63" width="3" height="37" rx="1" fill="#00ff88" opacity="0.15"/>`;
+    collarSVG = `<path d="M40 63 Q50 69 60 63" stroke="#00ff88" stroke-width="1.5" fill="none" opacity="0.7"/>`;
+  } else if (outfit.id === 'emperor_cloak') {
+    // ── RAKUZAN HIGH BASKETBALL JERSEY – Akashi #4, peak form ──
+    torsoExtra = `
+      <!-- Jersey base top layer: slightly darker upper chest panel -->
+      <rect x="27" y="63" width="46" height="16" rx="8" fill="#990000" opacity="0.5"/>
+      <!-- Sides gold pinstripes -->
+      <rect x="27" y="63" width="2.5" height="37" fill="#cc8800" opacity="0.9"/>
+      <rect x="70.5" y="63" width="2.5" height="37" fill="#cc8800" opacity="0.9"/>
+      <!-- Secondary inner pinstripe -->
+      <rect x="30.5" y="63" width="1" height="37" fill="#ffcc44" opacity="0.4"/>
+      <rect x="68.5" y="63" width="1" height="37" fill="#ffcc44" opacity="0.4"/>
+      <!-- Rakuzan "R" crest on left chest -->
+      <circle cx="37" cy="72" r="5.5" fill="#7a0000" stroke="#cc8800" stroke-width="1.2"/>
+      <circle cx="37" cy="72" r="4" fill="#8b0000"/>
+      <text x="37" y="74.5" text-anchor="middle" font-size="5.5" font-weight="900" fill="#cc8800" font-family="Georgia, serif">R</text>
+      <!-- Jersey number 4 – bold center -->
+      <text x="50" y="86" text-anchor="middle" font-size="20" font-weight="900" fill="white" font-family="Arial Black, Impact, sans-serif" opacity="0.95">4</text>
+      <!-- Number outline for depth -->
+      <text x="50.5" y="86.5" text-anchor="middle" font-size="20" font-weight="900" fill="#cc8800" font-family="Arial Black, Impact, sans-serif" opacity="0.25">4</text>
+      <!-- Shoulder panels – sporty raglan style -->
+      <path d="M27 63 Q35 59 42 63 L42 74 Q35 70 27 74Z" fill="#7a0000" opacity="0.85"/>
+      <path d="M73 63 Q65 59 58 63 L58 74 Q65 70 73 74Z" fill="#7a0000" opacity="0.85"/>
+      <!-- Shoulder gold edge -->
+      <path d="M27 63 Q35 59 42 63" stroke="#cc8800" stroke-width="1.2" fill="none"/>
+      <path d="M73 63 Q65 59 58 63" stroke="#cc8800" stroke-width="1.2" fill="none"/>
+      <!-- Captain armband on left arm -->
+      <rect x="10" y="70" width="18" height="7" rx="3" fill="#cc8800"/>
+      <rect x="11" y="71" width="16" height="5" rx="2" fill="#e8aa00"/>
+      <text x="19" y="76" text-anchor="middle" font-size="5" font-weight="900" fill="#660000" font-family="Arial Black, sans-serif">C</text>
+      <!-- Emperor Eye glow mark on right chest (subtle power aura) -->
+      <circle cx="63" cy="72" r="4" fill="#cc0000" opacity="0.18"/>
+      <circle cx="63" cy="72" r="2.5" fill="#ff2222" opacity="0.22"/>
+      <circle cx="63" cy="72" r="1.2" fill="#ff6666" opacity="0.3"/>
+      <!-- Bottom hem gold stripe -->
+      <rect x="27" y="96" width="46" height="4" rx="2" fill="#cc8800" opacity="0.7"/>`;
+    collarSVG = `
+      <!-- Deep V-neck collar – dark red with gold trim -->
+      <path d="M35 63 L50 75 L65 63" fill="#8b0000" stroke="none"/>
+      <path d="M35 63 L50 75 L65 63" fill="none" stroke="#cc8800" stroke-width="1.5"/>
+      <!-- Inner collar shadow -->
+      <path d="M38 63 L50 72 L62 63" fill="#660000" opacity="0.4"/>`;
+  } else {
+    collarSVG = `<path d="M44 63 L50 67 L56 63" stroke="${c2}" stroke-width="1.5" fill="none" opacity="0.8"/>`;
+  }
+
+  const torsoSVG = `
+    <rect x="27" y="63" width="46" height="37" rx="10" fill="${c1}"/>
+    <rect x="27" y="63" width="46" height="14" rx="10" fill="${c2}" opacity="0.4"/>
+    ${torsoExtra}
+    ${collarSVG}`;
+
+  // Neck
+  const neckSVG = `
+    <rect x="44" y="58" width="12" height="10" rx="5" fill="${sk}"/>
+    <rect x="44" y="62" width="12" height="5" fill="${skd}" opacity="0.25"/>`;
+
+  // Head – big & round Duolingo style
+  let headSVG = '';
+  if (isRobot) {
+    headSVG = `
+      <rect x="22" y="12" width="56" height="48" rx="14" fill="${sk}"/>
+      <rect x="22" y="12" width="56" height="16" rx="14" fill="${skd}" opacity="0.35"/>
+      <rect x="48" y="4" width="4" height="10" rx="2" fill="${skd}"/>
+      <circle cx="50" cy="3" r="5" fill="#FFC800"/>
+      <circle cx="22" cy="36" r="5" fill="${skd}"/>
+      <circle cx="78" cy="36" r="5" fill="${skd}"/>
+      <rect x="28" y="22" width="18" height="14" rx="4" fill="#001a2a"/>
+      <rect x="54" y="22" width="18" height="14" rx="4" fill="#001a2a"/>
+      <rect x="29" y="23" width="16" height="12" rx="3" fill="#00E5FF" opacity="0.9"/>
+      <rect x="55" y="23" width="16" height="12" rx="3" fill="#00E5FF" opacity="0.9"/>
+      <circle cx="37" cy="29" r="4.5" fill="#001a2a"/>
+      <circle cx="63" cy="29" r="4.5" fill="#001a2a"/>
+      <circle cx="38.5" cy="27.5" r="1.8" fill="white" opacity="0.8"/>
+      <circle cx="64.5" cy="27.5" r="1.8" fill="white" opacity="0.8"/>
+      <rect x="30" y="43" width="40" height="10" rx="5" fill="#00E5FF" opacity="0.15" stroke="#00E5FF" stroke-width="0.8"/>
+      <rect x="33" y="45" width="6" height="6" rx="1" fill="#001a2a"/>
+      <rect x="42" y="45" width="6" height="6" rx="1" fill="#001a2a"/>
+      <rect x="52" y="45" width="6" height="6" rx="1" fill="#001a2a"/>
+      <rect x="61" y="45" width="6" height="6" rx="1" fill="#001a2a"/>`;
+  } else if (isAlien) {
+    headSVG = `
+      <ellipse cx="50" cy="30" rx="28" ry="32" fill="${sk}"/>
+      <ellipse cx="50" cy="24" rx="24" ry="20" fill="${sk}"/>
+      <ellipse cx="50" cy="28" rx="26" ry="28" fill="${skd}" opacity="0.2"/>
+      <ellipse cx="36" cy="32" rx="10" ry="12" fill="#40e080"/>
+      <ellipse cx="64" cy="32" rx="10" ry="12" fill="#40e080"/>
+      <ellipse cx="36" cy="32" rx="6" ry="8" fill="#003318"/>
+      <ellipse cx="64" cy="32" rx="6" ry="8" fill="#003318"/>
+      <ellipse cx="34" cy="29" rx="2.5" ry="3" fill="#60ff90" opacity="0.5"/>
+      <ellipse cx="62" cy="29" rx="2.5" ry="3" fill="#60ff90" opacity="0.5"/>
+      <path d="M40 48 Q50 43 60 48" stroke="#40e080" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="47" cy="44" rx="2" ry="1.5" fill="${skd}" opacity="0.5"/>
+      <ellipse cx="53" cy="44" rx="2" ry="1.5" fill="${skd}" opacity="0.5"/>`;
+  } else if (isSkeleton) {
+    headSVG = `
+      <ellipse cx="50" cy="32" rx="26" ry="28" fill="${sk}"/>
+      <ellipse cx="50" cy="24" rx="24" ry="16" fill="${sk}"/>
+      <ellipse cx="34" cy="42" rx="8" ry="5" fill="${skd}" opacity="0.3"/>
+      <ellipse cx="66" cy="42" rx="8" ry="5" fill="${skd}" opacity="0.3"/>
+      <ellipse cx="36" cy="30" rx="10" ry="11" fill="#111"/>
+      <ellipse cx="64" cy="30" rx="10" ry="11" fill="#111"/>
+      <ellipse cx="36" cy="30" rx="5" ry="5" fill="white" opacity="0.08"/>
+      <ellipse cx="64" cy="30" rx="5" ry="5" fill="white" opacity="0.08"/>
+      <path d="M45 40 L50 46 L55 40 Q50 37 45 40Z" fill="#111" opacity="0.6"/>
+      <rect x="33" y="49" width="34" height="11" rx="4" fill="#111"/>
+      <rect x="36" y="49" width="6" height="11" fill="${sk}"/>
+      <rect x="46" y="49" width="6" height="11" fill="${sk}"/>
+      <rect x="56" y="49" width="6" height="11" fill="${sk}"/>
+      <path d="M50 10 L48 17 L52 23 L49 29" stroke="#aaa" stroke-width="1.2" fill="none" opacity="0.6"/>`;
+  } else if (isDragonAnon) {
+    // ─── FULL DRAGON HEAD – green scaled dragon with horns, snout, fangs ───
+    headSVG = `
+      <!-- Back horns -->
+      <path d="M30 18 Q24 2 34 8 Q37 2 38 16 Z" fill="#1a5a0a" stroke="#0f3a06" stroke-width="0.8"/>
+      <path d="M70 18 Q76 2 66 8 Q63 2 62 16 Z" fill="#1a5a0a" stroke="#0f3a06" stroke-width="0.8"/>
+      <!-- Inner horn highlight -->
+      <path d="M31 18 Q27 6 33 10 Q35 6 36 16 Z" fill="#2a7a18" opacity="0.7"/>
+      <path d="M69 18 Q73 6 67 10 Q65 6 64 16 Z" fill="#2a7a18" opacity="0.7"/>
+      <!-- Main dragon skull – wide and reptilian -->
+      <ellipse cx="50" cy="28" rx="28" ry="22" fill="#1e6b10"/>
+      <!-- Snout extends forward/down -->
+      <path d="M30 36 Q50 52 70 36 Q72 48 68 56 Q50 66 32 56 Q28 48 30 36Z" fill="#1a6010"/>
+      <!-- Scale texture rows on forehead -->
+      <path d="M30 20 Q40 16 50 18 Q60 16 70 20" stroke="#0f3a06" stroke-width="1.2" fill="none" opacity="0.6"/>
+      <path d="M28 26 Q38 21 50 23 Q62 21 72 26" stroke="#0f3a06" stroke-width="1" fill="none" opacity="0.5"/>
+      <!-- Scale bumps top -->
+      <circle cx="38" cy="19" r="2.5" fill="#2a8020" opacity="0.6"/>
+      <circle cx="50" cy="16" r="3" fill="#2a8020" opacity="0.7"/>
+      <circle cx="62" cy="19" r="2.5" fill="#2a8020" opacity="0.6"/>
+      <!-- Brow ridges -->
+      <path d="M26 28 Q35 22 44 26" stroke="#0f3a06" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M56 26 Q65 22 74 28" stroke="#0f3a06" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Eyes – vertical slit pupils, glowing amber -->
+      <ellipse cx="36" cy="30" rx="10" ry="9" fill="#0a2a05"/>
+      <ellipse cx="64" cy="30" rx="10" ry="9" fill="#0a2a05"/>
+      <ellipse cx="36" cy="30" rx="7.5" ry="7" fill="#ff8c00" opacity="0.95"/>
+      <ellipse cx="64" cy="30" rx="7.5" ry="7" fill="#ff8c00" opacity="0.95"/>
+      <!-- Slit pupils -->
+      <ellipse cx="36" cy="30" rx="2.5" ry="7" fill="#050a00"/>
+      <ellipse cx="64" cy="30" rx="2.5" ry="7" fill="#050a00"/>
+      <!-- Eye glow rim -->
+      <ellipse cx="36" cy="30" rx="7.5" ry="7" fill="none" stroke="#ffcc00" stroke-width="0.7" opacity="0.7"/>
+      <ellipse cx="64" cy="30" rx="7.5" ry="7" fill="none" stroke="#ffcc00" stroke-width="0.7" opacity="0.7"/>
+      <circle cx="37.5" cy="27" r="2" fill="#ffe070" opacity="0.6"/>
+      <circle cx="65.5" cy="27" r="2" fill="#ffe070" opacity="0.6"/>
+      <!-- Nostrils -->
+      <ellipse cx="44" cy="48" rx="3.5" ry="2.5" fill="#0a2a05"/>
+      <ellipse cx="56" cy="48" rx="3.5" ry="2.5" fill="#0a2a05"/>
+      <!-- Jaw / mouth line -->
+      <path d="M30 50 Q50 58 70 50" stroke="#0a2a05" stroke-width="2" fill="none"/>
+      <!-- Fangs -->
+      <path d="M36 52 L33 62 L39 58 Z" fill="#e8e8d0"/>
+      <path d="M44 55 L42 64 L48 60 Z" fill="#e8e8d0"/>
+      <path d="M64 52 L67 62 L61 58 Z" fill="#e8e8d0"/>
+      <path d="M56 55 L58 64 L52 60 Z" fill="#e8e8d0"/>
+      <!-- Chin scales -->
+      <ellipse cx="50" cy="60" rx="12" ry="6" fill="#2a8020" opacity="0.5"/>
+      <!-- Side ear/jaw fins -->
+      <path d="M22 28 Q16 24 18 36 Q22 32 26 34 Z" fill="#1a6010" stroke="#0f3a06" stroke-width="0.7"/>
+      <path d="M78 28 Q84 24 82 36 Q78 32 74 34 Z" fill="#1a6010" stroke="#0f3a06" stroke-width="0.7"/>`;
+  } else if (isRaccoonDev) {
+    // ─── RACCOON DEVELOPER – masked hacker coder raccoon ───
+    headSVG = `
+      <!-- Fluffy raccoon head -->
+      <ellipse cx="50" cy="32" rx="27" ry="29" fill="#7a8090"/>
+      <!-- Ear tufts -->
+      <path d="M27 14 Q23 3 31 8 Q33 3 35 12 Z" fill="#6a7080" stroke="#555" stroke-width="0.5"/>
+      <path d="M73 14 Q77 3 69 8 Q67 3 65 12 Z" fill="#6a7080" stroke="#555" stroke-width="0.5"/>
+      <path d="M28 14 Q25 7 30 10 Q32 7 33 13 Z" fill="#3a3040" opacity="0.6"/>
+      <path d="M72 14 Q75 7 70 10 Q68 7 67 13 Z" fill="#3a3040" opacity="0.6"/>
+      <!-- Classic raccoon bandit mask -->
+      <path d="M22 23 Q37 17 50 22 Q63 17 78 23 Q80 36 76 42 Q63 48 50 44 Q37 48 24 42 Q20 36 22 23Z" fill="#2a2a35" opacity="0.95"/>
+      <!-- White cheek patches -->
+      <ellipse cx="35" cy="40" rx="8" ry="6" fill="#d0d0c0" opacity="0.9"/>
+      <ellipse cx="65" cy="40" rx="8" ry="6" fill="#d0d0c0" opacity="0.9"/>
+      <!-- Terminal/monitor eyes (dev theme) -->
+      <rect x="27" y="24" width="18" height="14" rx="4" fill="#001a0d" stroke="#00ff88" stroke-width="1.2"/>
+      <rect x="55" y="24" width="18" height="14" rx="4" fill="#001a0d" stroke="#00ff88" stroke-width="1.2"/>
+      <!-- Screen glare -->
+      <rect x="28" y="25" width="16" height="12" rx="3" fill="#001a0d" opacity="0.95"/>
+      <rect x="56" y="25" width="16" height="12" rx="3" fill="#001a0d" opacity="0.95"/>
+      <!-- Code text on eye-screens -->
+      <text x="29" y="32" font-size="4" fill="#00ff88" font-family="monospace" opacity="0.9">&gt;_</text>
+      <text x="57" y="32" font-size="4" fill="#00ff88" font-family="monospace" opacity="0.9">{ }</text>
+      <rect x="29" y="33" width="10" height="1.5" rx="0.5" fill="#00ff88" opacity="0.5"/>
+      <rect x="57" y="33" width="10" height="1.5" rx="0.5" fill="#00ff88" opacity="0.5"/>
+      <!-- Snout -->
+      <ellipse cx="50" cy="46" rx="10" ry="7" fill="#c0c0b0"/>
+      <ellipse cx="50" cy="42" rx="4.5" ry="3" fill="#444455"/>
+      <circle cx="50" cy="41" r="2" fill="#2a2a35"/>
+      <!-- Dev logo badge on forehead -->
+      <circle cx="50" cy="16" r="5" fill="#1a1a2a" stroke="#00ff88" stroke-width="1"/>
+      <text x="47.5" y="19" font-size="5" fill="#00ff88" font-family="monospace" font-weight="bold">&lt;/&gt;</text>`;
+  } else if (isEmperor) {
+    // ─── AKASHI SEIJURO – Emperor Eye activated, peak form ───
+    headSVG = `
+      <!-- ── EMPEROR EYE AURA – outer crimson field ── -->
+      <circle cx="64" cy="31" r="18" fill="#cc0000" opacity="0.07"/>
+      <circle cx="64" cy="31" r="22" fill="#cc0000" opacity="0.04"/>
+      <!-- ── HAIR – sharp crimson, swept right, anime style ── -->
+      <!-- Back hair mass (deep burgundy) -->
+      <path d="M23 30 Q21 12 27 7 Q31 2 35 9 Q38 3 42 10 Q46 3 50 9 Q55 3 60 9 Q64 4 68 11 Q73 6 77 16 Q79 24 78 31" fill="#6b0000"/>
+      <!-- Mid hair layer -->
+      <path d="M23 30 Q22 15 29 10 Q33 5 38 12 Q42 6 48 11 Q53 5 59 11 Q65 7 70 14 Q75 10 78 20 Q79 26 78 31" fill="#8b0000"/>
+      <!-- Front hair sweep – Akashi's signature right-side part with bang -->
+      <path d="M25 26 Q26 14 33 11 Q37 8 41 15 Q38 11 35 16 Q30 20 26 26Z" fill="#aa1111"/>
+      <!-- Right side – hair falls over right shoulder -->
+      <path d="M76 28 Q80 35 78 46 Q75 40 72 36 Q74 32 76 28Z" fill="#8b0000"/>
+      <!-- Left side hair -->
+      <path d="M23 30 Q19 36 21 44 Q23 38 27 35 Q24 33 23 30Z" fill="#8b0000"/>
+      <!-- Hair highlight shine -->
+      <path d="M34 10 Q42 6 50 10 Q43 8 35 13Z" fill="#cc2222" opacity="0.5"/>
+      <path d="M55 8 Q63 5 70 11 Q63 8 56 13Z" fill="#cc2222" opacity="0.4"/>
+      <!-- ── FACE – pale, sharp aristocratic ── -->
+      <ellipse cx="50" cy="35" rx="25" ry="25" fill="#f2e4da"/>
+      <!-- Jaw sharper/narrower (anime style) -->
+      <path d="M29 44 Q33 58 50 63 Q67 58 71 44" fill="#f2e4da"/>
+      <!-- Cheek shadows -->
+      <ellipse cx="32" cy="43" rx="6" ry="4" fill="#ddb8a0" opacity="0.35"/>
+      <ellipse cx="68" cy="43" rx="6" ry="4" fill="#ddb8a0" opacity="0.35"/>
+      <!-- ── LEFT EYE – gold/amber (heterochromia) ── -->
+      <!-- Eyelid shape (upper lid sharp for anime) -->
+      <path d="M27 29 Q36 23 45 29 Q43 32 36 33 Q29 32 27 29Z" fill="white"/>
+      <path d="M27 29 Q36 25 45 29" stroke="#8b4513" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Iris – warm amber gold -->
+      <ellipse cx="36" cy="30" rx="6.5" ry="6.5" fill="#c8780a"/>
+      <ellipse cx="36" cy="30" rx="5" ry="5" fill="#da8e14"/>
+      <circle cx="36" cy="30" r="3.5" fill="#9b5800"/>
+      <circle cx="36" cy="30" r="2.2" fill="#3a1a00"/>
+      <!-- Gold shimmer -->
+      <circle cx="37.5" cy="28" r="1.8" fill="white" opacity="0.9"/>
+      <circle cx="35" cy="32" r="0.7" fill="white" opacity="0.4"/>
+      <!-- Lower lid -->
+      <path d="M27 29 Q36 35 45 29" stroke="#c09070" stroke-width="0.7" fill="none" opacity="0.6"/>
+      <!-- ── RIGHT EYE – EMPEROR EYE activated (blazing crimson) ── -->
+      <!-- Outer glow halos -->
+      <circle cx="64" cy="30" r="14" fill="#cc0000" opacity="0.13"/>
+      <circle cx="64" cy="30" r="12" fill="#ee0000" opacity="0.10"/>
+      <!-- Eyelid white -->
+      <path d="M55 28 Q64 22 73 28 Q71 32 64 33 Q57 32 55 28Z" fill="white"/>
+      <!-- Red iris – Emperor Eye -->
+      <ellipse cx="64" cy="30" rx="7" ry="7" fill="#dd0000"/>
+      <ellipse cx="64" cy="30" rx="5.5" ry="5.5" fill="#ff1a1a"/>
+      <!-- Pupil with depth -->
+      <circle cx="64" cy="30" r="3.5" fill="#880000"/>
+      <circle cx="64" cy="30" r="2" fill="#440000"/>
+      <!-- Bright highlight -->
+      <circle cx="66" cy="27.5" r="2.5" fill="white" opacity="0.92"/>
+      <circle cx="62.5" cy="32" r="0.9" fill="white" opacity="0.5"/>
+      <!-- Iris ring glow -->
+      <ellipse cx="64" cy="30" rx="7" ry="7" fill="none" stroke="#ff5555" stroke-width="1.2" opacity="0.9"/>
+      <ellipse cx="64" cy="30" rx="9" ry="9" fill="none" stroke="#cc0000" stroke-width="0.7" opacity="0.5"/>
+      <!-- Emperor Eye light rays -->
+      <line x1="64" y1="18" x2="64" y2="21" stroke="#ff4444" stroke-width="1.3" opacity="0.8"/>
+      <line x1="73" y1="21" x2="71" y2="23" stroke="#ff4444" stroke-width="1.2" opacity="0.7"/>
+      <line x1="76" y1="30" x2="73" y2="30" stroke="#ff4444" stroke-width="1.3" opacity="0.8"/>
+      <line x1="73" y1="39" x2="71" y2="37" stroke="#ff3333" stroke-width="1" opacity="0.6"/>
+      <!-- Upper eyelid line -->
+      <path d="M55 28 Q64 22 73 28" stroke="#7a0000" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Lower lid -->
+      <path d="M55 28 Q64 34 73 28" stroke="#c07070" stroke-width="0.8" fill="none" opacity="0.5"/>
+      <!-- ── EYEBROWS – sharp, thin, aristocratic ── -->
+      <path d="M26 22 Q36 17 44 21" stroke="#5a0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M56 21 Q64 16 74 22" stroke="#5a0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- ── NOSE ── -->
+      <path d="M48 43 Q50 47 52 43" stroke="#c09070" stroke-width="1" fill="none"/>
+      <circle cx="48" cy="45" r="1.2" fill="#c09070" opacity="0.5"/>
+      <circle cx="52" cy="45" r="1.2" fill="#c09070" opacity="0.5"/>
+      <!-- ── LIPS – confident closed smirk ── -->
+      <path d="M39 53 Q50 60 61 53" stroke="#bf7060" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M44 53 Q50 57 56 53" fill="#c07060" opacity="0.35"/>
+      <!-- slight smirk right corner -->
+      <path d="M58 53 Q62 51 63 53" stroke="#bf7060" stroke-width="1" fill="none" opacity="0.7"/>
+      <!-- ── EARS ── -->
+      <ellipse cx="24" cy="37" rx="4.5" ry="6.5" fill="#f0e0d0"/>
+      <ellipse cx="24" cy="37" rx="2.5" ry="4" fill="#ddb8a0" opacity="0.5"/>
+      <ellipse cx="76" cy="37" rx="4.5" ry="6.5" fill="#f0e0d0"/>
+      <ellipse cx="76" cy="37" rx="2.5" ry="4" fill="#ddb8a0" opacity="0.5"/>`;
+  } else {
+    // Normal Duolingo-style head
+    headSVG = `
+      <ellipse cx="50" cy="63" rx="20" ry="5" fill="#000" opacity="0.12"/>
+      <ellipse cx="50" cy="32" rx="27" ry="29" fill="${sk}"/>
+      <ellipse cx="33" cy="42" rx="7" ry="4" fill="#ffaaaa" opacity="0.22"/>
+      <ellipse cx="67" cy="42" rx="7" ry="4" fill="#ffaaaa" opacity="0.22"/>
+      <ellipse cx="50" cy="55" rx="17" ry="5" fill="${skd}" opacity="0.28"/>
+      <ellipse cx="37" cy="31" rx="8.5" ry="9.5" fill="white"/>
+      <ellipse cx="63" cy="31" rx="8.5" ry="9.5" fill="white"/>
+      <circle cx="37" cy="32" r="6" fill="#1a3a60"/>
+      <circle cx="63" cy="32" r="6" fill="#1a3a60"/>
+      <circle cx="37" cy="32" r="3.8" fill="#080e18"/>
+      <circle cx="63" cy="32" r="3.8" fill="#080e18"/>
+      <circle cx="39" cy="30" r="2" fill="white" opacity="0.95"/>
+      <circle cx="65" cy="30" r="2" fill="white" opacity="0.95"/>
+      <circle cx="36" cy="33" r="0.9" fill="white" opacity="0.5"/>
+      <circle cx="62" cy="33" r="0.9" fill="white" opacity="0.5"/>
+      <path d="M28 21 Q37 17 46 20" stroke="${skd}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M54 20 Q63 17 72 21" stroke="${skd}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="50" cy="42" rx="3.5" ry="2.5" fill="${skd}" opacity="0.38"/>
+      <path d="M38 49 Q50 59 62 49" stroke="${skd}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M40 49 Q50 57 60 49" stroke="white" stroke-width="1.5" fill="white" opacity="0.3"/>
+      <ellipse cx="23" cy="34" rx="5" ry="8" fill="${sk}"/>
+      <ellipse cx="23" cy="34" rx="3" ry="5" fill="${skd}" opacity="0.25"/>
+      <ellipse cx="77" cy="34" rx="5" ry="8" fill="${sk}"/>
+      <ellipse cx="77" cy="34" rx="3" ry="5" fill="${skd}" opacity="0.25"/>`;
+  }
+
+  // Hair (top of head, below mask)
+  let hairSVG = '';
+  if (!isRobot && !isSkeleton && !isDragonAnon && !isRaccoonDev && !isEmperor) {
+    hairSVG = `
+      <ellipse cx="50" cy="10" rx="27" ry="14" fill="${skd}"/>
+      <ellipse cx="50" cy="12" rx="25" ry="12" fill="${skd}"/>
+      <ellipse cx="32" cy="18" rx="10" ry="8" fill="${skd}"/>
+      <ellipse cx="68" cy="18" rx="10" ry="8" fill="${skd}"/>`;
+  }
+
+  // Mask – sits ON TOP of everything (face layer)
+  let maskSVG = '';
+  if (!maskDef.noMask && maskDef.svg) {
+    maskSVG = maskDef.svg();
+  }
+
+  return `
+    <defs>
+      <clipPath id="cclip"><rect x="0" y="0" width="100" height="115"/></clipPath>
+    </defs>
+    <g clip-path="url(#cclip)">
+      ${bgSVG}
+      ${leftArm}
+      ${rightArm}
+      ${torsoSVG}
+      ${neckSVG}
+      ${headSVG}
+      ${hairSVG}
+      ${maskSVG}
+    </g>`;
+}
+
+function buildEmperorSVG() {
+  return `
+    <defs>
+      <radialGradient id="emBg" cx="50%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#1a0a1a"/>
+        <stop offset="100%" stop-color="#08050a"/>
+      </radialGradient>
+      <radialGradient id="eyeR" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff2222" stop-opacity="0.7"/>
+        <stop offset="100%" stop-color="#cc0000" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="eyeL" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff2222" stop-opacity="0.7"/>
+        <stop offset="100%" stop-color="#cc0000" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- BG subtle dark -->
+    <rect x="0" y="0" width="100" height="115" fill="url(#emBg)"/>
+
+    <!-- ── BODY (small chibi) ── -->
+    <!-- Legs / shorts – white with blue trim -->
+    <rect x="37" y="97" width="10" height="14" rx="3" fill="#e8eef5"/>
+    <rect x="53" y="97" width="10" height="14" rx="3" fill="#e8eef5"/>
+    <rect x="36" y="105" width="12" height="3" rx="1" fill="#aac8e0"/>
+    <rect x="52" y="105" width="12" height="3" rx="1" fill="#aac8e0"/>
+    <!-- Shoes -->
+    <ellipse cx="42" cy="112" rx="7" ry="3.5" fill="#f0f0f0"/>
+    <ellipse cx="58" cy="112" rx="7" ry="3.5" fill="#f0f0f0"/>
+    <rect x="36" y="109" width="12" height="4" rx="2" fill="#f0f0f0"/>
+    <rect x="52" y="109" width="12" height="4" rx="2" fill="#f0f0f0"/>
+
+    <!-- Arms -->
+    <!-- Left arm -->
+    <rect x="22" y="68" width="11" height="20" rx="5" fill="#f5e8e0"/>
+    <ellipse cx="27" cy="88" rx="5.5" ry="4" fill="#f0e0d0"/>
+    <!-- Right arm -->
+    <rect x="67" y="68" width="11" height="20" rx="5" fill="#f5e8e0"/>
+    <ellipse cx="73" cy="88" rx="5.5" ry="4" fill="#f0e0d0"/>
+
+    <!-- Jersey body – white with blue accents -->
+    <rect x="30" y="65" width="40" height="35" rx="7" fill="#f0f4f8"/>
+    <!-- Jersey top shoulder panel dark -->
+    <path d="M30 65 Q35 60 44 63 L44 70 Q35 68 30 72Z" fill="#1a1a2a"/>
+    <path d="M70 65 Q65 60 56 63 L56 70 Q65 68 70 72Z" fill="#1a1a2a"/>
+    <!-- Blue side stripes -->
+    <rect x="30" y="65" width="3" height="35" rx="1" fill="#6ab0d8"/>
+    <rect x="67" y="65" width="3" height="35" rx="1" fill="#6ab0d8"/>
+    <!-- RAKUZAN text -->
+    <text x="50" y="77" text-anchor="middle" font-size="5.5" font-weight="900" fill="#4a90c0" font-family="Arial Black, sans-serif" letter-spacing="0.5">RAKUZAN</text>
+    <!-- Number 4 -->
+    <text x="50" y="95" text-anchor="middle" font-size="19" font-weight="900" fill="#222" font-family="Arial Black, Impact, sans-serif">4</text>
+    <!-- V-neck collar dark -->
+    <path d="M40 65 L50 74 L60 65" fill="#1a1a2a"/>
+    <path d="M40 65 L50 74 L60 65" fill="none" stroke="#1a1a2a" stroke-width="1"/>
+    <!-- Captain armband -->
+    <rect x="19" y="73" width="13" height="6" rx="2" fill="#cc8800"/>
+    <text x="25.5" y="78" text-anchor="middle" font-size="5" font-weight="900" fill="#4a1a00" font-family="Arial Black">C</text>
+
+    <!-- Neck -->
+    <rect x="44" y="56" width="12" height="12" rx="5" fill="#f5e8e0"/>
+
+    <!-- ── HEAD – big chibi, round ── -->
+    <!-- Head base pale skin -->
+    <ellipse cx="50" cy="36" rx="29" ry="28" fill="#f5e8e0"/>
+    <!-- Cheek blush -->
+    <ellipse cx="30" cy="44" rx="7" ry="4" fill="#f0a0a0" opacity="0.45"/>
+    <ellipse cx="70" cy="44" rx="7" ry="4" fill="#f0a0a0" opacity="0.45"/>
+    <!-- Ears -->
+    <ellipse cx="21" cy="38" rx="4.5" ry="6" fill="#f5e0d0"/>
+    <ellipse cx="21" cy="38" rx="2.5" ry="3.5" fill="#e8c8b8" opacity="0.5"/>
+    <ellipse cx="79" cy="38" rx="4.5" ry="6" fill="#f5e0d0"/>
+    <ellipse cx="79" cy="38" rx="2.5" ry="3.5" fill="#e8c8b8" opacity="0.5"/>
+
+    <!-- ── HAIR – spiky red chibi style ── -->
+    <!-- Back hair layer -->
+    <ellipse cx="50" cy="18" rx="29" ry="22" fill="#7a1010"/>
+    <!-- Spiky hair top – many sharp points -->
+    <polygon points="50,2 53,10 58,1 60,11 65,3 66,12 71,6 70,14 74,10 72,18 50,16" fill="#8b1515"/>
+    <polygon points="50,2 47,10 42,1 40,11 35,3 34,12 29,6 30,14 26,10 28,18 50,16" fill="#8b1515"/>
+    <!-- Mid hair layer over forehead -->
+    <ellipse cx="50" cy="22" rx="28" ry="18" fill="#8b1515"/>
+    <!-- Front spikes over forehead -->
+    <path d="M22 22 Q26 10 32 16 Q34 8 38 15 Q40 7 44 14 Q46 6 50 12 Q54 6 56 14 Q60 7 62 15 Q66 8 68 16 Q74 10 78 22" fill="#9b1818"/>
+    <!-- Hair highlight -->
+    <path d="M36 10 Q44 6 52 9 Q45 7 37 13Z" fill="#bb3333" opacity="0.6"/>
+    <path d="M55 8 Q63 5 70 11 Q63 8 56 13Z" fill="#bb3333" opacity="0.4"/>
+
+    <!-- ── EYEBROWS – sharp dark red, stern look ── -->
+    <path d="M24 28 Q34 22 42 26" stroke="#5a0000" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M58 26 Q66 22 76 28" stroke="#5a0000" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <!-- Frown inner corners -->
+    <path d="M38 27 Q40 25 42 26" stroke="#5a0000" stroke-width="1.5" fill="none"/>
+    <path d="M58 26 Q60 25 62 27" stroke="#5a0000" stroke-width="1.5" fill="none"/>
+
+    <!-- ── LEFT EYE – Emperor Eye red ── -->
+    <ellipse cx="34" cy="35" rx="10" ry="9" fill="white"/>
+    <!-- Aura glow -->
+    <ellipse cx="34" cy="35" rx="13" ry="11" fill="url(#eyeL)"/>
+    <ellipse cx="34" cy="35" rx="10" ry="9" fill="white"/>
+    <!-- Red iris -->
+    <ellipse cx="34" cy="35" rx="8" ry="7.5" fill="#cc0000"/>
+    <ellipse cx="34" cy="35" rx="6.5" ry="6" fill="#ee1a1a"/>
+    <ellipse cx="34" cy="35" rx="4.5" ry="4.5" fill="#aa0000"/>
+    <circle cx="34" cy="35" r="2.8" fill="#660000"/>
+    <!-- Iris rings -->
+    <ellipse cx="34" cy="35" rx="8" ry="7.5" fill="none" stroke="#ff5555" stroke-width="1.2" opacity="0.9"/>
+    <ellipse cx="34" cy="35" rx="10" ry="9" fill="none" stroke="#cc0000" stroke-width="0.7" opacity="0.5"/>
+    <!-- Highlight -->
+    <circle cx="37" cy="31.5" r="2.5" fill="white" opacity="0.95"/>
+    <circle cx="32" cy="38.5" r="1" fill="white" opacity="0.4"/>
+    <!-- Eyelid -->
+    <path d="M24 33 Q34 26 44 33" stroke="#5a0000" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M24 35 Q34 43 44 35" stroke="#c09090" stroke-width="0.8" fill="none" opacity="0.5"/>
+
+    <!-- ── RIGHT EYE – Emperor Eye red ── -->
+    <ellipse cx="66" cy="35" rx="10" ry="9" fill="white"/>
+    <!-- Aura glow -->
+    <ellipse cx="66" cy="35" rx="13" ry="11" fill="url(#eyeR)"/>
+    <ellipse cx="66" cy="35" rx="10" ry="9" fill="white"/>
+    <!-- Red iris -->
+    <ellipse cx="66" cy="35" rx="8" ry="7.5" fill="#cc0000"/>
+    <ellipse cx="66" cy="35" rx="6.5" ry="6" fill="#ee1a1a"/>
+    <ellipse cx="66" cy="35" rx="4.5" ry="4.5" fill="#aa0000"/>
+    <circle cx="66" cy="35" r="2.8" fill="#660000"/>
+    <!-- Iris rings -->
+    <ellipse cx="66" cy="35" rx="8" ry="7.5" fill="none" stroke="#ff5555" stroke-width="1.2" opacity="0.9"/>
+    <ellipse cx="66" cy="35" rx="10" ry="9" fill="none" stroke="#cc0000" stroke-width="0.7" opacity="0.5"/>
+    <!-- Highlight -->
+    <circle cx="69" cy="31.5" r="2.5" fill="white" opacity="0.95"/>
+    <circle cx="64" cy="38.5" r="1" fill="white" opacity="0.4"/>
+    <!-- Eyelid -->
+    <path d="M56 33 Q66 26 76 33" stroke="#5a0000" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M56 35 Q66 43 76 35" stroke="#c09090" stroke-width="0.8" fill="none" opacity="0.5"/>
+
+    <!-- Nose – tiny chibi dot -->
+    <circle cx="50" cy="46" r="1.4" fill="#d0a898" opacity="0.7"/>
+
+    <!-- Mouth – thin stern line -->
+    <path d="M43 51 Q50 54 57 51" stroke="#c09080" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  `;
+}
+
+function renderCharSVG(svgEl, bodyIdx, outfitIdx, maskIdx, bgIdx) {
+  if (!svgEl) return;
+  const body = CHAR_BODIES[bodyIdx];
+  if (body && body.special === 'emperor') {
+    svgEl.innerHTML = buildEmperorSVG();
+  } else {
+    svgEl.innerHTML = buildCharSVG(bodyIdx, outfitIdx, maskIdx, bgIdx);
+  }
+}
+
+// ─── LESSONS DATA ─────────────────────────────────────────────────────────────
 const lessonsData = [
   {
     title: "Вывод данных",
@@ -439,8 +1651,6 @@ const lessonsData = [
       { q: "Как вывести переменную x?", code: "var x: integer;", opts: ["writeln(x)", "writeln('x')", "write x"], correct: 0, exp: "Без кавычек выводится значение переменной." },
       { q: "Какой символ начинает строковый литерал?", code: "", opts: ["Одинарная кавычка '", "Скобки ()", "Решетка #"], correct: 0, exp: "Текст в Pascal пишется в одинарных кавычках." },
       { q: "Что делает readln?", code: "", opts: ["Читает ввод", "Выводит текст", "Очищает экран"], correct: 0, exp: "readln ждёт ввода от пользователя." },
-      { q: "Как перейти на новую строку вручную?", code: "", opts: ["writeln('')", "write('')", "newline"], correct: 0, exp: "writeln автоматически добавляет перенос." },
-      { q: "Что будет, если забыть ; ?", code: "writeln('A')\nwriteln('B')", opts: ["Ошибка компиляции", "Программа проигнорирует", "Выведет всё сразу"], correct: 0, exp: "Pascal требует ; после каждой команды." }
     ]
   },
   {
@@ -451,11 +1661,7 @@ const lessonsData = [
       { q: "Где объявляются переменные?", code: "program Test;\n...\nbegin\n...", opts: ["До begin", "После begin", "В конце программы"], correct: 0, exp: "Раздел описания переменных всегда идёт до begin." },
       { q: "Какой тип для дробных чисел?", code: "", opts: ["real", "integer", "char"], correct: 0, exp: "real хранит числа с плавающей точкой." },
       { q: "Что такое char?", code: "", opts: ["Символ", "Строка", "Число"], correct: 0, exp: "char хранит один символ." },
-      { q: "Можно ли менять тип переменной?", code: "", opts: ["Нет", "Да, всегда", "Только в циклах"], correct: 0, exp: "В Pascal тип фиксирован при объявлении." },
       { q: "Как объявить логическую переменную?", code: "", opts: ["var f: boolean;", "var f: bool;", "var f: logic;"], correct: 0, exp: "boolean принимает true или false." },
-      { q: "Что будет при x := 5.5; (x: integer)?", code: "", opts: ["Ошибка", "x станет 5", "x станет 6"], correct: 0, exp: "Нельзя присвоить дробь целой переменной без округления." },
-      { q: "Где можно объявлять константы?", code: "", opts: ["В разделе const", "Везде", "Только в main"], correct: 0, exp: "const объявляется в начале программы." },
-      { q: "Что такое идентификатор?", code: "", opts: ["Имя переменной", "Значение", "Оператор"], correct: 0, exp: "Идентификатор — это имя, которое ты даёшь объекту." }
     ]
   },
   {
@@ -464,13 +1670,8 @@ const lessonsData = [
       { q: "Какой оператор присваивания в Pascal?", code: "x ... 10;", opts: ["=", "==", ":="], correct: 2, exp: "Двоеточие и равно (:=) — оператор присваивания." },
       { q: "Что будет после x := 5 + 3?", code: "", opts: ["x станет '5+3'", "x станет 8", "Ошибка синтаксиса"], correct: 1, exp: "Сначала вычисляется выражение, потом результат сохраняется." },
       { q: "Как прочитать число с клавиатуры в x?", code: "", opts: ["readln(x)", "input(x)", "get(x)"], correct: 0, exp: "readln читает данные и ждёт нажатия Enter." },
-      { q: "Что делает := ?", code: "", opts: ["Сравнивает", "Присваивает", "Умножает"], correct: 1, exp: ":= записывает значение справа в переменную слева." },
       { q: "Можно ли писать x := x + 1?", code: "", opts: ["Да", "Нет", "Только в цикле"], correct: 0, exp: "Да, это стандартный способ увеличения счётчика." },
-      { q: "Что будет, если не ввести данные для readln?", code: "", opts: ["Программа зависнет", "Ошибка", "Подставит 0"], correct: 0, exp: "readln ждёт ввода бесконечно." },
-      { q: "Как прочитать строку в s?", code: "", opts: ["readln(s)", "read(s)", "input s"], correct: 0, exp: "readln читает всю строку до Enter." },
       { q: "Что вернёт readln, если ввести 'abc' в integer?", code: "", opts: ["Ошибка выполнения", "0", "'abc'"], correct: 0, exp: "Несоответствие типов вызовет ошибку." },
-      { q: "Можно ли присвоить char в string?", code: "", opts: ["Да", "Нет", "Только через функцию"], correct: 0, exp: "string может хранить один char." },
-      { q: "Что такое выражение?", code: "", opts: ["Код, возвращающий значение", "Команда вывода", "Имя файла"], correct: 0, exp: "Выражение вычисляется до значения." }
     ]
   },
   {
@@ -478,34 +1679,128 @@ const lessonsData = [
     questions: [
       { q: "Как начинается условие в Pascal?", code: "", opts: ["if ... then", "when ... do", "case ... of"], correct: 0, exp: "Базовый синтаксис условия: if условие then действие;" },
       { q: "Что нужно, если в then несколько команд?", code: "if x > 0 then\n  writeln('A');\n  writeln('B');", opts: ["begin ... end", "{ ... }", "( ... )"], correct: 0, exp: "begin и end группируют несколько команд в один блок." },
-      { q: "Какое условие истинно?", code: "", opts: ["5 > 3", "2 = 4", "10 < 5"], correct: 0, exp: "5 действительно больше 3, поэтому условие вернёт true." },
       { q: "Как проверить равенство?", code: "", opts: ["if x = 5 then", "if x == 5 then", "if x := 5 then"], correct: 0, exp: "В Pascal сравнение — это один знак =." },
       { q: "Что делает else?", code: "", opts: ["Выполняется если false", "Завершает программу", "Повторяет условие"], correct: 0, exp: "else — альтернативная ветка." },
-      { q: "Можно ли вкладывать if?", code: "", opts: ["Да", "Нет", "Только 2 уровня"], correct: 0, exp: "Условия можно вкладывать сколько угодно." },
-      { q: "Что будет без begin в then?", code: "if true then writeln(1);\nwriteln(2);", opts: ["Выведет 1 и 2", "Выведет только 1", "Ошибка"], correct: 0, exp: "Без begin выполнится только первая команда." },
       { q: "Как проверить неравенство?", code: "", opts: ["<>", "!=", "!=="], correct: 0, exp: "<> означает 'не равно' в Pascal." },
       { q: "Что вернёт not true?", code: "", opts: ["false", "true", "nil"], correct: 0, exp: "not инвертирует логическое значение." },
-      { q: "Когда сработает else if?", code: "", opts: ["Если первое условие false", "Всегда", "Никогда"], correct: 0, exp: "else if проверяется только если предыдущее условие ложно." }
     ]
   },
   {
     title: "Циклы",
     questions: [
       { q: "Какой цикл используется, когда известно количество повторений?", code: "", opts: ["for", "while", "repeat"], correct: 0, exp: "for удобен, когда заранее известно число итераций." },
-      { q: "Что делает inc(i)?", code: "", opts: ["Увеличивает i на 1", "Уменьшает i", "Сбрасывает i в 0"], correct: 0, exp: "inc — сокращение от increment, увеличивает переменную." },
-      { q: "Какой оператор прерывает цикл досрочно?", code: "", opts: ["break", "stop", "exit"], correct: 0, exp: "break немедленно выходит из текущего цикла." },
       { q: "Как записать for от 1 до 10?", code: "", opts: ["for i:=1 to 10 do", "for i=1; i<=10; i++", "loop 1 to 10"], correct: 0, exp: "Синтаксис Pascal: for переменная:=начало to конец do." },
       { q: "Что делает while x < 5 do?", code: "", opts: ["Повторяет пока x<5", "Повторяет 5 раз", "Ожидает ввод"], correct: 0, exp: "while проверяет условие перед каждой итерацией." },
       { q: "Чем repeat until отличается от while?", code: "", opts: ["Выполняется минимум 1 раз", "Ничем", "Медленнее"], correct: 0, exp: "repeat проверяет условие после тела цикла." },
-      { q: "Что будет, если условие while всегда true?", code: "", opts: ["Бесконечный цикл", "Ошибка", "Пропуск"], correct: 0, exp: "Программа зависнет без break." },
       { q: "Как уменьшить счётчик в for?", code: "", opts: ["downto", "to -1", "desc"], correct: 0, exp: "for i:=10 downto 1 do идёт в обратном порядке." },
-      { q: "Можно ли менять счётчик for внутри цикла?", code: "", opts: ["Нет", "Да", "Только в PascalABC"], correct: 0, exp: "Изменение счётчика for запрещено стандартом." },
-      { q: "Что делает continue?", code: "", opts: ["Переходит к следующей итерации", "Завершает цикл", "Пауза"], correct: 0, exp: "continue пропускает остаток тела цикла." }
+      { q: "Что делает break?", code: "", opts: ["Прерывает цикл", "Продолжает цикл", "Завершает программу"], correct: 0, exp: "break немедленно выходит из текущего цикла." },
     ]
   }
 ];
 
-// ─── UTILS ───────────────────────────────────────────────────────────────────
+// ─── TROPHY TEST QUESTIONS ─────────────────────────────────────────────────────
+// Mix of: type-the-answer (typing), fill-the-blank, fix-the-error
+const TROPHY_QUESTIONS = [
+  {
+    type: 'type',
+    q: 'Напиши оператор присваивания Pascal (между переменной и значением):',
+    code: 'x ___ 5;',
+    answer: ':=',
+    chips: [':=', '==', '=', ':'],
+    exp: ':= — оператор присваивания в Pascal.'
+  },
+  {
+    type: 'type',
+    q: 'Как объявить переменную целого типа? Напиши ключевое слово раздела объявлений:',
+    code: '___ x: integer;',
+    answer: 'var',
+    chips: ['var', 'int', 'let', 'dim'],
+    exp: 'var — ключевое слово для объявления переменных.'
+  },
+  {
+    type: 'type',
+    q: 'Какой символ разделяет команды в Pascal? Напиши его:',
+    code: 'writeln(x) ___ writeln(y)',
+    answer: ';',
+    chips: [';', ',', '.', ':'],
+    exp: 'Точка с запятой (;) разделяет операторы в Pascal.'
+  },
+  {
+    type: 'fix',
+    q: 'Найди и исправь ошибку. Как правильно написать команду вывода?',
+    code: 'print("Hello");',
+    answer: "writeln('Hello');",
+    chips: ['writeln', 'write', 'println', "'Hello'", '"Hello"', ';'],
+    exp: "В Pascal используется writeln, а строки в одинарных кавычках."
+  },
+  {
+    type: 'type',
+    q: 'Напиши ключевое слово условной конструкции в Pascal:',
+    code: '___ x > 0 then writeln(x);',
+    answer: 'if',
+    chips: ['if', 'when', 'case', 'check'],
+    exp: 'if — ключевое слово условного оператора в Pascal.'
+  },
+  {
+    type: 'type',
+    q: 'Напиши тип данных для хранения дробных чисел:',
+    code: 'var pi: ___;',
+    answer: 'real',
+    chips: ['real', 'float', 'double', 'decimal'],
+    exp: 'real — тип данных с плавающей точкой в Pascal.'
+  },
+  {
+    type: 'fix',
+    q: 'Исправь ошибку в условии — как сравнить x с 5?',
+    code: 'if x == 5 then writeln(x);',
+    answer: 'if x = 5 then writeln(x);',
+    chips: ['if', 'x', '=', '==', '5', 'then', 'writeln', ';'],
+    exp: 'В Pascal сравнение пишется через один знак = (не ==).'
+  },
+  {
+    type: 'type',
+    q: 'Напиши ключевое слово для цикла с известным числом итераций:',
+    code: '___ i := 1 to 10 do ...',
+    answer: 'for',
+    chips: ['for', 'while', 'loop', 'repeat'],
+    exp: 'for — цикл со счётчиком, когда число итераций известно.'
+  },
+];
+
+// ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
+const ACHIEVEMENTS = {
+  progress: [
+    { id:'first_lesson', icon:'📖', name:'Первый шаг', desc:'Пройди первый урок', check: () => lessonCompleted[0] },
+    { id:'half_way', icon:'🌟', name:'Половина пути', desc:'Пройди 3 урока', check: () => lessonCompleted.filter(Boolean).length >= 3 },
+    { id:'all_lessons', icon:'🎓', name:'Выпускник', desc:'Пройди все 5 уроков', check: () => lessonCompleted.every(Boolean) },
+    { id:'trophy_done', icon:'🏆', name:'Чемпион', desc:'Пройди финальный тест', check: () => trophyTestDone },
+    { id:'xp100', icon:'⚡', name:'Заряженный', desc:'Набери 100 XP', check: () => xp >= 100 },
+    { id:'xp500', icon:'💥', name:'Взрывной', desc:'Набери 500 XP', check: () => xp >= 500 },
+  ],
+  streak: [
+    { id:'streak3', icon:'🔥', name:'Горячо!', desc:'3 дня подряд', check: () => true },
+    { id:'no_errors', icon:'💎', name:'Без ошибок', desc:'Пройди урок идеально', check: () => lessonCompleted.some(Boolean) },
+    { id:'speed_run', icon:'⚡', name:'Спринтер', desc:'Пройди урок за раз', check: () => lessonCompleted.some(Boolean) },
+  ],
+  mastery: [
+    { id:'typed_right', icon:'⌨️', name:'Клавишник', desc:'Правильно введи ответ в тесте', check: () => trophyTestDone },
+    { id:'trophy_perfect', icon:'🌠', name:'Перфекционист', desc:'Пройди финальный тест без ошибок', check: () => trophyTestDone && trophyErrors === 0 },
+    { id:'all_done', icon:'🚀', name:'Кодер', desc:'Пройди весь модуль', check: () => lessonCompleted.every(Boolean) && trophyTestDone },
+  ]
+};
+
+const TITLES = [
+  { id: 'newbie',    icon: '🌱', name: 'Новичок',       req: 'Начни учиться',                        reqXP: 0,   check: () => true },
+  { id: 'coder',     icon: '💻', name: 'Кодер',          req: 'Пройди первый урок',                   reqXP: 0,   check: () => lessonCompleted[0] },
+  { id: 'debugger',  icon: '🐛', name: 'Дебаггер',       req: 'Пройди 3 урока',                       reqXP: 0,   check: () => lessonCompleted.filter(Boolean).length >= 3 },
+  { id: 'champion',  icon: '🏆', name: 'Чемпион',        req: 'Пройди финальный тест',                reqXP: 0,   check: () => trophyTestDone },
+  { id: 'master',    icon: '🎓', name: 'Мастер Pascal',  req: 'Пройди все уроки и финальный тест',    reqXP: 0,   check: () => lessonCompleted.every(Boolean) && trophyTestDone },
+  { id: 'legend',    icon: '⚡', name: 'Легенда',         req: '500 XP',                               reqXP: 500, check: () => xp >= 500 },
+  { id: 'dev_blood', icon: '🩸', name: 'Разработчик',    req: 'Секретный код EMPEROR77',              reqXP: 0,   check: () => unlockedSecrets.has(8), neon: 'blood', secret: true },
+  { id: 'dev_tech',  icon: '🖥️', name: 'Разработчик',    req: 'Секретный код RACCOONDEV',             reqXP: 0,   check: () => unlockedSecrets.has(7), neon: 'tech',  secret: true },
+];
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
 function shuffle(arr) {
   let a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -515,12 +1810,7 @@ function shuffle(arr) {
   return a;
 }
 
-// FIX: функция actClick была объявлена как onclick но нигде не определена — теперь есть
-function actClick() {
-  if (!answered) {
-    checkAnswer();
-  }
-}
+function actClick() { if (!answered) checkAnswer(); }
 
 function showToast(msg, duration = 1500) {
   const t = document.getElementById('toast');
@@ -542,7 +1832,6 @@ function updateStats() {
 
 function renderPath() {
   const container = document.getElementById('path-container');
-  // FIX: изменён формат — каждый узел обёрнут в node-wrap с подписью урока
   let html = '';
   for (let i = 0; i < 5; i++) {
     const done = lessonCompleted[i];
@@ -557,12 +1846,11 @@ function renderPath() {
       </div>
     `;
   }
-  // Финальный узел
   const allDone = lessonCompleted.every(Boolean);
   html += `
     <div class="node-wrap">
-      <div class="node ${allDone ? 'active' : 'locked'}" onclick="${allDone ? 'showScreen(\'scr-completion\')' : ''}">🏆</div>
-      <div class="lesson-label">Финал</div>
+      <div class="node trophy-node ${allDone ? '' : 'locked'}" onclick="${allDone ? 'startTrophyTest()' : ''}">🏆</div>
+      <div class="lesson-label">Финальный тест</div>
     </div>
   `;
   container.innerHTML = html;
@@ -571,11 +1859,7 @@ function renderPath() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  // FIX: act-area теперь внутри scr-lesson, не нужно глобально прятать
-  if (id === 'scr-home') {
-    renderPath();
-    updateStats();
-  }
+  if (id === 'scr-home') { renderPath(); updateStats(); }
 }
 
 function goHome(el) { showScreen('scr-home'); navActive(el); }
@@ -585,129 +1869,8 @@ function goProfile(el) {
   renderProfileScreen();
   navActive(el);
 }
-
-// ─── PROFILE DATA ─────────────────────────────────────────────────────────
-const AVATARS = ['🤖','👾','🧙','🦊','🐺','🦁','🐲','👻','🎃','🤠',
-                 '🥷','👽','🦄','🐸','🐼','🐨','🦋','🌊','🔥','⚡',
-                 '🌙','🌈','💀','🎯','🎮'];
-const BANNER_COLORS = [
-  { id:'blue',   g:'linear-gradient(160deg,#1e2d6b,#0d1b3e,var(--bg))' },
-  { id:'purple', g:'linear-gradient(160deg,#3b1f6b,#1a0d3e,var(--bg))' },
-  { id:'green',  g:'linear-gradient(160deg,#0e3d1e,#071a0d,var(--bg))' },
-  { id:'red',    g:'linear-gradient(160deg,#5a1a1a,#280d0d,var(--bg))' },
-  { id:'teal',   g:'linear-gradient(160deg,#0d3a3a,#051f1f,var(--bg))' },
-  { id:'gold',   g:'linear-gradient(160deg,#4a3800,#221900,var(--bg))' },
-];
-const AVATAR_BG = {
-  '🤖':'linear-gradient(135deg,#4A41C0,#2C2763)',
-  '👾':'linear-gradient(135deg,#7B2FBE,#4A0E8F)',
-  '🧙':'linear-gradient(135deg,#1a6b4a,#0a3020)',
-  '🦊':'linear-gradient(135deg,#C25B1A,#7A3000)',
-  '🐺':'linear-gradient(135deg,#555,#222)',
-  '🦁':'linear-gradient(135deg,#C8962A,#7A5600)',
-  '🐲':'linear-gradient(135deg,#1a6b1a,#0a3a0a)',
-  '👻':'linear-gradient(135deg,#5a5a7a,#2a2a4a)',
-  '🎃':'linear-gradient(135deg,#8B4500,#3a1a00)',
-  '🤠':'linear-gradient(135deg,#7a5500,#3a2800)',
-  '🥷':'linear-gradient(135deg,#222,#111)',
-  '👽':'linear-gradient(135deg,#1a6b2a,#0a3015)',
-  '🦄':'linear-gradient(135deg,#b84fa0,#6b1f60)',
-  '🐸':'linear-gradient(135deg,#2a7a1a,#103a08)',
-  '🐼':'linear-gradient(135deg,#444,#111)',
-  '🐨':'linear-gradient(135deg,#7a7a7a,#333)',
-  '🦋':'linear-gradient(135deg,#6b3fbe,#2a0d6b)',
-  '🌊':'linear-gradient(135deg,#0d5a8b,#062840)',
-  '🔥':'linear-gradient(135deg,#c23a00,#6b1a00)',
-  '⚡':'linear-gradient(135deg,#7a6b00,#3a3200)',
-  '🌙':'linear-gradient(135deg,#1a1a5a,#0a0a2a)',
-  '🌈':'linear-gradient(135deg,#5a3fbe,#1a0d6b)',
-  '💀':'linear-gradient(135deg,#333,#111)',
-  '🎯':'linear-gradient(135deg,#8b1a1a,#3a0808)',
-  '🎮':'linear-gradient(135deg,#1a3a6b,#0a1a3a)',
-};
-
-let profileData = {
-  name: 'Akim',
-  username: 'AkimCode',
-  bio: 'Учу Pascal 🚀',
-  avatar: '🤖',
-  bannerId: 'blue',
-  tempAvatar: null,
-};
-
-function renderProfileScreen() {
-  // fill fields
-  document.getElementById('edit-name').value = profileData.name;
-  document.getElementById('edit-username').value = profileData.username;
-  document.getElementById('edit-bio').value = profileData.bio;
-  document.getElementById('prof-ava-emoji').textContent = profileData.avatar;
-  document.getElementById('prof-ava').style.background = AVATAR_BG[profileData.avatar] || 'linear-gradient(135deg,#4A41C0,#2C2763)';
-  // banner color
-  const banner = document.getElementById('prof-banner');
-  const bc = BANNER_COLORS.find(c => c.id === profileData.bannerId) || BANNER_COLORS[0];
-  banner.style.background = bc.g;
-  // color dots
-  const cr = document.getElementById('color-row');
-  cr.innerHTML = BANNER_COLORS.map(c => `
-    <div class="color-dot ${c.id === profileData.bannerId ? 'picked' : ''}"
-         style="background:${c.g.split(',')[1] || '#1e2d6b'}"
-         onclick="pickBannerColor('${c.id}')">
-      ${c.id === profileData.bannerId ? '✓' : ''}
-    </div>`).join('');
-}
-
-function pickBannerColor(id) {
-  profileData.bannerId = id;
-  const banner = document.getElementById('prof-banner');
-  const bc = BANNER_COLORS.find(c => c.id === id);
-  banner.style.background = bc.g;
-  document.querySelectorAll('.color-dot').forEach(d => {
-    const active = d.getAttribute('onclick').includes(id);
-    d.classList.toggle('picked', active);
-    d.textContent = active ? '✓' : '';
-    if (!active) d.style.cssText += '';
-  });
-}
-
-function openAvaModal() {
-  profileData.tempAvatar = profileData.avatar;
-  const grid = document.getElementById('avatar-grid');
-  grid.innerHTML = AVATARS.map(e => `
-    <div class="avatar-opt ${e === profileData.tempAvatar ? 'picked' : ''}"
-         onclick="pickAvatar('${e}')">${e}</div>`).join('');
-  document.getElementById('ava-modal').classList.add('open');
-}
-
-function closeAvaModal(e) {
-  if (e.target === document.getElementById('ava-modal'))
-    document.getElementById('ava-modal').classList.remove('open');
-}
-
-function pickAvatar(emoji) {
-  profileData.tempAvatar = emoji;
-  document.querySelectorAll('.avatar-opt').forEach(el => {
-    el.classList.toggle('picked', el.textContent === emoji);
-  });
-}
-
-function confirmAvatar() {
-  profileData.avatar = profileData.tempAvatar || profileData.avatar;
-  document.getElementById('ava-modal').classList.remove('open');
-  document.getElementById('prof-ava-emoji').textContent = profileData.avatar;
-  document.getElementById('prof-ava').style.background = AVATAR_BG[profileData.avatar] || 'linear-gradient(135deg,#4A41C0,#2C2763)';
-}
-
-function saveProfile() {
-  const name = document.getElementById('edit-name').value.trim();
-  const user = document.getElementById('edit-username').value.trim();
-  const bio  = document.getElementById('edit-bio').value.trim();
-  if (!name) { showToast('❗ Введи имя'); return; }
-  if (!user) { showToast('❗ Введи юзернейм'); return; }
-  profileData.name     = name;
-  profileData.username = user;
-  profileData.bio      = bio;
-  showToast('✅ Профиль сохранён!', 1800);
-}
+function goLeague(el) { showScreen('scr-league'); renderLeagueScreen(); navActive(el); }
+function goAchievements(el) { showScreen('scr-ach'); renderAchievements(); navActive(el); }
 
 function navActive(el) {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -725,7 +1888,6 @@ function startLesson(idx) {
   updateStats();
   shuffledQuestions = shuffle(lessonsData[idx].questions);
   showScreen('scr-lesson');
-  // FIX: скрыть nav при уроке чтобы не перекрывал
   document.querySelector('.nav').style.display = 'none';
   renderQuestion();
 }
@@ -741,19 +1903,14 @@ function resetUI() {
   answered = false;
   const act = document.getElementById('act-area');
   act.innerHTML = `<button class="btn go" id="act-btn" onclick="actClick()" disabled>ПРОВЕРИТЬ</button>`;
-  act.classList.add('show'); // кнопка всегда видна, просто disabled до выбора
+  act.classList.add('show');
 }
 
 function renderQuestion() {
   const q = shuffledQuestions[currentQIdx];
   const area = document.getElementById('q-area');
-
-  // FIX: прогресс-бар теперь показывает реальный прогресс (0→100%)
   document.getElementById('prog').style.width = `${(currentQIdx / shuffledQuestions.length) * 100}%`;
-
-  // FIX: code экранируется, чтобы HTML-теги не сломали разметку
   const safeCode = q.code ? q.code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
-
   let html = `
     <div class="mascot-row">
       <svg class="golem-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -771,29 +1928,24 @@ function renderQuestion() {
       ${q.opts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${o}</button>`).join('')}
     </div>
   `;
-
   area.innerHTML = html;
   resetUI();
 }
 
 function selectOption(idx) {
-  if (answered) return; // FIX: нельзя менять ответ после проверки
+  if (answered) return;
   selectedOption = idx;
   document.querySelectorAll('.opt').forEach((b, i) => b.classList.toggle('sel', i === idx));
   document.getElementById('act-btn').disabled = false;
 }
 
 function checkAnswer() {
-  if (answered || selectedOption === null) return; // FIX: защита от двойного вызова
+  if (answered || selectedOption === null) return;
   answered = true;
-
   const q = shuffledQuestions[currentQIdx];
   const btns = document.querySelectorAll('.opt');
   const act = document.getElementById('act-area');
-
-  // FIX: блокируем все кнопки ответов
   document.getElementById('opts-container').classList.add('answered');
-
   if (selectedOption === q.correct) {
     btns[selectedOption].classList.add('ok');
     xp += 10;
@@ -809,8 +1961,6 @@ function checkAnswer() {
     hearts = Math.max(0, hearts - 1);
     lessonErrors++;
     updateStats();
-
-    // FIX: если сердец 0 — тоже перезапускаем
     if (lessonErrors >= 5 || hearts === 0) {
       act.innerHTML = `
         <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">💔 Слишком много ошибок!</div>
@@ -820,7 +1970,6 @@ function checkAnswer() {
       act.classList.add('show');
       return;
     }
-
     act.innerHTML = `
       <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">❌ Ошибка</div>
       <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;line-height:1.4;">💡 ${q.exp}</div>
@@ -835,19 +1984,15 @@ function nextQuestion() {
   if (currentQIdx < shuffledQuestions.length) {
     renderQuestion();
   } else {
-    // SUCCESS — урок завершён
     lessonCompleted[currentLessonIdx] = true;
+  saveState();
     xp += 20;
     updateStats();
-    document.querySelector('.nav').style.display = 'flex'; // FIX: возвращаем nav
+    document.querySelector('.nav').style.display = 'flex';
     showScreen('scr-home');
     showToast('🏅 Урок пройден! +20 XP', 2000);
     navActive(document.getElementById('nav-home'));
-
-    if (lessonCompleted.every(Boolean)) {
-      // FIX: задержка чтобы тост успел показаться
-      setTimeout(() => showScreen('scr-completion'), 800);
-    }
+    checkNewAchievements();
   }
 }
 
@@ -856,188 +2001,662 @@ function finishModule() {
   navActive(document.getElementById('nav-home'));
 }
 
+// ─── TROPHY TEST ──────────────────────────────────────────────────────────────
+function startTrophyTest() {
+  trophyQuestions = shuffle(TROPHY_QUESTIONS);
+  trophyQIdx = 0;
+  trophyHearts = 5;
+  trophyErrors = 0;
+  trophyCorrect = 0;
+  trophyAnswered = false;
+  trophyTypedAnswer = '';
+  showScreen('scr-trophy');
+  document.querySelector('.nav').style.display = 'none';
+  renderTrophyQuestion();
+}
 
-// ─── LEAGUE SYSTEM ───────────────────────────────────────────────────────────
+function closeTrophy() {
+  document.querySelector('.nav').style.display = 'flex';
+  showScreen('scr-home');
+  navActive(document.getElementById('nav-home'));
+}
+
+function trophyActClick() {
+  if (!trophyAnswered) checkTrophyAnswer();
+}
+
+function updateTrophyHead() {
+  document.getElementById('trophy-prog').style.width = `${(trophyQIdx / trophyQuestions.length) * 100}%`;
+  document.getElementById('trophy-hearts-disp').textContent = `❤️${trophyHearts}`;
+}
+
+function renderTrophyQuestion() {
+  const q = trophyQuestions[trophyQIdx];
+  trophyAnswered = false;
+  trophyTypedAnswer = '';
+  updateTrophyHead();
+
+  const area = document.getElementById('trophy-area');
+  const safeCode = q.code ? q.code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+
+  let html = `
+    <div class="trophy-q-label">Вопрос ${trophyQIdx + 1} / ${trophyQuestions.length}</div>
+    <div class="trophy-q-title">${q.q}</div>
+    ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
+    <div style="margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Твой ответ:</div>
+      <div class="type-input-wrap">
+        <input 
+          type="text" 
+          class="type-input" 
+          id="trophy-type-input"
+          placeholder="Введи ответ..."
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          oninput="onTrophyType(this)"
+          onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"
+        />
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Подсказки:</div>
+    <div class="hint-chips" id="hint-chips-row">
+      ${q.chips.map((c,i) => `<div class="hint-chip" onclick="insertChip('${c.replace(/'/g,"\\'")}', ${i})" id="chip-${i}">${c}</div>`).join('')}
+    </div>
+  `;
+
+  area.innerHTML = html;
+  resetTrophyAct();
+  // Auto-focus on mobile if possible
+  setTimeout(() => {
+    const inp = document.getElementById('trophy-type-input');
+    if (inp) inp.focus();
+  }, 200);
+}
+
+function resetTrophyAct() {
+  const act = document.getElementById('trophy-act-area');
+  act.innerHTML = `<button class="btn trophy-btn" id="trophy-act-btn" onclick="trophyActClick()" disabled>ПРОВЕРИТЬ</button>`;
+  act.classList.add('show');
+}
+
+function onTrophyType(inp) {
+  trophyTypedAnswer = inp.value;
+  document.getElementById('trophy-act-btn').disabled = inp.value.trim().length === 0;
+}
+
+function insertChip(text, idx) {
+  const inp = document.getElementById('trophy-type-input');
+  if (!inp || trophyAnswered) return;
+  // Append chip text with space
+  inp.value = (inp.value + ' ' + text).trim();
+  trophyTypedAnswer = inp.value;
+  document.getElementById(`chip-${idx}`).classList.add('used');
+  document.getElementById('trophy-act-btn').disabled = false;
+  inp.focus();
+}
+
+function normalizeAnswer(s) {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function checkTrophyAnswer() {
+  if (trophyAnswered) return;
+  trophyAnswered = true;
+  const q = trophyQuestions[trophyQIdx];
+  const inp = document.getElementById('trophy-type-input');
+  const userAns = normalizeAnswer(trophyTypedAnswer);
+  const correctAns = normalizeAnswer(q.answer);
+  const isCorrect = userAns === correctAns;
+  const act = document.getElementById('trophy-act-area');
+
+  if (inp) {
+    inp.classList.add(isCorrect ? 'ok' : 'err');
+    inp.disabled = true;
+  }
+  // Disable chips
+  document.querySelectorAll('.hint-chip').forEach(c => c.style.pointerEvents = 'none');
+
+  if (isCorrect) {
+    trophyCorrect++;
+    xp += 15;
+    updateStats();
+    showToast('🔥 +15 XP');
+    act.innerHTML = `
+      <div style="color:var(--primary);font-weight:800;font-size:17px;margin-bottom:10px;">✅ Правильно!</div>
+      <button class="btn trophy-btn" onclick="nextTrophyQuestion()">ДАЛЕЕ →</button>
+    `;
+  } else {
+    trophyErrors++;
+    trophyHearts = Math.max(0, trophyHearts - 1);
+    updateTrophyHead();
+
+    // Show correct answer
+    if (inp) {
+      const correctEl = document.createElement('div');
+      correctEl.style.cssText = 'color:var(--primary);font-size:13px;font-weight:800;margin-top:8px;';
+      correctEl.textContent = `✓ Правильно: ${q.answer}`;
+      inp.parentNode.appendChild(correctEl);
+    }
+
+    if (trophyHearts === 0) {
+      act.innerHTML = `
+        <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
+        <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Попробуй финальный тест ещё раз</div>
+        <button class="btn bad" onclick="startTrophyTest()">НАЧАТЬ ЗАНОВО</button>
+      `;
+      act.classList.add('show');
+      return;
+    }
+
+    act.innerHTML = `
+      <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">❌ Ошибка</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${q.exp}</div>
+      <button class="btn bad" onclick="nextTrophyQuestion()">ПРОДОЛЖИТЬ</button>
+    `;
+  }
+  act.classList.add('show');
+}
+
+function nextTrophyQuestion() {
+  trophyQIdx++;
+  if (trophyQIdx < trophyQuestions.length) {
+    renderTrophyQuestion();
+  } else {
+    showTrophyResult();
+  }
+}
+
+function showTrophyResult() {
+  trophyTestDone = true;
+  saveState();
+  const pct = Math.round((trophyCorrect / trophyQuestions.length) * 100);
+  const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
+  const starsStr = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  let xpBonus = stars * 30;
+  xp += xpBonus;
+  updateStats();
+
+  const area = document.getElementById('trophy-area');
+  const act = document.getElementById('trophy-act-area');
+
+  document.getElementById('trophy-prog').style.width = '100%';
+  document.getElementById('trophy-hearts-disp').textContent = `❤️${trophyHearts}`;
+
+  area.innerHTML = `
+    <div class="trophy-result-box">
+      <span class="big-icon">${stars === 3 ? '🏆' : stars === 2 ? '🥈' : '🥉'}</span>
+      <h2 style="color:var(--gold);">${stars === 3 ? 'Блестяще!' : stars === 2 ? 'Отлично!' : 'Хороший старт!'}</h2>
+      <div class="score-stars">${starsStr}</div>
+      <p>Финальный тест по модулю 1 пройден</p>
+      <div class="trophy-score-detail">
+        <div class="trophy-score-item"><div class="ts-val" style="color:var(--primary);">${trophyCorrect}/${trophyQuestions.length}</div><div class="ts-lbl">Верных</div></div>
+        <div class="trophy-score-item"><div class="ts-val" style="color:var(--danger);">${trophyErrors}</div><div class="ts-lbl">Ошибок</div></div>
+        <div class="trophy-score-item"><div class="ts-val" style="color:var(--gold);">+${xpBonus}</div><div class="ts-lbl">XP</div></div>
+      </div>
+      <p style="color:var(--text-muted);font-size:13px;">Результат: ${pct}%</p>
+    </div>
+  `;
+
+  act.innerHTML = `<button class="btn trophy-btn" onclick="closeTrophyFinish()">НА ГЛАВНУЮ 🏠</button>`;
+  act.classList.add('show');
+  checkNewAchievements();
+}
+
+function closeTrophyFinish() {
+  document.querySelector('.nav').style.display = 'flex';
+  showScreen('scr-home');
+  navActive(document.getElementById('nav-home'));
+}
+
+// ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
+function checkNewAchievements() {
+  let any = false;
+  [...ACHIEVEMENTS.progress, ...ACHIEVEMENTS.streak, ...ACHIEVEMENTS.mastery].forEach(a => {
+    if (a.check()) { any = true; }
+  });
+  TITLES.forEach(t => {
+    if (t.check() && !profileData.equippedTitleId) {
+      // Auto-equip best title
+      profileData.equippedTitleId = t.id;
+    }
+  });
+  if (any) updateEquippedTitle();
+}
+
+function countUnlocked() {
+  return [...ACHIEVEMENTS.progress, ...ACHIEVEMENTS.streak, ...ACHIEVEMENTS.mastery]
+    .filter(a => a.check()).length;
+}
+
+function renderAchievements() {
+  const total = ACHIEVEMENTS.progress.length + ACHIEVEMENTS.streak.length + ACHIEVEMENTS.mastery.length;
+  document.getElementById('ach-count-label').textContent = `${countUnlocked()} из ${total} разблокировано`;
+
+  function renderGroup(groupKey, elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = ACHIEVEMENTS[groupKey].map(a => {
+      const ok = a.check();
+      return `
+        <div class="ach-card ${ok ? 'unlocked' : 'locked-ach'}">
+          ${!ok ? '<div class="ach-locked-icon">🔒</div>' : ''}
+          <span class="ach-icon">${a.icon}</span>
+          <div class="ach-name">${a.name}</div>
+          <div class="ach-desc">${a.desc}</div>
+        </div>
+      `;
+    }).join('');
+  }
+  renderGroup('progress', 'ach-grid-progress');
+  renderGroup('streak', 'ach-grid-streak');
+  renderGroup('mastery', 'ach-grid-mastery');
+
+  const tList = document.getElementById('titles-list');
+  tList.innerHTML = TITLES.map(t => {
+    const ok = t.check();
+    const equipped = profileData.equippedTitleId === t.id;
+    const neonClass = t.neon === 'blood' ? 'title-neon-blood' : t.neon === 'tech' ? 'title-neon-tech' : '';
+    const nameStyle = neonClass ? `class="t-name ${neonClass}"` : `class="t-name"`;
+    return `
+      <div class="title-card ${ok ? 'unlocked' : 'locked-title'} ${equipped ? 'equipped' : ''}" onclick="${ok ? `equipTitle('${t.id}')` : ''}">
+        <div class="t-icon">${t.icon}</div>
+        <div class="t-info">
+          <div ${nameStyle}>${t.name}</div>
+          <div class="t-req">${t.req}</div>
+        </div>
+        ${equipped ? '<div class="t-equipped">АКТИВЕН</div>' : (ok ? '<div style="font-size:11px;color:var(--text-muted);font-weight:700;">Нажми чтобы надеть</div>' : '<div style="font-size:11px;color:var(--text-muted);">🔒</div>')}
+      </div>
+    `;
+  }).join('');
+}
+
+function equipTitle(id) {
+  profileData.equippedTitleId = profileData.equippedTitleId === id ? null : id;
+  updateEquippedTitle();
+  renderAchievements();
+  saveState();
+  showToast('✨ Титул изменён!');
+}
+
+function updateEquippedTitle() {
+  const badge = document.getElementById('equipped-title-badge');
+  const iconEl = document.getElementById('equipped-title-icon');
+  const textEl = document.getElementById('equipped-title-text');
+  if (!badge) return;
+  const t = TITLES.find(t => t.id === profileData.equippedTitleId);
+  badge.classList.remove('title-badge-blood', 'title-badge-tech');
+  if (t) {
+    badge.classList.remove('none-title');
+    iconEl.textContent = t.icon;
+    textEl.textContent = t.name;
+    if (t.neon === 'blood') badge.classList.add('title-badge-blood');
+    else if (t.neon === 'tech') badge.classList.add('title-badge-tech');
+  } else {
+    badge.classList.add('none-title');
+    iconEl.textContent = '🎖️';
+    textEl.textContent = 'Нет титула';
+  }
+}
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────────
+function switchProfTab(tab) {
+  ['edit','look'].forEach(t => {
+    document.getElementById(`ptab-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`ptab-content-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+}
+
+function renderProfileScreen() {
+  document.getElementById('edit-name').value = profileData.name;
+  document.getElementById('edit-username').value = profileData.username;
+  document.getElementById('edit-bio').value = profileData.bio;
+  document.getElementById('prof-disp-name').textContent = profileData.name;
+  document.getElementById('prof-disp-user').textContent = '@' + profileData.username;
+
+  // Render character on profile
+  const svg = document.getElementById('char-display-svg');
+  renderCharSVG(svg, charState.body, charState.outfit, charState.mask, charState.bg);
+
+  // Banner
+  const banner = document.getElementById('prof-banner');
+  const bc = BANNER_COLORS.find(c => c.id === profileData.bannerId) || BANNER_COLORS[0];
+  banner.style.background = bc.g;
+  const pat = BANNER_PATTERNS.find(p => p.id === profileData.patternId) || BANNER_PATTERNS[0];
+  const patEl = document.getElementById('prof-banner-pattern');
+  patEl.className = pat.class;
+  patEl.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
+
+  // Banner color row
+  const bgRow = document.getElementById('banner-bg-row');
+  bgRow.innerHTML = BANNER_COLORS.map(c => `
+    <div style="width:36px;height:36px;border-radius:50%;background:${c.color};cursor:pointer;
+      border:3px solid ${c.id===profileData.bannerId ? 'white' : 'transparent'};
+      transform:${c.id===profileData.bannerId ? 'scale(1.15)' : 'scale(1)'};transition:all 0.15s;
+      display:flex;align-items:center;justify-content:center;font-size:12px;"
+      onclick="pickBannerColor('${c.id}')">
+      ${c.id===profileData.bannerId ? '✓' : ''}
+    </div>`).join('');
+
+  // Pattern row
+  const patRow = document.getElementById('banner-pattern-row');
+  patRow.innerHTML = BANNER_PATTERNS.map(p => `
+    <div style="padding:8px 14px;border-radius:10px;background:var(--surface);border:2px solid ${p.id===profileData.patternId ? 'var(--secondary)' : 'var(--surface-light)'};
+      font-size:12px;font-weight:800;cursor:pointer;color:${p.id===profileData.patternId ? 'var(--secondary)' : 'var(--text-muted)'};"
+      onclick="pickBannerPattern('${p.id}')">${p.label}</div>`).join('');
+
+  updateEquippedTitle();
+}
+
+function trySecretCode() {
+  const input = document.getElementById('secret-code-input');
+  const result = document.getElementById('secret-result');
+  const code = input.value.trim().toUpperCase();
+  if (SECRET_CODES.hasOwnProperty(code)) {
+    const idx = SECRET_CODES[code];
+    if (unlockedSecrets.has(idx)) {
+      result.style.color = 'var(--gold)';
+      result.textContent = '✨ Этот персонаж уже разблокирован!';
+    } else {
+      unlockedSecrets.add(idx);
+      charState.tempBody = idx;
+      charState.body = idx;
+      // auto-equip matching secret outfit
+      const specialId = CHAR_BODIES[idx].special;
+      const secretOutfitIdx = CHAR_OUTFITS.findIndex(o => o.secret === specialId);
+      if (secretOutfitIdx !== -1) {
+        charState.outfit = secretOutfitIdx;
+        charState.tempOutfit = secretOutfitIdx;
+      }
+      renderCharSVG(document.getElementById('char-display-svg'), charState.body, charState.outfit, charState.mask, charState.bg);
+      result.style.color = 'var(--primary)';
+      const charName = idx === 7 ? '🦝 Разраб Енот разблокирован!' : '👑 Императора разблокирован!';
+      result.textContent = '🔓 ' + charName;
+      showToast('✨ Секретный персонаж открыт!');
+      switchCharTab('body');
+      saveState();
+      // Show emperor avatar upload panel
+      if (idx === 8) {
+        initAvaUpload();
+      }
+    }
+  } else {
+    result.style.color = 'var(--danger)';
+    result.textContent = '❌ Неверный код';
+    setTimeout(() => { result.textContent = ''; }, 2000);
+  }
+  input.value = '';
+}
+
+// ─── EMPEROR AVATAR UPLOAD ────────────────────────────────────────────────────
+let _avaImg = null;
+let _emperorMode = false;
+
+function onAvaTap() {
+  if (_emperorMode) {
+    document.getElementById('ava-file-input').click();
+  } else {
+    openAvaModal();
+  }
+}
+
+function initAvaUpload() {
+  _emperorMode = true;
+  // Hide SVG, show camera placeholder in the circle
+  document.getElementById('char-display-svg').style.display = 'none';
+  const badge = document.getElementById('ava-edit-badge');
+  if (badge) badge.style.display = 'none';
+  const canvas = document.getElementById('ava-upload-canvas');
+  // Show a camera icon placeholder on the canvas
+  const S = 200;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, S, S);
+  ctx.fillStyle = '#252F3B';
+  ctx.beginPath(); ctx.arc(S/2, S/2, S/2, 0, Math.PI*2); ctx.fill();
+  ctx.font = '56px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('📷', S/2, S/2 - 8);
+  ctx.font = '800 18px Arial';
+  ctx.fillStyle = '#8B95A1';
+  ctx.fillText('Загрузить фото', S/2, S/2 + 40);
+  canvas.style.display = 'block';
+
+  const fileInput = document.getElementById('ava-file-input');
+  if (fileInput._bound) return;
+  fileInput._bound = true;
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      _avaImg = new Image();
+      _avaImg.onload = function() {
+        const canvas = document.getElementById('ava-upload-canvas');
+        canvas.style.display = 'block';
+        document.getElementById('ava-crop-controls').style.display = 'block';
+        document.getElementById('ava-zoom').value = 100;
+        document.getElementById('ava-ox').value = 0;
+        document.getElementById('ava-oy').value = 0;
+        drawAvaUpload();
+      };
+      _avaImg.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function drawAvaUpload() {
+  if (!_avaImg) return;
+  const canvas = document.getElementById('ava-upload-canvas');
+  const ctx = canvas.getContext('2d');
+  const S = 200;
+  const zoom = parseInt(document.getElementById('ava-zoom').value);
+  const ox = parseInt(document.getElementById('ava-ox').value);
+  const oy = parseInt(document.getElementById('ava-oy').value);
+  document.getElementById('ava-zoom-val').textContent = zoom + '%';
+  ctx.clearRect(0, 0, S, S);
+  const scale = zoom / 100;
+  const short = Math.min(_avaImg.naturalWidth, _avaImg.naturalHeight);
+  const drawW = (_avaImg.naturalWidth / short) * S * scale;
+  const drawH = (_avaImg.naturalHeight / short) * S * scale;
+  const dx = (S - drawW) / 2 + ox * 2;
+  const dy = (S - drawH) / 2 + oy * 2;
+  ctx.drawImage(_avaImg, dx, dy, drawW, drawH);
+}
+
+function applyAvaUpload() {
+  document.getElementById('ava-crop-controls').style.display = 'none';
+  showToast('✨ Аватар обновлён!');
+}
+
+function pickBannerColor(id) {
+  profileData.bannerId = id;
+  const bc = BANNER_COLORS.find(c => c.id === id);
+  document.getElementById('prof-banner').style.background = bc.g;
+  renderProfileScreen();
+}
+
+function pickBannerPattern(id) {
+  profileData.patternId = id;
+  const pat = BANNER_PATTERNS.find(p => p.id === id);
+  const patEl = document.getElementById('prof-banner-pattern');
+  patEl.className = pat.class;
+  renderProfileScreen();
+}
+
+function saveProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  const user = document.getElementById('edit-username').value.trim();
+  const bio  = document.getElementById('edit-bio').value.trim();
+  if (!name) { showToast('❗ Введи имя'); return; }
+  if (!user) { showToast('❗ Введи юзернейм'); return; }
+  profileData.name = name; profileData.username = user; profileData.bio = bio;
+  document.getElementById('prof-disp-name').textContent = name;
+  document.getElementById('prof-disp-user').textContent = '@' + user;
+  saveState();
+  showToast('✅ Профиль сохранён!', 1800);
+}
+
+// ─── CHARACTER CUSTOMIZER ─────────────────────────────────────────────────────
+function openAvaModal() {
+  charState.tempBody = charState.body;
+  charState.tempOutfit = charState.outfit;
+  charState.tempMask = charState.mask;
+  charState.tempBg = charState.bg;
+  switchCharTab('body');
+  document.getElementById('ava-modal').classList.add('open');
+  updateModalPreview();
+}
+
+function closeAvaModal(e) {
+  if (e.target === document.getElementById('ava-modal'))
+    document.getElementById('ava-modal').classList.remove('open');
+}
+
+function confirmAvatar() {
+  charState.body = charState.tempBody;
+  charState.outfit = charState.tempOutfit;
+  charState.mask = charState.tempMask;
+  charState.bg = charState.tempBg;
+  // Update main avatar
+  renderCharSVG(document.getElementById('char-display-svg'), charState.body, charState.outfit, charState.mask, charState.bg);
+  document.getElementById('ava-modal').classList.remove('open');
+  saveState();
+  showToast('✨ Персонаж обновлён!');
+}
+
+function updateModalPreview() {
+  renderCharSVG(document.getElementById('modal-char-svg'), charState.tempBody, charState.tempOutfit, charState.tempMask, charState.tempBg);
+}
+
+function switchCharTab(tab) {
+  ['body','outfit','mask','bg'].forEach(t => {
+    const el = document.getElementById(`char-tab-${t}`);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.char-tab').forEach((btn, i) => {
+    const tabs = ['body','outfit','mask','bg'];
+    btn.classList.toggle('active', tabs[i] === tab);
+  });
+  if (tab === 'body') renderBodyGrid();
+  else if (tab === 'outfit') renderOutfitGrid();
+  else if (tab === 'mask') renderMaskGrid();
+  else if (tab === 'bg') renderBgGrid();
+}
+
+function renderBodyGrid() {
+  const grid = document.getElementById('body-grid');
+  grid.innerHTML = CHAR_BODIES.map((b, i) => {
+    if (b.secret && !unlockedSecrets.has(i)) return ''; // hide secret chars
+    const locked = b.reqXP && xp < b.reqXP;
+    const isSecret = b.secret && unlockedSecrets.has(i);
+    const borderStyle = isSecret ? 'border-color:#ffc800;background:rgba(255,200,0,0.08);' : '';
+    return `
+      <div class="custom-item ${charState.tempBody === i ? 'picked' : ''}" 
+           style="${borderStyle}" 
+           onclick="${!locked ? `pickBody(${i})` : ''}">
+        <span style="font-size:28px;">${b.label}</span>
+        ${isSecret ? '<div style="position:absolute;top:3px;right:3px;font-size:8px;color:#ffc800;font-weight:900;">★</div>' : ''}
+        ${locked ? `<div class="locked-over">🔒</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderOutfitGrid() {
+  const OUTFIT_ICONS = {'tshirt_blue':'👕','tshirt_green':'💚','hoodie':'🧥','robe':'🎓','armor':'🛡️','ninja':'🥷','wizard':'🧙','king':'👑','dev_hoodie':'💻','emperor_cloak':'🔮'};
+  const currentBody = CHAR_BODIES[charState.tempBody];
+  const grid = document.getElementById('outfit-grid');
+  grid.innerHTML = CHAR_OUTFITS.map((o, i) => {
+    // hide secret outfits unless current body matches
+    if (o.secret && o.secret !== currentBody.special) return '';
+    const locked = o.reqXP && xp < o.reqXP;
+    const icon = OUTFIT_ICONS[o.id] || '👕';
+    const isSecret = !!o.secret;
+    const borderStyle = isSecret ? 'border:2px solid #ffc800;' : '';
+    return `
+      <div class="custom-item ${charState.tempOutfit === i ? 'picked' : ''}" onclick="${!locked ? `pickOutfit(${i})` : ''}" style="position:relative;${borderStyle}">
+        <div style="width:100%;height:100%;border-radius:10px;background:linear-gradient(135deg,${o.c1},${o.c3});display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
+          <span style="font-size:22px;">${icon}</span>
+          <span style="font-size:7px;font-weight:900;color:rgba(255,255,255,0.85);text-align:center;line-height:1.1;padding:0 2px;">${o.name}</span>
+        </div>
+        ${isSecret ? '<div style="position:absolute;top:3px;right:3px;font-size:8px;color:#ffc800;font-weight:900;">★</div>' : ''}
+        ${locked ? `<div class="locked-over">🔒</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMaskGrid() {
+  const grid = document.getElementById('mask-grid');
+  grid.innerHTML = CHAR_MASKS.map((m, i) => {
+    const locked = m.reqXP && xp < m.reqXP;
+    const icon = m.noMask ? '🚫' : (m.preview || '🎭');
+    return `
+      <div class="custom-item ${charState.tempMask === i ? 'picked' : ''}" onclick="${!locked ? `pickMask(${i})` : ''}">
+        <span style="font-size:24px;">${icon}</span>
+        <div style="font-size:8px;font-weight:800;color:var(--text-muted);position:absolute;bottom:4px;left:0;right:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;">${m.name}</div>
+        ${locked ? `<div class="locked-over">🔒</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBgGrid() {
+  const grid = document.getElementById('bg-grid');
+  grid.innerHTML = CHAR_BGS.map((b, i) => {
+    const locked = b.reqXP && xp < b.reqXP;
+    return `
+      <div class="custom-item bg-item ${charState.tempBg === i ? 'picked' : ''}" 
+           style="background:${b.fill};"
+           onclick="${!locked ? `pickBg(${i})` : ''}">
+        ${charState.tempBg === i ? '<span style="font-size:18px;">✓</span>' : ''}
+        ${locked ? `<div class="locked-over">🔒</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function pickBody(i) { charState.tempBody = i; renderBodyGrid(); updateModalPreview(); }
+function pickOutfit(i) { charState.tempOutfit = i; renderOutfitGrid(); updateModalPreview(); }
+function pickMask(i) { charState.tempMask = i; renderMaskGrid(); updateModalPreview(); }
+function pickBg(i) { charState.tempBg = i; renderBgGrid(); updateModalPreview(); }
+
+// ─── LEAGUE SYSTEM ────────────────────────────────────────────────────────────
 const LEAGUES = [
   {
-    id: 'stone',
-    name: 'Каменная',
-    minXP: 0,
-    color: '#7a8a9a',
+    id: 'stone', name: 'Каменная', minXP: 0, color: '#7a8a9a',
     barColor: 'linear-gradient(90deg,#7a8a9a,#aab8c2)',
     bannerBg: 'linear-gradient(160deg,#2a3a4a,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a4a5a" opacity="0.5"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#5a6a7a"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#6a7a8a"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#8a9aaa"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#aab8c2"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#6a7a8a"/>
-      <rect x="10" y="20" width="12" height="18" rx="6" fill="#7a8a9a"/>
-      <rect x="58" y="20" width="12" height="18" rx="6" fill="#7a8a9a"/>
-      <circle cx="40" cy="36" r="8" fill="#c8d8e8" opacity="0.6"/>
-      <text x="40" y="42" text-anchor="middle" font-size="10" font-weight="900" fill="#3a4a5a">I</text>
-    </svg>`,
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a4a5a" opacity="0.5"/><rect x="30" y="68" width="20" height="10" rx="4" fill="#5a6a7a"/><rect x="22" y="62" width="36" height="8" rx="4" fill="#6a7a8a"/><path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#8a9aaa"/><path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#aab8c2"/><rect x="14" y="16" width="52" height="8" rx="4" fill="#6a7a8a"/><rect x="10" y="20" width="12" height="18" rx="6" fill="#7a8a9a"/><rect x="58" y="20" width="12" height="18" rx="6" fill="#7a8a9a"/><circle cx="40" cy="36" r="8" fill="#c8d8e8" opacity="0.6"/><text x="40" y="42" text-anchor="middle" font-size="10" font-weight="900" fill="#3a4a5a">I</text></svg>`,
   },
   {
-    id: 'bronze',
-    name: 'Бронзовая',
-    minXP: 100,
-    color: '#cd7f32',
+    id: 'bronze', name: 'Бронзовая', minXP: 100, color: '#cd7f32',
     barColor: 'linear-gradient(90deg,#cd7f32,#e8a96a)',
     bannerBg: 'linear-gradient(160deg,#3a2010,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a2010" opacity="0.5"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#8b5520"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#a06030"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#cd7f32"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#e8a96a"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#a06030"/>
-      <rect x="10" y="20" width="12" height="18" rx="6" fill="#cd7f32"/>
-      <rect x="58" y="20" width="12" height="18" rx="6" fill="#cd7f32"/>
-      <circle cx="40" cy="36" r="8" fill="#ffd080" opacity="0.7"/>
-      <text x="40" y="42" text-anchor="middle" font-size="9" font-weight="900" fill="#6a3800">II</text>
-    </svg>`,
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a2010" opacity="0.5"/><rect x="30" y="68" width="20" height="10" rx="4" fill="#8b5520"/><rect x="22" y="62" width="36" height="8" rx="4" fill="#a06030"/><path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#cd7f32"/><path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#e8a96a"/><rect x="14" y="16" width="52" height="8" rx="4" fill="#a06030"/><rect x="10" y="20" width="12" height="18" rx="6" fill="#cd7f32"/><rect x="58" y="20" width="12" height="18" rx="6" fill="#cd7f32"/><circle cx="40" cy="36" r="8" fill="#ffd080" opacity="0.7"/><text x="40" y="42" text-anchor="middle" font-size="9" font-weight="900" fill="#6a3800">II</text></svg>`,
   },
   {
-    id: 'silver',
-    name: 'Серебряная',
-    minXP: 300,
-    color: '#a8b8c8',
+    id: 'silver', name: 'Серебряная', minXP: 300, color: '#a8b8c8',
     barColor: 'linear-gradient(90deg,#8898a8,#d0e0f0)',
     bannerBg: 'linear-gradient(160deg,#1e2e3e,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#1a2a3a" opacity="0.5"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#607080"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#8898a8"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#a8b8c8"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#d0e0f0"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#8898a8"/>
-      <rect x="10" y="20" width="12" height="18" rx="6" fill="#a8b8c8"/>
-      <rect x="58" y="20" width="12" height="18" rx="6" fill="#a8b8c8"/>
-      <circle cx="40" cy="36" r="9" fill="white" opacity="0.5"/>
-      <polygon points="40,28 42.5,35 50,35 44,39.5 46,47 40,43 34,47 36,39.5 30,35 37.5,35" fill="white" opacity="0.9"/>
-    </svg>`,
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="82" rx="22" ry="6" fill="#1a2a3a" opacity="0.5"/><rect x="30" y="68" width="20" height="10" rx="4" fill="#607080"/><rect x="22" y="62" width="36" height="8" rx="4" fill="#8898a8"/><path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#a8b8c8"/><path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#d0e0f0"/><rect x="14" y="16" width="52" height="8" rx="4" fill="#8898a8"/><rect x="10" y="20" width="12" height="18" rx="6" fill="#a8b8c8"/><rect x="58" y="20" width="12" height="18" rx="6" fill="#a8b8c8"/><circle cx="40" cy="36" r="9" fill="white" opacity="0.5"/><polygon points="40,28 42.5,35 50,35 44,39.5 46,47 40,43 34,47 36,39.5 30,35 37.5,35" fill="white" opacity="0.9"/></svg>`,
   },
   {
-    id: 'gold',
-    name: 'Золотая',
-    minXP: 600,
-    color: '#ffc800',
+    id: 'gold', name: 'Золотая', minXP: 600, color: '#ffc800',
     barColor: 'linear-gradient(90deg,#e0a800,#ffe066)',
     bannerBg: 'linear-gradient(160deg,#3a2e00,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a2a00" opacity="0.6"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#a07800"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#c89800"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#e0a800"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#ffe066"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#c89800"/>
-      <rect x="10" y="20" width="12" height="20" rx="6" fill="#e0a800"/>
-      <rect x="58" y="20" width="12" height="20" rx="6" fill="#e0a800"/>
-      <circle cx="40" cy="36" r="10" fill="#fff8d0" opacity="0.6"/>
-      <polygon points="40,26 43,33 51,33 45,38 47,46 40,41 33,46 35,38 29,33 37,33" fill="#fff8d0"/>
-      <circle cx="40" cy="16" r="5" fill="#ffc800"/>
-      <polygon points="40,11 41.5,15 46,15 42.5,17.5 44,22 40,19.5 36,22 37.5,17.5 34,15 38.5,15" fill="#fff"/>
-    </svg>`,
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="82" rx="22" ry="6" fill="#3a2a00" opacity="0.6"/><rect x="30" y="68" width="20" height="10" rx="4" fill="#a07800"/><rect x="22" y="62" width="36" height="8" rx="4" fill="#c89800"/><path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#e0a800"/><path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#ffe066"/><rect x="14" y="16" width="52" height="8" rx="4" fill="#c89800"/><rect x="10" y="20" width="12" height="20" rx="6" fill="#e0a800"/><rect x="58" y="20" width="12" height="20" rx="6" fill="#e0a800"/><circle cx="40" cy="36" r="10" fill="#fff8d0" opacity="0.6"/><polygon points="40,26 43,33 51,33 45,38 47,46 40,41 33,46 35,38 29,33 37,33" fill="#fff8d0"/></svg>`,
   },
   {
-    id: 'sapphire',
-    name: 'Сапфировая',
-    minXP: 1000,
-    color: '#1cb0f6',
+    id: 'sapphire', name: 'Сапфировая', minXP: 1000, color: '#1cb0f6',
     barColor: 'linear-gradient(90deg,#0d80c0,#60d0ff)',
     bannerBg: 'linear-gradient(160deg,#002a4a,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#001a3a" opacity="0.6"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#0050a0"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#0080c8"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#0d80c0"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#60d0ff"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#0070b0"/>
-      <rect x="10" y="20" width="12" height="20" rx="6" fill="#0d80c0"/>
-      <rect x="58" y="20" width="12" height="20" rx="6" fill="#0d80c0"/>
-      <polygon points="40,24 46,32 54,32 48,38 50,46 40,42 30,46 32,38 26,32 34,32" fill="#a0e8ff" opacity="0.9"/>
-      <polygon points="40,28 44,34 50,34 45,38.5 47,44.5 40,40.5 33,44.5 35,38.5 30,34 36,34" fill="white" opacity="0.6"/>
-      <circle cx="40" cy="14" r="6" fill="#60d0ff"/>
-      <polygon points="40,8 42,13 47,13 43,16 44.5,21 40,18 35.5,21 37,16 33,13 38,13" fill="white"/>
-    </svg>`,
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="82" rx="22" ry="6" fill="#001a3a" opacity="0.6"/><rect x="30" y="68" width="20" height="10" rx="4" fill="#0050a0"/><rect x="22" y="62" width="36" height="8" rx="4" fill="#0080c8"/><path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#0d80c0"/><path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#60d0ff"/><rect x="14" y="16" width="52" height="8" rx="4" fill="#0070b0"/><rect x="10" y="20" width="12" height="20" rx="6" fill="#0d80c0"/><rect x="58" y="20" width="12" height="20" rx="6" fill="#0d80c0"/><polygon points="40,24 46,32 54,32 48,38 50,46 40,42 30,46 32,38 26,32 34,32" fill="#a0e8ff" opacity="0.9"/><circle cx="40" cy="14" r="6" fill="#60d0ff"/></svg>`,
   },
   {
-    id: 'emerald',
-    name: 'Изумрудная',
-    minXP: 1500,
-    color: '#00c060',
-    barColor: 'linear-gradient(90deg,#008040,#40e880)',
-    bannerBg: 'linear-gradient(160deg,#002a18,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#001a10" opacity="0.6"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#005030"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#007840"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#009050"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#40e080"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#007840"/>
-      <rect x="10" y="20" width="12" height="20" rx="6" fill="#009050"/>
-      <rect x="58" y="20" width="12" height="20" rx="6" fill="#009050"/>
-      <polygon points="40,22 48,30 54,38 48,46 40,50 32,46 26,38 32,30" fill="#80ffb0" opacity="0.5"/>
-      <polygon points="40,26 46,32 50,38 46,44 40,47 34,44 30,38 34,32" fill="#c0ffd8" opacity="0.7"/>
-      <circle cx="40" cy="38" r="6" fill="white" opacity="0.5"/>
-      <circle cx="40" cy="12" r="7" fill="#40e080"/>
-      <polygon points="40,5 42.5,10 48,10 43.5,13.5 45.5,19 40,16 34.5,19 36.5,13.5 32,10 37.5,10" fill="white"/>
-    </svg>`,
-  },
-  {
-    id: 'amethyst',
-    name: 'Аметистовая',
-    minXP: 2200,
-    color: '#9b59b6',
-    barColor: 'linear-gradient(90deg,#6c3483,#d498ea)',
-    bannerBg: 'linear-gradient(160deg,#1e0a30,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#180a28" opacity="0.6"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#4a2070"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#6a3090"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#7b3fa0"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#c080e0"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#6a3090"/>
-      <rect x="10" y="20" width="12" height="20" rx="6" fill="#7b3fa0"/>
-      <rect x="58" y="20" width="12" height="20" rx="6" fill="#7b3fa0"/>
-      <polygon points="40,20 50,28 56,38 50,48 40,52 30,48 24,38 30,28" fill="#e0a0ff" opacity="0.4"/>
-      <polygon points="40,24 48,30 52,38 48,46 40,49 32,46 28,38 32,30" fill="#f0c8ff" opacity="0.5"/>
-      <circle cx="40" cy="38" r="7" fill="white" opacity="0.3"/>
-      <circle cx="40" cy="10" r="8" fill="#9b59b6"/>
-      <polygon points="40,2 43,8 50,8 44.5,12 47,18 40,14.5 33,18 35.5,12 30,8 37,8" fill="white"/>
-      <circle cx="40" cy="10" r="3" fill="#f0c8ff" opacity="0.8"/>
-    </svg>`,
-  },
-  {
-    id: 'obsidian',
-    name: 'Обсидиановая',
-    minXP: 3000,
-    color: '#ff4b4b',
+    id: 'obsidian', name: 'Обсидиановая', minXP: 3000, color: '#ff4b4b',
     barColor: 'linear-gradient(90deg,#c00,#ff8060)',
     bannerBg: 'linear-gradient(160deg,#2a0000,#0f1419)',
-    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="40" cy="82" rx="22" ry="6" fill="#1a0000" opacity="0.7"/>
-      <rect x="30" y="68" width="20" height="10" rx="4" fill="#3a0000"/>
-      <rect x="22" y="62" width="36" height="8" rx="4" fill="#5a0808"/>
-      <path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#1a0808"/>
-      <path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#3a1010"/>
-      <rect x="14" y="16" width="52" height="8" rx="4" fill="#4a0808"/>
-      <rect x="10" y="20" width="12" height="20" rx="6" fill="#2a0808"/>
-      <rect x="58" y="20" width="12" height="20" rx="6" fill="#2a0808"/>
-      <!-- cracks/lava glow -->
-      <path d="M30 30 L38 38 L32 46" stroke="#ff4b4b" stroke-width="1.5" fill="none" opacity="0.8"/>
-      <path d="M50 28 L44 36 L48 44" stroke="#ff8060" stroke-width="1.5" fill="none" opacity="0.8"/>
-      <path d="M38 22 L40 32 L42 22" stroke="#ff4b4b" stroke-width="1" fill="none" opacity="0.6"/>
-      <circle cx="40" cy="38" r="9" fill="#ff4b4b" opacity="0.15"/>
-      <circle cx="40" cy="38" r="5" fill="#ff4b4b" opacity="0.25"/>
-      <!-- crown -->
-      <circle cx="40" cy="10" r="9" fill="#1a0808" stroke="#ff4b4b" stroke-width="1.5"/>
-      <polygon points="40,1 43.5,7 51,5 47,12 52,17 40,14 28,17 33,12 29,5 36.5,7" fill="#ff4b4b" opacity="0.9"/>
-      <circle cx="40" cy="10" r="4" fill="#ff8060" opacity="0.7"/>
-      <circle cx="40" cy="10" r="2" fill="white" opacity="0.5"/>
-    </svg>`,
+    trophy: `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="40" cy="82" rx="22" ry="6" fill="#1a0000" opacity="0.7"/><rect x="30" y="68" width="20" height="10" rx="4" fill="#3a0000"/><rect x="22" y="62" width="36" height="8" rx="4" fill="#5a0808"/><path d="M18 20 Q18 60 40 60 Q62 60 62 20 Z" fill="#1a0808"/><path d="M18 20 Q18 48 40 52 Q62 48 62 20 Z" fill="#3a1010"/><rect x="14" y="16" width="52" height="8" rx="4" fill="#4a0808"/><path d="M30 30 L38 38 L32 46" stroke="#ff4b4b" stroke-width="1.5" fill="none" opacity="0.8"/><path d="M50 28 L44 36 L48 44" stroke="#ff8060" stroke-width="1.5" fill="none" opacity="0.8"/><circle cx="40" cy="38" r="5" fill="#ff4b4b" opacity="0.25"/><circle cx="40" cy="10" r="9" fill="#1a0808" stroke="#ff4b4b" stroke-width="1.5"/><polygon points="40,1 43.5,7 51,5 47,12 52,17 40,14 28,17 33,12 29,5 36.5,7" fill="#ff4b4b" opacity="0.9"/></svg>`,
   },
 ];
 
@@ -1051,18 +2670,10 @@ function getCurrentLeague() {
 
 function getLeagueIndex(id) { return LEAGUES.findIndex(l => l.id === id); }
 
-function goLeague(el) {
-  showScreen('scr-league');
-  renderLeagueScreen();
-  navActive(el);
-}
-
 function renderLeagueScreen() {
   const cur = getCurrentLeague();
   const curIdx = getLeagueIndex(cur.id);
   const next = LEAGUES[curIdx + 1] || null;
-
-  // Banner
   document.getElementById('league-banner').style.background = cur.bannerBg;
   document.getElementById('league-trophy').innerHTML = cur.trophy;
   document.getElementById('league-trophy').style.cssText = 'width:90px;height:90px;margin:0 auto 10px;filter:drop-shadow(0 4px 16px ' + cur.color + '88);';
@@ -1071,8 +2682,6 @@ function renderLeagueScreen() {
   document.getElementById('league-xp-range').textContent = next
     ? cur.minXP + ' – ' + (next.minXP - 1) + ' XP'
     : cur.minXP + '+ XP (максимальная!)';
-
-  // Progress bar
   if (next) {
     const range = next.minXP - cur.minXP;
     const earned = xp - cur.minXP;
@@ -1080,16 +2689,13 @@ function renderLeagueScreen() {
     document.getElementById('league-bar').style.width = pct + '%';
     document.getElementById('league-bar').style.background = cur.barColor;
     document.getElementById('league-pct').textContent = pct + '%';
-    document.getElementById('league-next-label').textContent =
-      'До ' + next.name.toLowerCase() + ' лиги: ' + Math.max(0, next.minXP - xp) + ' XP';
+    document.getElementById('league-next-label').textContent = 'До ' + next.name.toLowerCase() + ' лиги: ' + Math.max(0, next.minXP - xp) + ' XP';
   } else {
     document.getElementById('league-bar').style.width = '100%';
     document.getElementById('league-bar').style.background = cur.barColor;
     document.getElementById('league-pct').textContent = '100%';
     document.getElementById('league-next-label').textContent = '🏅 Высшая лига достигнута!';
   }
-
-  // All leagues list
   const list = document.getElementById('all-leagues');
   list.innerHTML = LEAGUES.map((l, i) => {
     const isCur = l.id === cur.id;
@@ -1097,9 +2703,8 @@ function renderLeagueScreen() {
     const isLocked = i > curIdx;
     const badge = isCur
       ? '<span class="league-badge badge-current">ТЕКУЩАЯ</span>'
-      : isDone
-        ? '<span class="league-badge badge-done">✓ ПРОЙДЕНА</span>'
-        : '<span class="league-badge badge-locked">🔒 ' + l.minXP + ' XP</span>';
+      : isDone ? '<span class="league-badge badge-done">✓ ПРОЙДЕНА</span>'
+      : '<span class="league-badge badge-locked">🔒 ' + l.minXP + ' XP</span>';
     return `
       <div class="league-row ${isCur ? 'current' : ''} ${isLocked ? 'locked-league' : ''}">
         <div class="league-trophy-sm" style="filter:drop-shadow(0 2px 8px ${l.color}66)">${l.trophy}</div>
@@ -1115,6 +2720,12 @@ function renderLeagueScreen() {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderPath();
 updateStats();
+// Init character on profile — dragon anon is default
+charState.bg = 0; // dark bg
+setTimeout(() => {
+  const svg = document.getElementById('char-display-svg');
+  if (svg) renderCharSVG(svg, 0, 0, 0, 0);
+}, 100);
 </script>
 </body>
 </html>
