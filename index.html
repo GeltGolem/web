@@ -608,6 +608,24 @@
   </div>
 
 
+
+  <!-- USERNAME CONFLICT MODAL -->
+  <div class="streak-modal-bg" id="username-conflict-modal" style="z-index:210;">
+    <div class="streak-modal" style="border-color:var(--secondary);max-width:340px;">
+      <div style="font-size:48px;margin-bottom:12px;">🔒</div>
+      <div style="font-size:18px;font-weight:900;color:var(--secondary);margin-bottom:8px;">Ник уже занят</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;line-height:1.6;">
+        Ник <strong id="conflict-username" style="color:white;font-family:monospace;"></strong> уже зарегистрирован на другом устройстве.
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px;line-height:1.6;background:var(--surface-light);border-radius:12px;padding:12px;">
+        Если это твой ник — открой приложение на том устройстве, где он создавался, 
+        экспортируй прогресс и импортируй его здесь.<br><br>
+        Либо просто выбери другой ник.
+      </div>
+      <button class="btn go" onclick="closeUsernameConflictModal()">ПОНЯТНО</button>
+    </div>
+  </div>
+
   <div class="discord-auth-screen" id="discord-auth-screen">
     <div class="discord-card">
       <svg width="48" height="48" viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg" fill="#5865F2" style="margin-bottom:16px;"><path d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z"/></svg>
@@ -701,6 +719,9 @@
         <div class="prof-username-display">
           <div class="disp-name" id="prof-disp-name">—</div>
           <div class="disp-user" id="prof-disp-user">@username</div>
+          <div id="dev-role-badge" style="display:none;align-items:center;justify-content:center;gap:6px;
+            margin:6px auto 0;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:800;
+            border:1.5px solid;background:rgba(0,0,0,0.3);width:fit-content;"></div>
         </div>
 
         <!-- Avatar crop controls – shown after EMPEROR77 unlock -->
@@ -841,32 +862,9 @@
             <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">КОМАНДА ПРОЕКТА</div>
             <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Проект создан школьниками и<br>энтузиастами образования</div>
           </div>
+          <div id="devs-cards-list"></div>
 
-          <!-- Основатель -->
-          <div style="background:linear-gradient(135deg,rgba(255,200,0,0.1),rgba(255,140,0,0.05));border:1.5px solid rgba(255,200,0,0.35);border-radius:18px;padding:18px;margin-bottom:12px;">
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ffc800,#ff8c00);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👑</div>
-              <div>
-                <div style="font-size:15px;font-weight:900;color:var(--gold);">Imperor</div>
-                <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;">Основатель &amp; Идеолог</div>
-              </div>
-            </div>
-            <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Автор концепции, методология, координация всей разработки. Также отвечает за Frontend &amp; UI/UX — дизайн интерфейса, мобильную адаптацию и анимации.</div>
-          </div>
-
-          <!-- EEnot -->
-          <div style="background:var(--surface);border:1.5px solid var(--surface-light);border-radius:18px;padding:18px;margin-bottom:12px;">
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#3a7bd5,#1CB0F6);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚙️</div>
-              <div>
-                <div style="font-size:15px;font-weight:900;color:var(--secondary);">EEnot</div>
-                <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;">Backend &amp; Sandbox</div>
-              </div>
-            </div>
-            <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Серверная логика, безопасный sandbox для выполнения задач.</div>
-          </div>
-
-          <!-- Методисты -->
+          <!-- Методисты (static) -->
           <div style="background:var(--surface);border:1.5px solid var(--surface-light);border-radius:18px;padding:18px;margin-bottom:20px;">
             <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
               <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#58CC02,#46A302);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📚</div>
@@ -1102,6 +1100,14 @@ function loadState() {
       _emperorMode = true;
       setTimeout(() => initAvaUpload(), 200);
     }
+    // Re-register username in registry (in case of first load on new device)
+    if (profileData.username) {
+      try {
+        const reg = JSON.parse(localStorage.getItem(USERNAME_REGISTRY_KEY) || '{}');
+        const norm = profileData.username.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+        if (!reg[norm]) { reg[norm] = { saveId: SAVE_KEY, registeredAt: new Date().toISOString() }; localStorage.setItem(USERNAME_REGISTRY_KEY, JSON.stringify(reg)); }
+      } catch(e) {}
+    }
     // Restore saved photo if any (works for all users now)
     const photoData = d.avatarPhoto || d.emperorPhoto;
     if (photoData) {
@@ -1163,6 +1169,58 @@ const SECRET_CODES = {
   'EMPEROR77': 8,
 };
 let unlockedSecrets = new Set();
+
+// ─── DEVELOPER ACCOUNTS (reserved usernames, cannot be claimed by others) ────
+const DEV_ACCOUNTS = {
+  'imperor': { displayName: 'Imperor', role: 'Основатель & Frontend', icon: '👑', color: '#ffc800', titleId: 'dev_blood' },
+  'eenot':   { displayName: 'EEnot',   role: 'Backend & Sandbox',     icon: '⚙️', color: '#1CB0F6', titleId: 'dev_tech'  },
+};
+const USERNAME_REGISTRY_KEY = 'geltcode_usernames_v1';
+
+// Returns { taken: bool, isOwn: bool, isDev: bool }
+function checkUsernameAvailability(username, currentSaveId) {
+  const normalized = username.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+  if (DEV_ACCOUNTS.hasOwnProperty(normalized)) {
+    // Dev username — only allow if current save has dev secret
+    const isImperor = normalized === 'imperor' && unlockedSecrets.has(8);
+    const isEEnot   = normalized === 'eenot'   && unlockedSecrets.has(7);
+    if (isImperor || isEEnot) return { taken: false, isOwn: true, isDev: true };
+    return { taken: true, isOwn: false, isDev: true };
+  }
+  try {
+    const reg = JSON.parse(localStorage.getItem(USERNAME_REGISTRY_KEY) || '{}');
+    const entry = reg[normalized];
+    if (!entry) return { taken: false, isOwn: false, isDev: false };
+    if (entry.saveId === currentSaveId) return { taken: false, isOwn: true, isDev: false };
+    return { taken: true, isOwn: false, isDev: false, registeredAt: entry.registeredAt };
+  } catch(e) {
+    return { taken: false, isOwn: false, isDev: false };
+  }
+}
+
+function registerUsername(username, saveId) {
+  try {
+    const normalized = username.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+    const reg = JSON.parse(localStorage.getItem(USERNAME_REGISTRY_KEY) || '{}');
+    // Free previous username if changed
+    Object.keys(reg).forEach(k => { if (reg[k].saveId === saveId && k !== normalized) delete reg[k]; });
+    reg[normalized] = { saveId, registeredAt: new Date().toISOString() };
+    localStorage.setItem(USERNAME_REGISTRY_KEY, JSON.stringify(reg));
+  } catch(e) {}
+}
+
+function applyDevAccount(username) {
+  const normalized = username.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+  const dev = DEV_ACCOUNTS[normalized];
+  if (!dev) return;
+  // Auto-equip dev title
+  profileData.equippedTitleId = dev.titleId;
+  updateEquippedTitle();
+}
+
+function isDevUsername(username) {
+  return DEV_ACCOUNTS.hasOwnProperty(username.toLowerCase().replace(/[^a-z0-9_.]/g, ''));
+}
 
 // Outfits: full SVG torso drawn in buildCharSVG based on id
 const CHAR_OUTFITS = [
@@ -2405,8 +2463,8 @@ const TITLES = [
   { id:'master',     icon:'🎓', name:'Мастер Pascal',       req:'Пройди все 5 модулей',             reqXP:0,   check:() => trophyTestDone.every(Boolean) },
   { id:'legend',     icon:'⚡', name:'Легенда',              req:'500 XP',                          reqXP:500, check:() => xp >= 500 },
   { id:'star',       icon:'🌟', name:'Звезда',              req:'1000 XP',                         reqXP:1000,check:() => xp >= 1000 },
-  { id:'dev_blood',  icon:'🩸', name:'Разработчик',         req:'🔒 Секретный код',                 reqXP:0,   check:() => unlockedSecrets.has(8), neon:'blood', secret:true },
-  { id:'dev_tech',   icon:'🖥️', name:'Разработчик',        req:'🔒 Секретный код',                 reqXP:0,   check:() => unlockedSecrets.has(7), neon:'tech',  secret:true },
+  { id:'dev_blood',  icon:'👑', name:'Основатель',           req:'🔒 Только для разрабов',           reqXP:0,   check:() => unlockedSecrets.has(8), neon:'blood', secret:true },
+  { id:'dev_tech',   icon:'⚙️', name:'Разработчик',         req:'🔒 Только для разрабов',           reqXP:0,   check:() => unlockedSecrets.has(7), neon:'tech',  secret:true },
 ];
 
 // Rewards unlocked for completing modules
@@ -3024,14 +3082,16 @@ function switchProfTab(tab) {
     document.getElementById(`ptab-${t}`).classList.toggle('active', t === tab);
     document.getElementById(`ptab-content-${t}`).style.display = t === tab ? 'block' : 'none';
   });
+  if (tab === 'devs') renderDevsTab();
 }
 
 function renderProfileScreen() {
   document.getElementById('edit-name').value = profileData.name;
   document.getElementById('edit-username').value = profileData.username;
   document.getElementById('edit-bio').value = profileData.bio;
-  document.getElementById('prof-disp-name').textContent = profileData.name;
-  document.getElementById('prof-disp-user').textContent = '@' + profileData.username;
+  document.getElementById('prof-disp-name').textContent = profileData.name || '—';
+  document.getElementById('prof-disp-user').textContent = '@' + (profileData.username || 'username');
+  renderDevBadgeIfNeeded();
 
   // Main avatar is now photo-only (canvas), no SVG render here
   // Restore photo if no image loaded yet (placeholder shown by initAvaUpload)
@@ -3253,9 +3313,29 @@ function saveProfile() {
   const bio  = document.getElementById('edit-bio').value.trim();
   if (!name) { showToast('❗ Введи имя'); return; }
   if (!user) { showToast('❗ Введи юзернейм'); return; }
+  if (user === profileData.username) {
+    // Username unchanged — just save name/bio
+    profileData.name = name; profileData.bio = bio;
+    document.getElementById('prof-disp-name').textContent = name;
+    saveState();
+    showToast('✅ Профиль сохранён!', 1800);
+    return;
+  }
+  const avail = checkUsernameAvailability(user, SAVE_KEY);
+  if (avail.isDev && !avail.isOwn) {
+    showToast('🔒 Этот ник зарезервирован для разрабов', 2500);
+    return;
+  }
+  if (avail.taken) {
+    showUsernameConflictModal(user);
+    return;
+  }
   profileData.name = name; profileData.username = user; profileData.bio = bio;
+  registerUsername(user, SAVE_KEY);
   document.getElementById('prof-disp-name').textContent = name;
   document.getElementById('prof-disp-user').textContent = '@' + user;
+  if (isDevUsername(user)) applyDevAccount(user);
+  renderDevBadgeIfNeeded();
   saveState();
   showToast('✅ Профиль сохранён!', 1800);
 }
@@ -3781,15 +3861,27 @@ function finishProfileSetup() {
   const errEl = document.getElementById('setup-error');
   if (!name) { errEl.textContent = '❗ Введи своё имя'; return; }
   if (!user) { errEl.textContent = '❗ Введи имя пользователя'; return; }
+  const avail = checkUsernameAvailability(user, SAVE_KEY);
+  if (avail.isDev && !avail.isOwn) {
+    errEl.textContent = '🔒 Этот ник зарезервирован для разрабов';
+    return;
+  }
+  if (avail.taken) {
+    errEl.textContent = '❌ Этот ник уже занят — выбери другой';
+    return;
+  }
   errEl.textContent = '';
   profileData.name = name;
   profileData.username = user;
   profileData.bio = bio;
+  registerUsername(user, SAVE_KEY);
   document.getElementById('edit-name').value = name;
   document.getElementById('edit-username').value = user;
   document.getElementById('edit-bio').value = bio;
   document.getElementById('prof-disp-name').textContent = name;
   document.getElementById('prof-disp-user').textContent = '@' + user;
+  if (isDevUsername(user)) applyDevAccount(user);
+  renderDevBadgeIfNeeded();
   saveState();
   document.getElementById('profile-setup-screen').classList.add('hidden');
   vibrateSuccess();
@@ -3804,6 +3896,88 @@ function showOnboardingIfNeeded() {
     document.getElementById('profile-setup-screen').classList.remove('hidden');
   } else {
     setTimeout(() => checkAndShowStreak(), 600);
+  }
+}
+
+// ─── USERNAME CONFLICT MODAL ─────────────────────────────────────────────────
+function showUsernameConflictModal(username) {
+  document.getElementById('conflict-username').textContent = '@' + username;
+  document.getElementById('username-conflict-modal').style.display = 'flex';
+}
+function closeUsernameConflictModal() {
+  document.getElementById('username-conflict-modal').style.display = 'none';
+}
+
+// ─── DEVS TAB RENDERER ───────────────────────────────────────────────────────
+function renderDevsTab() {
+  const container = document.getElementById('devs-cards-list');
+  if (!container) return;
+
+  const devList = [
+    {
+      key: 'imperor',
+      displayName: 'Imperor',
+      role: 'Основатель & Frontend / UI',
+      desc: 'Автор концепции, методология, дизайн интерфейса, мобильная адаптация и анимации.',
+      icon: '👑',
+      color: '#ffc800',
+      bg: 'linear-gradient(135deg,rgba(255,200,0,0.12),rgba(255,140,0,0.05))',
+      border: 'rgba(255,200,0,0.35)',
+      iconBg: 'linear-gradient(135deg,#ffc800,#ff8c00)',
+      titleLabel: 'Основатель',
+    },
+    {
+      key: 'eenot',
+      displayName: 'EEnot',
+      role: 'Backend & Sandbox',
+      desc: 'Серверная логика, безопасный sandbox для выполнения задач.',
+      icon: '⚙️',
+      color: '#1CB0F6',
+      bg: 'var(--surface)',
+      border: 'var(--surface-light)',
+      iconBg: 'linear-gradient(135deg,#3a7bd5,#1CB0F6)',
+      titleLabel: 'Разработчик',
+    },
+  ];
+
+  container.innerHTML = devList.map(dev => {
+    const isMe = (profileData.username || '').toLowerCase().replace(/[^a-z0-9_.]/g, '') === dev.key;
+    const meBadge = isMe
+      ? `<span style="background:rgba(88,204,2,0.15);color:var(--primary);border:1px solid var(--primary);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:800;margin-left:6px;">ЭТО ТЫ</span>`
+      : '';
+    const titleBadge = `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,0.3);border:1px solid ${dev.color};border-radius:10px;padding:2px 8px;font-size:10px;font-weight:800;color:${dev.color};">${dev.icon} ${dev.titleLabel}</span>`;
+    return `
+    <div style="background:${dev.bg};border:1.5px solid ${dev.border};border-radius:18px;padding:18px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+        <div style="width:48px;height:48px;border-radius:50%;background:${dev.iconBg};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${dev.icon}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+            <span style="font-size:15px;font-weight:900;color:${dev.color};">${dev.displayName}</span>
+            ${meBadge}
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;">@${dev.key}</div>
+          <div style="margin-top:5px;">${titleBadge}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${dev.role}</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">${dev.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── DEV BADGE in profile display ─────────────────────────────────────────────
+function renderDevBadgeIfNeeded() {
+  const normalized = (profileData.username || '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
+  const dev = DEV_ACCOUNTS[normalized];
+  const badge = document.getElementById('dev-role-badge');
+  if (!badge) return;
+  if (dev) {
+    badge.style.display = 'flex';
+    badge.innerHTML = `<span style="font-size:14px;">${dev.icon}</span><span>${dev.role}</span>`;
+    badge.style.borderColor = dev.color;
+    badge.style.color = dev.color;
+  } else {
+    badge.style.display = 'none';
   }
 }
 
