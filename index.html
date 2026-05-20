@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Glent Code</title>
+<title>Gelt Code</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -36,8 +36,8 @@
   
   /* CONTENT & SCREENS */
   .content { flex: 1; overflow-y: auto; position: relative; }
-  .screen { display: none; padding: 20px; animation: fadeIn 0.25s; min-height: 100%; }
-  .screen.active { display: block; }
+  .screen { display: none; padding: 20px; min-height: 100%; }
+  .screen.active { display: block; animation: fadeIn 0.22s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
   /* PATH */
@@ -376,11 +376,251 @@
   /* XP/streak highlight */
   .streak-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
   .streak-pill { display: flex; align-items: center; gap: 6px; background: var(--surface); border-radius: 20px; padding: 8px 16px; font-weight: 800; font-size: 14px; border: 1px solid var(--surface-light); }
+
+  /* ── MODULE CARDS ──────────────────────────────────────── */
+  .modules-header { text-align:center; padding: 10px 0 20px; }
+  .modules-header h2 { font-size:20px;font-weight:900;margin-bottom:4px; }
+  .modules-header p { font-size:12px;color:var(--text-muted);font-weight:700; }
+  .module-card {
+    background:var(--surface); border-radius:20px; padding:18px;
+    margin-bottom:14px; border:2px solid var(--surface-light);
+    cursor:pointer; transition:all 0.15s; position:relative; overflow:hidden;
+  }
+  .module-card:active { transform:scale(0.98); }
+  .module-card.unlocked { border-color:rgba(88,204,2,0.3); }
+  .module-card.completed { border-color:var(--gold); background:rgba(255,200,0,0.05); }
+  .module-card.locked-mod { opacity:0.5; cursor:not-allowed; }
+  .module-card .mod-accent { position:absolute;top:0;left:0;width:5px;height:100%;border-radius:20px 0 0 20px; }
+  .module-card .mod-row { display:flex;align-items:center;gap:14px; }
+  .module-card .mod-icon { font-size:34px;flex-shrink:0;width:52px;text-align:center; }
+  .module-card .mod-info { flex:1; }
+  .module-card .mod-num { font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px; }
+  .module-card .mod-title { font-size:17px;font-weight:900;margin-bottom:4px; }
+  .module-card .mod-desc { font-size:12px;color:var(--text-muted);line-height:1.4; }
+  .module-card .mod-prog { margin-top:12px; }
+  .module-card .mod-prog-bar { height:8px;background:var(--surface-light);border-radius:4px;overflow:hidden;margin-bottom:4px; }
+  .module-card .mod-prog-fill { height:100%;border-radius:4px;transition:width 0.4s; }
+  .module-card .mod-prog-label { font-size:10px;color:var(--text-muted);font-weight:700; }
+  .module-card .mod-badge { position:absolute;top:12px;right:14px;font-size:11px;font-weight:800;padding:3px 10px;border-radius:12px; }
+  .module-card .mod-xp-reward { display:inline-flex;align-items:center;gap:4px;background:rgba(255,200,0,0.12);border:1px solid rgba(255,200,0,0.3);border-radius:10px;padding:3px 9px;font-size:11px;font-weight:800;color:var(--gold);margin-top:8px; }
+
+  /* reward card */
+  .reward-card { background:var(--surface);border:2px solid var(--surface-light);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px; }
+  .reward-card.earned { border-color:var(--gold);background:rgba(255,200,0,0.05); }
+  .reward-card .r-icon { font-size:28px;flex-shrink:0; }
+  .reward-card .r-info { flex:1; }
+  .reward-card .r-name { font-size:14px;font-weight:800; }
+  .reward-card .r-desc { font-size:11px;color:var(--text-muted);margin-top:2px; }
+  .reward-card .r-status { font-size:11px;font-weight:800;padding:3px 10px;border-radius:10px; }
+  .reward-card .r-status.earned-badge { background:rgba(88,204,2,0.1);color:var(--primary); }
+  .reward-card .r-status.locked-badge { background:var(--surface-light);color:var(--text-muted); }
+  /* ── ONBOARDING ──────────────────────────────────────────── */
+  .onboard-screen {
+    position: absolute; inset: 0; z-index: 200;
+    background: var(--bg); display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px 24px; text-align: center;
+    animation: fadeIn 0.4s;
+  }
+  .onboard-screen.hidden { display: none; }
+  .onboard-dot-row { display: flex; gap: 8px; margin-bottom: 32px; }
+  .onboard-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--surface-light); transition: all 0.3s; }
+  .onboard-dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+  .onboard-graphic { font-size: 80px; margin-bottom: 24px; animation: bounceIn 0.6s; }
+  .onboard-title { font-size: 26px; font-weight: 900; margin-bottom: 12px; line-height: 1.2; }
+  .onboard-sub { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 40px; }
+  .onboard-actions { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── SPLASH SCREEN ──────────────────────────────────────── */
+  .splash {
+    position: absolute; inset: 0; z-index: 300;
+    background: var(--bg); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+  }
+  .splash.hiding { animation: splashOut 0.5s forwards; }
+  @keyframes splashOut { to { opacity: 0; transform: scale(1.05); } }
+  .splash-logo { font-size: 72px; animation: bounceIn 0.7s; }
+  .splash-title { font-size: 32px; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
+  .splash-sub { font-size: 13px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
+  .splash-bar-wrap { width: 160px; height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .splash-bar { height: 100%; background: var(--primary); border-radius: 2px; width: 0%; transition: width 0.1s linear; }
+
+  /* ── PAGE TRANSITIONS ───────────────────────────────────── */
+  @keyframes slideInRight { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+
+  /* ── NAV ANIMATIONS ─────────────────────────────────────── */
+  .nav-item { transition: transform 0.12s, color 0.15s; }
+  .nav-item:active { transform: scale(0.85); }
+  .nav-icon { transition: transform 0.2s; }
+  .nav-item.active .nav-icon { animation: navPop 0.25s cubic-bezier(.4,0,.2,1); }
+  @keyframes navPop { 0% { transform: scale(1); } 50% { transform: scale(1.35) translateY(-4px); } 100% { transform: scale(1); } }
+
+  /* ── ANSWER FEEDBACK ANIMATION ──────────────────────────── */
+  @keyframes shakeX { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  .shake { animation: shakeX 0.4s; }
+  @keyframes popIn { 0%{transform:scale(0.7);opacity:0} 70%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+  .pop { animation: popIn 0.3s; }
+
+  /* ── LEADERBOARD ─────────────────────────────────────────── */
+  .lb-header { text-align:center; padding: 16px 0 20px; }
+  .lb-header h2 { font-size:22px; font-weight:900; margin-bottom:4px; }
+  .lb-header p { font-size:12px; color:var(--text-muted); font-weight:700; }
+  .lb-row {
+    display:flex; align-items:center; gap:12px;
+    background:var(--surface); border:2px solid var(--surface-light);
+    border-radius:16px; padding:12px 14px; margin-bottom:10px;
+    transition: all 0.15s;
+  }
+  .lb-row.me { border-color: var(--secondary); background: rgba(28,176,246,0.07); }
+  .lb-row.top1 { border-color: var(--gold); background: rgba(255,200,0,0.07); }
+  .lb-row.top2 { border-color: #a8b8c8; }
+  .lb-row.top3 { border-color: #cd7f32; }
+  .lb-rank { font-size:18px; font-weight:900; width:28px; text-align:center; flex-shrink:0; }
+  .lb-ava { width:42px; height:42px; border-radius:50%; background:var(--surface-light); flex-shrink:0; display:flex;align-items:center;justify-content:center;font-size:20px; overflow:hidden; }
+  .lb-info { flex:1; }
+  .lb-name { font-size:14px; font-weight:800; }
+  .lb-sub { font-size:11px; color:var(--text-muted); font-weight:700; margin-top:1px; }
+  .lb-xp { font-size:15px; font-weight:900; color:var(--gold); }
+
+  /* ── DISCORD AUTH SCREEN ────────────────────────────────── */
+  .discord-auth-screen {
+    position: absolute; inset: 0; z-index: 150;
+    background: rgba(0,0,0,0.92); display: none;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .discord-auth-screen.open { display: flex; animation: fadeIn 0.2s; }
+  .discord-card {
+    background: var(--surface); border-radius: 24px; padding: 28px 24px;
+    width: 100%; max-width: 360px; text-align: center;
+    border: 1px solid #5865F2; box-shadow: 0 0 40px rgba(88,101,242,0.25);
+  }
+
+  /* ── XP POPUP ────────────────────────────────────────────── */
+  .xp-popup {
+    position: absolute; top: 70px; right: 20px; z-index: 90;
+    background: rgba(88,204,2,0.15); border: 1.5px solid var(--primary);
+    color: var(--primary); font-weight: 900; font-size: 18px;
+    padding: 8px 18px; border-radius: 20px;
+    pointer-events: none; opacity: 0;
+  }
+  .xp-popup.show { animation: xpFloat 1.4s ease-out forwards; }
+  @keyframes xpFloat { 0%{opacity:0;transform:translateY(0) scale(0.7)} 15%{opacity:1;transform:translateY(0) scale(1.1)} 30%{transform:translateY(0) scale(1)} 80%{opacity:1;transform:translateY(-30px)} 100%{opacity:0;transform:translateY(-50px)} }
+
+  /* ── STREAK MODAL ────────────────────────────────────────── */
+  .streak-modal-bg { position:absolute;inset:0;z-index:80;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:24px; }
+  .streak-modal-bg.open { display:flex;animation:fadeIn 0.2s; }
+  .streak-modal { background:var(--surface);border-radius:24px;padding:32px 24px;text-align:center;width:100%;max-width:320px;border:2px solid var(--gold); }
 </style>
 </head>
 <body>
 
 <div class="app">
+
+  <!-- SPLASH -->
+  <div class="splash" id="splash">
+    <div class="splash-logo">🐲</div>
+    <div class="splash-title">GELT CODE</div>
+    <div class="splash-sub">УЧИСЬ. КОДЬ. ПОБЕЖДАЙ.</div>
+    <div class="splash-bar-wrap"><div class="splash-bar" id="splash-bar"></div></div>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div class="onboard-screen hidden" id="onboard-screen">
+    <div class="onboard-dot-row">
+      <div class="onboard-dot active" id="od0"></div>
+      <div class="onboard-dot" id="od1"></div>
+      <div class="onboard-dot" id="od2"></div>
+      <div class="onboard-dot" id="od3"></div>
+    </div>
+    <div class="onboard-graphic" id="ob-graphic">🐲</div>
+    <div class="onboard-title" id="ob-title">Добро пожаловать в Gelt Code!</div>
+    <div class="onboard-sub" id="ob-sub">Изучай Pascal через короткие интерактивные уроки — как игру. Прокачивай персонажа и собирай достижения.</div>
+    <div class="onboard-actions">
+      <button class="btn go" onclick="onboardNext()">ДАЛЕЕ →</button>
+      <button class="btn" style="background:none;box-shadow:none;color:var(--text-muted);font-size:13px;padding:8px;" onclick="skipOnboard()">Пропустить</button>
+    </div>
+  </div>
+
+  <!-- PROFILE SETUP SCREEN (shown on first launch if no profile saved) -->
+  <div class="onboard-screen hidden" id="profile-setup-screen" style="justify-content:flex-start;padding-top:60px;overflow-y:auto;">
+    <div style="font-size:64px;margin-bottom:20px;animation:bounceIn 0.6s;">👤</div>
+    <div style="font-size:24px;font-weight:900;margin-bottom:8px;">Создай профиль</div>
+    <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:32px;text-align:center;">Как тебя звать? Это будет видно<br>в рейтинге и таблице лидеров.</div>
+
+    <div style="width:100%;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div class="edit-label" style="margin-bottom:8px;">Имя</div>
+        <input class="edit-field" id="setup-name" type="text" maxlength="24" placeholder="Твоё имя" autocomplete="off"/>
+      </div>
+      <div>
+        <div class="edit-label" style="margin-bottom:8px;">Имя пользователя</div>
+        <div class="username-row">
+          <span class="username-at">@</span>
+          <input class="edit-field" id="setup-username" type="text" maxlength="20" placeholder="username" style="flex:1;" autocomplete="off"/>
+        </div>
+      </div>
+      <div>
+        <div class="edit-label" style="margin-bottom:8px;">О себе <span style="font-weight:400;color:var(--text-muted);font-size:10px;">(необязательно)</span></div>
+        <textarea class="edit-field" id="setup-bio" maxlength="80" placeholder="Расскажи о себе..." rows="2" style="resize:none;line-height:1.5;"></textarea>
+      </div>
+      <div id="setup-error" style="font-size:12px;color:var(--danger);font-weight:800;min-height:16px;"></div>
+      <button class="btn go" style="margin-top:4px;" onclick="finishProfileSetup()">ПОЕХАЛИ! 🚀</button>
+    </div>
+  </div>
+
+
+  <!-- XP POPUP -->
+  <div class="xp-popup" id="xp-popup">+0 XP</div>
+
+  <!-- STREAK MODAL -->
+  <div class="streak-modal-bg" id="streak-modal-bg">
+    <div class="streak-modal">
+      <div style="font-size:60px;margin-bottom:12px;">🔥</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);margin-bottom:8px;" id="streak-modal-title">Серия продолжается!</div>
+      <div style="font-size:15px;color:var(--text-muted);margin-bottom:24px;" id="streak-modal-body">Ты учишься <span id="streak-modal-days" style="color:white;font-weight:900;">3</span> дней подряд. Так держать!</div>
+      <button class="btn go" onclick="closeStreakModal()">ОТЛИЧНО! 💪</button>
+    </div>
+  </div>
+
+  <!-- RESET CONFIRM MODAL -->
+  <div class="streak-modal-bg" id="reset-modal-bg" style="z-index:200;">
+    <div class="streak-modal" style="border-color:var(--danger);max-width:340px;">
+      <div id="reset-modal-step1">
+        <div style="font-size:56px;margin-bottom:12px;">⚠️</div>
+        <div style="font-size:20px;font-weight:900;color:var(--danger);margin-bottom:8px;">Сброс прогресса</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-bottom:20px;line-height:1.5;">Все уроки, XP, достижения и фото аватара будут <strong style="color:white;">безвозвратно удалены</strong>. Это нельзя отменить.</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn" style="flex:1;background:var(--surface-light);color:var(--text-muted);box-shadow:none;" onclick="closeResetModal()">Отмена</button>
+          <button class="btn bad" style="flex:1;" onclick="resetStep2()">Продолжить</button>
+        </div>
+      </div>
+      <div id="reset-modal-step2" style="display:none;">
+        <div style="font-size:56px;margin-bottom:12px;">❗</div>
+        <div style="font-size:20px;font-weight:900;color:var(--danger);margin-bottom:8px;">Последнее предупреждение</div>
+        <div style="font-size:14px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">Введи слово <strong style="color:white;font-family:monospace;">СБРОС</strong> для подтверждения:</div>
+        <input class="edit-field" id="reset-confirm-input" type="text" placeholder="СБРОС" maxlength="10" style="margin-bottom:14px;text-align:center;font-size:18px;font-weight:900;letter-spacing:3px;" oninput="checkResetWord()"/>
+        <div style="display:flex;gap:10px;">
+          <button class="btn" style="flex:1;background:var(--surface-light);color:var(--text-muted);box-shadow:none;" onclick="closeResetModal()">Отмена</button>
+          <button class="btn bad" id="reset-final-btn" style="flex:1;opacity:0.4;" disabled onclick="doReset()">🗑️ СТЕРЕТЬ ВСЁ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="discord-auth-screen" id="discord-auth-screen">
+    <div class="discord-card">
+      <svg width="48" height="48" viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg" fill="#5865F2" style="margin-bottom:16px;"><path d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z"/></svg>
+      <div style="font-size:20px;font-weight:900;margin-bottom:8px;">Вход через Discord</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.6;">Один Discord аккаунт = один профиль.<br>Твой прогресс будет привязан и защищён.</p>
+      <input id="da-tag" class="edit-field" placeholder="Твой Discord username" style="margin-bottom:8px;text-align:center;" maxlength="40"/>
+      <div id="da-error" style="font-size:12px;color:var(--danger);min-height:18px;margin-bottom:8px;font-weight:700;"></div>
+      <button class="btn" style="background:#5865F2;color:white;box-shadow:0 4px 0 #3b47c8;margin-bottom:10px;" onclick="discordAuthConfirm()">ВОЙТИ</button>
+      <button class="btn" style="background:none;box-shadow:none;color:var(--text-muted);font-size:13px;padding:8px;" onclick="closeDiscordAuth()">Продолжить без Discord</button>
+      <p style="font-size:10px;color:var(--text-muted);margin-top:12px;line-height:1.5;">Для OAuth2 через сервер Discord укажи свой client_id в настройках.</p>
+    </div>
+  </div>
+
   <header class="top-bar">
     <div class="stat-pill hearts">❤️ <span id="h-count">5</span></div>
     <div class="stat-pill gems">⚡ <span id="g-count">0</span></div>
@@ -392,8 +632,17 @@
   <main class="content">
     <!-- HOME -->
     <div id="scr-home" class="screen active">
-      <h2 class="section-title">МОДУЛЬ 1: ОСНОВЫ PASCAL</h2>
-      <div class="path" id="path-container"></div>
+      <div id="modules-list-view"><!-- rendered by JS --></div>
+      <div id="module-path-view" style="display:none;">
+        <div id="module-path-header" style="display:flex;align-items:center;gap:10px;padding:4px 0 16px;">
+          <button onclick="backToModules()" style="background:var(--surface);border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:6px 10px;border-radius:10px;line-height:1;">←</button>
+          <div>
+            <div id="module-path-title" style="font-size:15px;font-weight:900;color:var(--text);"></div>
+            <div id="module-path-sub" style="font-size:11px;color:var(--text-muted);font-weight:700;"></div>
+          </div>
+        </div>
+        <div class="path" id="path-container"></div>
+      </div>
     </div>
 
     <!-- LESSON -->
@@ -441,9 +690,8 @@
         <div class="prof-banner-title" style="position:relative;z-index:2;">МОЙ ПРОФИЛЬ</div>
         <div class="ava-wrap">
           <div class="ava" id="prof-ava" onclick="onAvaTap()">
-            <svg class="character-svg" id="char-display-svg" viewBox="0 0 100 115" xmlns="http://www.w3.org/2000/svg"></svg>
-            <canvas id="ava-upload-canvas" width="200" height="200" style="display:none;width:100%;height:100%;border-radius:50%;"></canvas>
-            <div class="ava-edit-badge" id="ava-edit-badge">✏️</div>
+            <canvas id="ava-upload-canvas" width="200" height="200" style="width:100%;height:100%;border-radius:50%;display:block;"></canvas>
+            <div class="ava-edit-badge" id="ava-edit-badge">📷</div>
           </div>
           <input type="file" id="ava-file-input" accept="image/*" style="display:none;">
         </div>
@@ -451,8 +699,8 @@
 
       <div class="prof-body" style="padding: 0 20px 20px;">
         <div class="prof-username-display">
-          <div class="disp-name" id="prof-disp-name">Akim</div>
-          <div class="disp-user" id="prof-disp-user">@AkimCode</div>
+          <div class="disp-name" id="prof-disp-name">—</div>
+          <div class="disp-user" id="prof-disp-user">@username</div>
         </div>
 
         <!-- Avatar crop controls – shown after EMPEROR77 unlock -->
@@ -492,27 +740,29 @@
         <div class="prof-tabs">
           <div class="prof-tab active" id="ptab-edit" onclick="switchProfTab('edit')">Профиль</div>
           <div class="prof-tab" id="ptab-look" onclick="switchProfTab('look')">Внешний вид</div>
+          <div class="prof-tab" id="ptab-devs" onclick="switchProfTab('devs')">Разрабы</div>
         </div>
 
         <!-- Tab: Edit -->
         <div id="ptab-content-edit">
           <div class="edit-section">
             <div class="edit-label">Имя</div>
-            <input class="edit-field" id="edit-name" type="text" maxlength="24" placeholder="Твоё имя" value="Akim"/>
+            <input class="edit-field" id="edit-name" type="text" maxlength="24" placeholder="Твоё имя"  value=""/>
           </div>
           <div class="edit-section">
             <div class="edit-label">Имя пользователя</div>
             <div class="username-row">
               <span class="username-at">@</span>
-              <input class="edit-field" id="edit-username" type="text" maxlength="20" placeholder="username" value="AkimCode" style="flex:1;"/>
+              <input class="edit-field" id="edit-username" type="text" maxlength="20" placeholder="username" value="" style="flex:1;"/>
             </div>
           </div>
           <div class="edit-section">
             <div class="edit-label">О себе</div>
-            <textarea class="edit-field" id="edit-bio" maxlength="80" placeholder="Расскажи о себе..." rows="2" style="resize:none; line-height:1.5;">Учу Pascal 🚀</textarea>
+            <textarea class="edit-field" id="edit-bio" maxlength="80" placeholder="Расскажи о себе..." rows="2" style="resize:none; line-height:1.5;"></textarea>
           </div>
-          <div class="save-wrap">
-            <button class="btn go" onclick="saveProfile()">СОХРАНИТЬ</button>
+          <div class="save-wrap" style="display:flex;gap:8px;">
+            <button class="btn go" style="flex:1;min-width:0;" onclick="saveProfile()">СОХРАНИТЬ</button>
+            <button class="btn bad" style="flex:1;min-width:0;" onclick="confirmReset()">🗑️ СБРОС</button>
           </div>
         </div>
 
@@ -526,8 +776,9 @@
             <div class="edit-label">Узор баннера</div>
             <div id="banner-pattern-row" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
           </div>
-          <div style="padding-bottom:20px;">
-            <button class="btn go" onclick="saveProfile()">СОХРАНИТЬ</button>
+          <div style="padding-bottom:20px;display:flex;gap:8px;">
+            <button class="btn go" style="flex:1;min-width:0;" onclick="saveProfile()">СОХРАНИТЬ</button>
+            <button class="btn bad" style="flex:1;min-width:0;" onclick="confirmReset()">🗑️ СБРОС</button>
           </div>
           <!-- SECRET CODE PANEL -->
           <div class="edit-section" style="margin-top:8px;">
@@ -559,8 +810,99 @@
             <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Скопируй код → вставь на другом устройстве</div>
           </div>
 
-        </div>
+          <!-- DISCORD LINK -->
+          <div class="edit-section" style="margin-top:8px;" id="discord-section">
+            <div class="edit-label" style="letter-spacing:2px;">🎮 DISCORD АККАУНТ</div>
+            <div id="discord-not-linked" style="display:block;">
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">Привяжи Discord — твой прогресс будет синхронизирован и защищён.</p>
+              <button class="btn" style="background:#5865F2;color:white;box-shadow:0 4px 0 #3b47c8;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;" onclick="discordLogin()">
+                <svg width="20" height="20" viewBox="0 0 127.14 96.36" xmlns="http://www.w3.org/2000/svg" fill="white"><path d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15zM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69z"/></svg>
+                ВОЙТИ ЧЕРЕЗ DISCORD
+              </button>
+            </div>
+            <div id="discord-linked" style="display:none;">
+              <div style="background:rgba(88,101,242,0.15);border:1.5px solid #5865F2;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;">
+                <img id="discord-avatar" src="" width="40" height="40" style="border-radius:50%;border:2px solid #5865F2;" onerror="this.style.display='none'">
+                <div style="flex:1;">
+                  <div id="discord-username" style="font-size:14px;font-weight:800;color:white;"></div>
+                  <div style="font-size:11px;color:#5865F2;font-weight:700;">✓ Discord привязан</div>
+                </div>
+                <button onclick="discordUnlink()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;font-weight:800;padding:6px;">ОТВЯЗАТЬ</button>
+              </div>
+              <button class="btn go" style="margin-top:8px;padding:11px;" onclick="discordSyncSave()">☁️ СИНХРОНИЗИРОВАТЬ ПРОГРЕСС</button>
+            </div>
+          </div>
       </div>
+
+
+        <!-- Tab: Devs -->
+        <div id="ptab-content-devs" style="display:none;">
+          <div style="text-align:center;padding:8px 0 20px;">
+            <div style="font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">КОМАНДА ПРОЕКТА</div>
+            <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Проект создан школьниками и<br>энтузиастами образования</div>
+          </div>
+
+          <!-- Основатель -->
+          <div style="background:linear-gradient(135deg,rgba(255,200,0,0.1),rgba(255,140,0,0.05));border:1.5px solid rgba(255,200,0,0.35);border-radius:18px;padding:18px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#ffc800,#ff8c00);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">👑</div>
+              <div>
+                <div style="font-size:15px;font-weight:900;color:var(--gold);">Imperor</div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;">Основатель &amp; Идеолог</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Автор концепции, методология, координация всей разработки. Также отвечает за Frontend &amp; UI/UX — дизайн интерфейса, мобильную адаптацию и анимации.</div>
+          </div>
+
+          <!-- EEnot -->
+          <div style="background:var(--surface);border:1.5px solid var(--surface-light);border-radius:18px;padding:18px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#3a7bd5,#1CB0F6);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚙️</div>
+              <div>
+                <div style="font-size:15px;font-weight:900;color:var(--secondary);">EEnot</div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;">Backend &amp; Sandbox</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Серверная логика, безопасный sandbox для выполнения задач.</div>
+          </div>
+
+          <!-- Методисты -->
+          <div style="background:var(--surface);border:1.5px solid var(--surface-light);border-radius:18px;padding:18px;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#58CC02,#46A302);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📚</div>
+              <div>
+                <div style="font-size:15px;font-weight:900;color:var(--primary);">Команда педагогов</div>
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;">Методисты</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Проверяют соответствие заданий ФГОС и школьным программам.</div>
+          </div>
+
+          <!-- Links -->
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+            <a href="https://geltgolem.github.io" target="_blank" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--surface-light);border-radius:14px;padding:14px;text-decoration:none;color:var(--text);">
+              <span style="font-size:20px;">🌐</span>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:800;">Сайт проекта</div>
+                <div style="font-size:11px;color:var(--text-muted);">geltgolem.github.io</div>
+              </div>
+              <span style="font-size:16px;color:var(--text-muted);">›</span>
+            </a>
+            <a href="https://t.me/geltgolem" target="_blank" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--surface-light);border-radius:14px;padding:14px;text-decoration:none;color:var(--text);">
+              <span style="font-size:20px;">✈️</span>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:800;">Telegram-канал</div>
+                <div style="font-size:11px;color:var(--text-muted);">@geltgolem</div>
+              </div>
+              <span style="font-size:16px;color:var(--text-muted);">›</span>
+            </a>
+          </div>
+
+          <div style="text-align:center;padding:0 0 20px;">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:700;">© 2025–2026 Gelt · Все права защищены</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Сделано с любовью к школьному программированию 🇷🇺</div>
+          </div>
+        </div>
 
       <!-- AVATAR MODAL -->
       <div class="modal-overlay" id="ava-modal" onclick="closeAvaModal(event)">
@@ -603,24 +945,41 @@
       </div>
     </div>
 
+    </div><!-- /scr-profile -->
+
+    <!-- LEADERBOARD -->
+    <div id="scr-lb" class="screen" style="padding-bottom:10dvh;">
+      <div class="lb-header">
+        <h2>🏅 Таблица лидеров</h2>
+        <p id="lb-sub-label">Топ игроков этой недели</p>
+      </div>
+      <div id="lb-list"></div>
+    </div>
+
     <!-- ACHIEVEMENTS -->
     <div id="scr-ach" class="screen" style="padding-bottom:10dvh;">
       <div class="ach-header">
         <h2>🏅 Достижения</h2>
-        <p id="ach-count-label">0 из 12 разблокировано</p>
+        <p id="ach-count-label">0 разблокировано</p>
       </div>
 
-      <div class="ach-section-title">ПРОГРЕСС</div>
-      <div class="ach-grid" id="ach-grid-progress"></div>
+      <div class="ach-section-title">📚 ПРОГРЕСС МОДУЛЕЙ</div>
+      <div class="ach-grid" id="ach-grid-modules"></div>
 
-      <div class="ach-section-title">СЕРИИ И АКТИВНОСТЬ</div>
+      <div class="ach-section-title">⚡ XP И ЛИГИ</div>
+      <div class="ach-grid" id="ach-grid-xp"></div>
+
+      <div class="ach-section-title">🔥 СЕРИИ И АКТИВНОСТЬ</div>
       <div class="ach-grid" id="ach-grid-streak"></div>
 
-      <div class="ach-section-title">ТЕСТЫ И МАСТЕРСТВО</div>
+      <div class="ach-section-title">🏆 ТЕСТЫ И МАСТЕРСТВО</div>
       <div class="ach-grid" id="ach-grid-mastery"></div>
 
-      <div class="ach-section-title">ТИТУЛЫ</div>
+      <div class="ach-section-title">🎖️ ТИТУЛЫ</div>
       <div class="titles-list" id="titles-list"></div>
+
+      <div class="ach-section-title">🎁 РАЗБЛОКИРОВАННЫЕ НАГРАДЫ</div>
+      <div id="rewards-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:4px;"></div>
     </div>
 
     <!-- LEAGUE -->
@@ -652,6 +1011,7 @@
   <nav class="nav">
     <div class="nav-item active" id="nav-home" onclick="goHome(this)"><div class="nav-icon">🏠</div><span>Главная</span></div>
     <div class="nav-item" id="nav-league" onclick="goLeague(this)"><div class="nav-icon">🏆</div><span>Лига</span></div>
+    <div class="nav-item" id="nav-lb" onclick="goLeaderboard(this)"><div class="nav-icon">📊</div><span>Рейтинг</span></div>
     <div class="nav-item" id="nav-ach" onclick="goAchievements(this)"><div class="nav-icon">🏅</div><span>Успехи</span></div>
     <div class="nav-item" id="nav-profile" onclick="goProfile(this)"><div class="nav-icon">👤</div><span>Профиль</span></div>
   </nav>
@@ -661,12 +1021,15 @@
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let xp = 0;
 let hearts = 5;
+let currentModuleIdx = 0;
 let currentLessonIdx = 0;
 let currentQIdx = 0;
 let selectedOption = null;
 let shuffledQuestions = [];
-let lessonCompleted = [false, false, false, false, false];
-let trophyTestDone = false;
+// lessonCompleted[moduleIdx][lessonIdx]
+let lessonCompleted = [[false,false,false,false,false],[false,false,false,false,false],[false,false,false,false,false],[false,false,false,false,false],[false,false,false,false,false]];
+// trophyTestDone[moduleIdx]
+let trophyTestDone = [false,false,false,false,false];
 let lessonErrors = 0;
 let answered = false;
 
@@ -686,7 +1049,7 @@ let charState = {
 };
 
 // ─── SAVE / LOAD ──────────────────────────────────────────────────────────────
-const SAVE_KEY = 'glentcode_save_v1';
+const SAVE_KEY = 'geltcode_save_v1';
 
 function saveState() {
   try {
@@ -698,6 +1061,7 @@ function saveState() {
       unlockedSecrets: [...unlockedSecrets],
       profileData,
       emperorMode: _emperorMode,
+      avatarPhoto: _avaImg ? (() => { try { const c = document.getElementById('ava-upload-canvas'); return c ? c.toDataURL('image/jpeg', 0.85) : null; } catch(e) { return null; } })() : null,
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   } catch(e) {}
@@ -710,8 +1074,21 @@ function loadState() {
     const d = JSON.parse(raw);
     if (d.xp !== undefined) xp = d.xp;
     if (d.hearts !== undefined) hearts = d.hearts;
-    if (d.lessonCompleted) lessonCompleted = d.lessonCompleted;
-    if (d.trophyTestDone !== undefined) trophyTestDone = d.trophyTestDone;
+    if (d.lessonCompleted) {
+      // migrate old flat array to new nested
+      if (Array.isArray(d.lessonCompleted) && !Array.isArray(d.lessonCompleted[0])) {
+        lessonCompleted[0] = d.lessonCompleted;
+      } else {
+        lessonCompleted = d.lessonCompleted;
+      }
+    }
+    if (d.trophyTestDone !== undefined) {
+      if (typeof d.trophyTestDone === 'boolean') {
+        trophyTestDone[0] = d.trophyTestDone;
+      } else {
+        trophyTestDone = d.trophyTestDone;
+      }
+    }
     if (d.trophyErrors !== undefined) trophyErrors = d.trophyErrors;
     if (d.charState) {
       charState.body = d.charState.body || 0;
@@ -722,7 +1099,21 @@ function loadState() {
     if (d.unlockedSecrets) unlockedSecrets = new Set(d.unlockedSecrets);
     if (d.profileData) profileData = Object.assign(profileData, d.profileData);
     if (d.emperorMode) {
+      _emperorMode = true;
       setTimeout(() => initAvaUpload(), 200);
+    }
+    // Restore saved photo if any (works for all users now)
+    const photoData = d.avatarPhoto || d.emperorPhoto;
+    if (photoData) {
+      setTimeout(() => {
+        const img = new Image();
+        img.onload = function() {
+          _avaImg = img;
+          const canvas = document.getElementById('ava-upload-canvas');
+          if (canvas) { canvas.style.display = 'block'; drawAvaUpload(); }
+        };
+        img.src = photoData;
+      }, 400);
     }
   } catch(e) {}
 }
@@ -1031,12 +1422,10 @@ const BANNER_PATTERNS = [
 ];
 
 let profileData = {
-  name: 'Akim', username: 'AkimCode', bio: 'Учу Pascal 🚀',
+  name: '', username: '', bio: '',
   bannerId: 'blue', patternId: 'none',
   equippedTitleId: null,
 };
-
-loadState(); // ← restore saved progress
 
 // ─── CHARACTER SVG BUILDER (Duolingo-style) ────────────────────────────────────
 function buildCharSVG(bodyIdx, outfitIdx, maskIdx, bgIdx) {
@@ -1638,167 +2027,413 @@ function renderCharSVG(svgEl, bodyIdx, outfitIdx, maskIdx, bgIdx) {
   }
 }
 
-// ─── LESSONS DATA ─────────────────────────────────────────────────────────────
-const lessonsData = [
+// ─── MODULES & LESSONS DATA ──────────────────────────────────────────────────
+const MODULES = [
   {
-    title: "Вывод данных",
-    questions: [
-      { q: "Какая команда выводит текст в Pascal?", code: "", opts: ["writeln('Hi')", "print('Hi')", "echo 'Hi'"], correct: 0, exp: "writeln — стандартный вывод с переходом на новую строку." },
-      { q: "Что делает writeln(42)?", code: "", opts: ["Выводит '42'", "Выводит 42", "Вызывает ошибку"], correct: 1, exp: "Числа выводятся без кавычек, как есть." },
-      { q: "Как вывести текст без перевода строки?", code: "", opts: ["write('A')", "writeln('A')", "print('A')"], correct: 0, exp: "write не добавляет перенос строки в конце." },
-      { q: "Где ставится точка с запятой?", code: "writeln('Hello')", opts: ["В начале", "В конце", "Не нужна"], correct: 1, exp: "В Pascal команды разделяются ;" },
-      { q: "Что выведет writeln(2+3)?", code: "", opts: ["2+3", "5", "Ошибка"], correct: 1, exp: "Сначала вычисляется выражение, потом выводится." },
-      { q: "Как вывести переменную x?", code: "var x: integer;", opts: ["writeln(x)", "writeln('x')", "write x"], correct: 0, exp: "Без кавычек выводится значение переменной." },
-      { q: "Какой символ начинает строковый литерал?", code: "", opts: ["Одинарная кавычка '", "Скобки ()", "Решетка #"], correct: 0, exp: "Текст в Pascal пишется в одинарных кавычках." },
-      { q: "Что делает readln?", code: "", opts: ["Читает ввод", "Выводит текст", "Очищает экран"], correct: 0, exp: "readln ждёт ввода от пользователя." },
+    id: 0, title: 'Основы Pascal', icon: '📘', color: '#58CC02', colorDark: '#46A302',
+    desc: 'Вывод, переменные, ввод и операторы',
+    xpReward: 50, rewardOutfitIdx: -1,
+    lessons: [
+      {
+        title: 'Вывод данных',
+        questions: [
+          { q: 'Какая команда выводит текст в Pascal?', opts: ['writeln(\'Hi\')', 'print(\'Hi\')', 'echo \'Hi\''], correct: 0, exp: 'writeln — стандартный вывод с переходом на новую строку.' },
+          { q: 'Как вывести текст БЕЗ перевода строки?', opts: ['write(\'A\')', 'writeln(\'A\')', 'print(\'A\')'], correct: 0, exp: 'write не добавляет перенос строки в конце.' },
+          { q: 'Что выведет writeln(2+3)?', opts: ['2+3', '5', 'Ошибка'], correct: 1, exp: 'Выражение вычисляется, потом выводится результат.' },
+          { q: 'Как вывести переменную x?', code: 'var x: integer;', opts: ['writeln(x)', 'writeln(\'x\')', 'write x'], correct: 0, exp: 'Без кавычек выводится значение переменной.' },
+          { q: 'Какой символ используется для строк в Pascal?', opts: ["Одинарная кавычка '", 'Двойная кавычка "', 'Обратный слеш \\'], correct: 0, exp: "В Pascal строки в одинарных кавычках: 'Hello'." },
+          { q: 'Что делает readln?', opts: ['Читает ввод с клавиатуры', 'Выводит текст', 'Очищает экран'], correct: 0, exp: 'readln ждёт ввода от пользователя и нажатия Enter.' },
+        ]
+      },
+      {
+        title: 'Переменные и типы',
+        questions: [
+          { q: 'Как объявить целую переменную x?', opts: ['var x: integer;', 'int x;', 'x := 0;'], correct: 0, exp: 'В Pascal: var имя: тип;' },
+          { q: 'Какой тип для дробных чисел?', opts: ['real', 'float', 'decimal'], correct: 0, exp: 'real хранит числа с плавающей точкой.' },
+          { q: 'Что хранит тип boolean?', opts: ['true/false', 'Текст', 'Число'], correct: 0, exp: 'boolean принимает только true или false.' },
+          { q: 'Где в программе объявляются переменные?', code: 'program Test;\n[ТУТ]\nbegin\n  ...\nend.', opts: ['До begin', 'После begin', 'После end.'], correct: 0, exp: 'Раздел var всегда идёт до begin.' },
+          { q: 'Что такое char?', opts: ['Один символ', 'Строка', 'Целое число'], correct: 0, exp: 'char хранит ровно один символ, например \'A\'.' },
+        ]
+      },
+      {
+        title: 'Присваивание',
+        questions: [
+          { q: 'Какой оператор присваивания в Pascal?', code: 'x ___ 10;', opts: ['=', ':=', '=='], correct: 1, exp: ':= — оператор присваивания в Pascal.' },
+          { q: 'Что произойдёт после x := 5 + 3?', opts: ['x = 8', 'x = \'5+3\'', 'Ошибка'], correct: 0, exp: 'Выражение вычисляется, результат присваивается x.' },
+          { q: 'Можно ли писать x := x + 1?', opts: ['Да, это счётчик', 'Нет, ошибка', 'Только в цикле'], correct: 0, exp: 'Да, это стандартный способ увеличения переменной.' },
+          { q: 'Как прочитать число с клавиатуры в x?', opts: ['readln(x)', 'input(x)', 'scan(x)'], correct: 0, exp: 'readln(x) читает значение и сохраняет в x.' },
+          { q: 'Чему равен результат?', code: 'x := 10;\nx := x * 2;\nwriteln(x);', opts: ['20', '10', '2'], correct: 0, exp: 'x сначала 10, потом умножается на 2 → 20.' },
+        ]
+      },
+      {
+        title: 'Арифметика',
+        questions: [
+          { q: 'Как записать остаток от деления в Pascal?', opts: ['mod', '%', 'rem'], correct: 0, exp: '17 mod 5 = 2 — остаток от деления.' },
+          { q: 'Что делает div?', opts: ['Целочисленное деление', 'Дробное деление', 'Умножение'], correct: 0, exp: '7 div 2 = 3, дробная часть отбрасывается.' },
+          { q: 'Чему равно 2 + 3 * 4?', opts: ['14', '20', '11'], correct: 0, exp: 'Умножение выполняется первым: 3*4=12, потом 2+12=14.' },
+          { q: 'Как возвести в квадрат число x?', opts: ['x * x', 'x ^ 2', 'sqr x'], correct: 0, exp: 'В Pascal нет оператора ^, используй x * x или sqr(x).' },
+          { q: 'Что вернёт abs(-5)?', opts: ['5', '-5', 'Ошибка'], correct: 0, exp: 'abs возвращает абсолютное значение числа.' },
+        ]
+      },
+      {
+        title: 'Структура программы',
+        questions: [
+          { q: 'Чем заканчивается программа на Pascal?', opts: ['end.', 'end;', 'END'], correct: 0, exp: 'Последний end завершается точкой, а не ;' },
+          { q: 'Какое ключевое слово начинает основной блок?', opts: ['begin', 'start', 'run'], correct: 0, exp: 'begin...end — основной блок программы.' },
+          { q: 'Где объявляются константы?', opts: ['const', 'var', 'define'], correct: 0, exp: 'const объявляет именованные константы: const Pi = 3.14;' },
+          { q: 'Что делает program MyApp;?', opts: ['Даёт имя программе', 'Запускает программу', 'Импортирует модуль'], correct: 0, exp: 'Строка program задаёт имя программы — просто метка.' },
+          { q: 'Чем отделяются операторы в Pascal?', opts: ['Точкой с запятой ;', 'Запятой ,', 'Новой строкой'], correct: 0, exp: '; разделяет операторы. Последний перед end можно не ставить.' },
+        ]
+      },
+    ],
+    trophyQuestions: [
+      { type:'type', q:'Напиши оператор присваивания:', code:'x ___ 5;', answer:':=', chips:[':=','==','=',':'], exp:':= — присваивание в Pascal.' },
+      { type:'type', q:'Напиши тип для целых чисел:', code:'var n: ___;', answer:'integer', chips:['integer','int','number','real'], exp:'integer — тип целых чисел.' },
+      { type:'type', q:'Напиши ключевое слово раздела переменных:', code:'___ x: integer;', answer:'var', chips:['var','int','let','dim'], exp:'var начинает раздел объявлений.' },
+      { type:'fix', q:'Исправь ошибку в выводе строки:', code:"print('Hello');", answer:"writeln('Hello');", chips:['writeln','write','println',"'Hello'",'Hello',';'], exp:"В Pascal writeln, строки в одинарных кавычках." },
+      { type:'type', q:'Напиши остаток от деления:', code:'r := 10 ___ 3;', answer:'mod', chips:['mod','%','div','rem'], exp:'mod даёт остаток: 10 mod 3 = 1.' },
     ]
   },
   {
-    title: "Переменные и типы",
-    questions: [
-      { q: "Как объявить целую переменную x?", code: "", opts: ["var x: integer;", "int x;", "x := 0;"], correct: 0, exp: "В Pascal переменные объявляются через var имя: тип;" },
-      { q: "Что хранит тип string?", code: "", opts: ["Числа", "Текст", "Логические значения"], correct: 1, exp: "String предназначен для работы с текстовыми данными." },
-      { q: "Где объявляются переменные?", code: "program Test;\n...\nbegin\n...", opts: ["До begin", "После begin", "В конце программы"], correct: 0, exp: "Раздел описания переменных всегда идёт до begin." },
-      { q: "Какой тип для дробных чисел?", code: "", opts: ["real", "integer", "char"], correct: 0, exp: "real хранит числа с плавающей точкой." },
-      { q: "Что такое char?", code: "", opts: ["Символ", "Строка", "Число"], correct: 0, exp: "char хранит один символ." },
-      { q: "Как объявить логическую переменную?", code: "", opts: ["var f: boolean;", "var f: bool;", "var f: logic;"], correct: 0, exp: "boolean принимает true или false." },
+    id: 1, title: 'Условия и ветвления', icon: '🔀', color: '#1CB0F6', colorDark: '#1899D6',
+    desc: 'if/else, case, логические операторы',
+    xpReward: 75, rewardOutfitIdx: 2,
+    lessons: [
+      {
+        title: 'if / then',
+        questions: [
+          { q: 'Как начинается условие в Pascal?', opts: ['if ... then', 'when ... do', 'check ... :'], correct: 0, exp: 'Синтаксис: if условие then действие;' },
+          { q: 'Как проверить равенство x и 5?', opts: ['if x = 5 then', 'if x == 5 then', 'if x := 5 then'], correct: 0, exp: 'Сравнение в Pascal — один знак =.' },
+          { q: 'Что нужно для нескольких команд в then?', code: 'if x > 0 then\n  writeln(\'A\');\n  writeln(\'B\');', opts: ['begin ... end', '{ ... }', '( ... )'], correct: 0, exp: 'begin и end группируют несколько операторов.' },
+          { q: 'Как проверить НЕРАВЕНСТВО?', opts: ['<>', '!=', '=/='], correct: 0, exp: '<> означает «не равно» в Pascal.' },
+          { q: 'Что выведет код?', code: 'x := 10;\nif x > 5 then writeln(\'Да\');', opts: ['Да', 'Ничего', 'Ошибка'], correct: 0, exp: '10 > 5 — true, поэтому выполняется writeln.' },
+          { q: 'Когда выполняется else?', opts: ['Когда условие false', 'Всегда', 'Никогда'], correct: 0, exp: 'else — альтернативная ветка при ложном условии.' },
+        ]
+      },
+      {
+        title: 'Логика и else',
+        questions: [
+          { q: 'Что делает оператор not?', opts: ['Инвертирует boolean', 'Отрицает число', 'Завершает if'], correct: 0, exp: 'not true = false, not false = true.' },
+          { q: 'Как объединить два условия «И»?', opts: ['and', '&&', '&'], correct: 0, exp: 'В Pascal логическое И пишется словом and.' },
+          { q: 'Как объединить два условия «ИЛИ»?', opts: ['or', '||', '|'], correct: 0, exp: 'В Pascal логическое ИЛИ пишется словом or.' },
+          { q: 'Нужна ли ; перед else?', code: 'if x > 0 then\n  writeln(\'+\')\n[?]\nelse\n  writeln(\'-\');', opts: ['Нет', 'Да', 'Зависит от ситуации'], correct: 0, exp: 'Перед else точку с запятой НЕ ставят!' },
+          { q: 'Что вернёт not (3 > 5)?', opts: ['true', 'false', '0'], correct: 0, exp: '3 > 5 = false, not false = true.' },
+        ]
+      },
+      {
+        title: 'Вложенные условия',
+        questions: [
+          { q: 'Как написать: если x > 0 и x < 10?', opts: ['if (x > 0) and (x < 10) then', 'if x > 0 && x < 10 then', 'if 0 < x < 10 then'], correct: 0, exp: 'В Pascal условия и/или скобках с and/or.' },
+          { q: 'Что такое «вложенное if»?', opts: ['if внутри другого if', 'if без else', 'if с несколькими then'], correct: 0, exp: 'Вложенное if — условие внутри тела другого условия.' },
+          { q: 'Как проверить x в диапазоне [1, 100]?', opts: ['(x >= 1) and (x <= 100)', 'x in [1..100]', '1 <= x <= 100'], correct: 0, exp: 'Используй and для проверки двух границ диапазона.' },
+          { q: 'Что выведет код?', code: 'x := 0;\nif x > 0 then writeln(\'+\')\nelse if x < 0 then writeln(\'-\')\nelse writeln(\'0\');', opts: ['0', '+', '-'], correct: 0, exp: 'x = 0, поэтому сработает последний else.' },
+          { q: 'Как проверить x на чётность?', opts: ['if x mod 2 = 0 then', 'if x % 2 = 0 then', 'if even(x) then'], correct: 0, exp: 'mod 2 = 0 означает, что число делится на 2 нацело.' },
+        ]
+      },
+      {
+        title: 'case / of',
+        questions: [
+          { q: 'Когда удобно использовать case?', opts: ['Много вариантов одной переменной', 'Один if/else', 'Цикл'], correct: 0, exp: 'case удобен когда нужно много вариантов одного значения.' },
+          { q: 'Как записать case?', code: '', opts: ['case x of\n  1: ...\n  2: ...\nend;', 'switch(x) {\n  case 1: ...}', 'select x when 1...'], correct: 0, exp: 'Синтаксис Pascal: case переменная of значение: действие; end;' },
+          { q: 'Что делает else в case?', opts: ['Ветка по умолчанию', 'Завершает программу', 'Не используется'], correct: 0, exp: 'else в case — выполняется если ни один вариант не совпал.' },
+          { q: 'Какой тип может использоваться в case?', opts: ['Порядковые (integer, char, boolean)', 'Только integer', 'Любой тип'], correct: 0, exp: 'case работает только с порядковыми типами: integer, char, boolean.' },
+          { q: 'Как написать диапазон в case?', opts: ['1..5: writeln(\'мало\');', '1-5: writeln(\'мало\');', '[1,5]: writeln(\'мало\');'], correct: 0, exp: 'Диапазон в case: значение1..значение2: действие;' },
+        ]
+      },
+      {
+        title: 'Практика условий',
+        questions: [
+          { q: 'Что выведет код?', code: 'a := 5; b := 3;\nif a > b then writeln(a)\nelse writeln(b);', opts: ['5', '3', 'Ошибка'], correct: 0, exp: '5 > 3 — истина, выводится a = 5.' },
+          { q: 'Найди ошибку:', code: 'if x > 0 then;\n  writeln(\'Положительное\');', opts: ['; после then лишняя', 'Нет else', 'writeln неверный'], correct: 0, exp: 'Точка с запятой после then создаёт пустой оператор.' },
+          { q: 'Как проверить на нечётность?', opts: ['x mod 2 <> 0', 'x mod 2 = 1 or x mod 2 = -1', 'odd(x)'], correct: 2, exp: 'odd(x) возвращает true если x нечётное — стандартная функция.' },
+          { q: 'Что вернёт (5 > 3) and (2 < 1)?', opts: ['false', 'true', 'Ошибка типов'], correct: 0, exp: '5 > 3 = true, 2 < 1 = false. true and false = false.' },
+          { q: 'Как корректно написать abs(-7) > 5?', code: '', opts: ['if abs(-7) > 5 then', 'if -7 > 5 then', 'if |−7| > 5 then'], correct: 0, exp: 'abs(-7) = 7, 7 > 5 = true. Всё верно.' },
+        ]
+      },
+    ],
+    trophyQuestions: [
+      { type:'type', q:'Напиши оператор сравнения «не равно»:', code:'if x ___ 0 then ...', answer:'<>', chips:['<>','!=','=/=','<'], exp:'<> — не равно в Pascal.' },
+      { type:'type', q:'Как пишется логическое И в Pascal?', code:'if (x>0) ___ (x<10) then ...', answer:'and', chips:['and','&&','&','AND'], exp:'and — логическое И.' },
+      { type:'fix', q:'Найди ошибку перед else:', code:"if x > 0 then writeln('+');\nelse writeln('-');", answer:"if x > 0 then writeln('+')\nelse writeln('-');", chips:['if','x','>','0','then',"writeln('+')",';','else'], exp:'Перед else ; не ставится.' },
+      { type:'type', q:'Напиши ключевое слово для множественного выбора:', code:'___ x of\n  1: writeln(\'один\');\nend;', answer:'case', chips:['case','switch','select','if'], exp:'case of — множественный выбор в Pascal.' },
+      { type:'type', q:'Напиши логическое ИЛИ:', code:'if (x < 0) ___ (x > 100) then ...', answer:'or', chips:['or','||','|','OR'], exp:'or — логическое ИЛИ в Pascal.' },
     ]
   },
   {
-    title: "Присваивание и ввод",
-    questions: [
-      { q: "Какой оператор присваивания в Pascal?", code: "x ... 10;", opts: ["=", "==", ":="], correct: 2, exp: "Двоеточие и равно (:=) — оператор присваивания." },
-      { q: "Что будет после x := 5 + 3?", code: "", opts: ["x станет '5+3'", "x станет 8", "Ошибка синтаксиса"], correct: 1, exp: "Сначала вычисляется выражение, потом результат сохраняется." },
-      { q: "Как прочитать число с клавиатуры в x?", code: "", opts: ["readln(x)", "input(x)", "get(x)"], correct: 0, exp: "readln читает данные и ждёт нажатия Enter." },
-      { q: "Можно ли писать x := x + 1?", code: "", opts: ["Да", "Нет", "Только в цикле"], correct: 0, exp: "Да, это стандартный способ увеличения счётчика." },
-      { q: "Что вернёт readln, если ввести 'abc' в integer?", code: "", opts: ["Ошибка выполнения", "0", "'abc'"], correct: 0, exp: "Несоответствие типов вызовет ошибку." },
+    id: 2, title: 'Циклы', icon: '🔁', color: '#9B59B6', colorDark: '#7D3C98',
+    desc: 'for, while, repeat и управление циклами',
+    xpReward: 100, rewardOutfitIdx: 4,
+    lessons: [
+      {
+        title: 'Цикл for',
+        questions: [
+          { q: 'Как записать цикл от 1 до 10?', opts: ['for i:=1 to 10 do', 'for i=1; i<=10; i++', 'loop i from 1 to 10'], correct: 0, exp: 'for переменная:=начало to конец do' },
+          { q: 'Как сделать цикл в ОБРАТНОМ порядке?', opts: ['for i:=10 downto 1 do', 'for i:=10 to 1 do', 'for i:=10 reverse 1 do'], correct: 0, exp: 'downto заменяет to для убывания.' },
+          { q: 'Что выведет код?', code: 'for i:=1 to 3 do\n  writeln(i);', opts: ['1 2 3', '0 1 2', '1 2 3 4'], correct: 0, exp: 'Цикл выполняется для i = 1, 2, 3.' },
+          { q: 'Можно ли менять счётчик i внутри for?', opts: ['Нет, это запрещено', 'Да, всегда', 'Только увеличивать'], correct: 0, exp: 'Счётчик for нельзя менять внутри тела цикла.' },
+          { q: 'Что произойдёт при for i:=5 to 3 do?', opts: ['Тело не выполнится', 'Зацикливание', 'Ошибка'], correct: 0, exp: 'Если начало > конца, тело цикла не выполняется ни разу.' },
+          { q: 'Как сгруппировать несколько команд в for?', opts: ['begin ... end', '{ ... }', '( ... )'], correct: 0, exp: 'Для нескольких команд в теле цикла нужен begin...end.' },
+        ]
+      },
+      {
+        title: 'Цикл while',
+        questions: [
+          { q: 'Когда выполняется тело while?', opts: ['Пока условие true', 'Пока условие false', 'Всегда один раз'], correct: 0, exp: 'while проверяет условие ПЕРЕД каждой итерацией.' },
+          { q: 'Что случится, если условие while всегда true?', opts: ['Бесконечный цикл', 'Выполнится 1 раз', 'Ошибка компиляции'], correct: 0, exp: 'Бесконечный цикл — программа зависнет. Всегда обновляй переменную!' },
+          { q: 'Что выведет код?', code: 'x := 1;\nwhile x <= 3 do begin\n  writeln(x);\n  x := x + 1;\nend;', opts: ['1 2 3', '1 2 3 4', '0 1 2 3'], correct: 0, exp: 'Цикл идёт пока x <= 3, то есть 1, 2, 3.' },
+          { q: 'Чем while отличается от for?', opts: ['Число итераций заранее неизвестно', 'while быстрее', 'while нельзя вложить'], correct: 0, exp: 'while используют когда не знаем заранее сколько раз повторять.' },
+          { q: 'Как остановить while досрочно?', opts: ['break', 'stop', 'exit loop'], correct: 0, exp: 'break немедленно выходит из текущего цикла.' },
+        ]
+      },
+      {
+        title: 'Цикл repeat',
+        questions: [
+          { q: 'Чем repeat...until отличается от while?', opts: ['Выполняется минимум 1 раз', 'Быстрее работает', 'Нет разницы'], correct: 0, exp: 'repeat проверяет условие ПОСЛЕ тела — минимум 1 итерация.' },
+          { q: 'Синтаксис repeat:', opts: ['repeat\n  ...\nuntil условие;', 'do {\n  ...\n} while(условие)', 'loop\n  ...\nend когда условие'], correct: 0, exp: 'repeat...until — тело, потом проверка.' },
+          { q: 'Что выведет код?', code: 'x := 10;\nrepeat\n  writeln(x);\n  x := x - 3;\nuntil x <= 0;', opts: ['10 7 4 1', '10 7 4', '10 7'], correct: 0, exp: 'Выводит 10, 7, 4, 1 — каждый раз -3 пока x > 0.' },
+          { q: 'Когда удобен repeat вместо while?', opts: ['Нужно выполнить тело хотя бы раз', 'Цикл с известным числом итераций', 'Для перебора массивов'], correct: 0, exp: 'repeat удобен для диалогов, меню, проверки ввода.' },
+          { q: 'Условие в until означает:', opts: ['Когда ОСТАНОВИТЬСЯ', 'Когда ПРОДОЛЖАТЬ', 'Начальное значение'], correct: 0, exp: 'until x <= 0 = остановись когда x стал <= 0.' },
+        ]
+      },
+      {
+        title: 'Управление циклами',
+        questions: [
+          { q: 'Что делает break?', opts: ['Выходит из цикла', 'Пропускает итерацию', 'Завершает программу'], correct: 0, exp: 'break немедленно прерывает текущий цикл.' },
+          { q: 'Что делает continue?', opts: ['Переходит к следующей итерации', 'Выходит из цикла', 'Перезапускает цикл'], correct: 0, exp: 'continue пропускает остаток тела и идёт к следующей итерации.' },
+          { q: 'Что выведет код?', code: 'for i:=1 to 5 do begin\n  if i = 3 then continue;\n  writeln(i);\nend;', opts: ['1 2 4 5', '1 2 3 4 5', '1 2'], correct: 0, exp: 'i=3 пропускается через continue, остальные выводятся.' },
+          { q: 'Как найти первое кратное 7 в диапазоне 1..100?', opts: ['for + if + break', 'Только while', 'Вычислить заранее'], correct: 0, exp: 'Перебираем for, при нахождении — break.' },
+          { q: 'Что делает halt в Pascal?', opts: ['Завершает программу', 'Останавливает цикл', 'Паузирует выполнение'], correct: 0, exp: 'halt() полностью завершает выполнение программы.' },
+        ]
+      },
+      {
+        title: 'Вложенные циклы',
+        questions: [
+          { q: 'Что такое вложенный цикл?', opts: ['Цикл внутри другого цикла', 'Цикл с условием', 'Цикл с паузой'], correct: 0, exp: 'Вложенный цикл — это цикл, тело которого содержит другой цикл.' },
+          { q: 'Сколько раз выполнится writeln?', code: 'for i:=1 to 3 do\n  for j:=1 to 3 do\n    writeln(i,j);', opts: ['9', '6', '3'], correct: 0, exp: '3 × 3 = 9 итераций.' },
+          { q: 'Как вывести таблицу умножения 3×3?', opts: ['Два вложенных for', 'Один for с тремя writeln', 'while + for'], correct: 0, exp: 'Внешний for — строки, внутренний for — столбцы.' },
+          { q: 'break во вложенном цикле выходит из:', opts: ['Только внутреннего цикла', 'Обоих циклов', 'Всей программы'], correct: 0, exp: 'break выходит только из ближайшего цикла.' },
+          { q: 'Что выведет код?', code: 'for i:=1 to 3 do begin\n  if i = 2 then break;\n  writeln(i);\nend;', opts: ['1', '1 2', '1 2 3'], correct: 0, exp: 'При i=2 break — выводится только 1.' },
+        ]
+      },
+    ],
+    trophyQuestions: [
+      { type:'type', q:'Напиши ключевое слово цикла со счётчиком:', code:'___ i:=1 to 10 do ...', answer:'for', chips:['for','while','repeat','loop'], exp:'for — цикл с известным числом итераций.' },
+      { type:'type', q:'Напиши ключевое слово для обратного цикла:', code:'for i:=10 ___ 1 do ...', answer:'downto', chips:['downto','to','reverse','down'], exp:'downto для убывающего счётчика.' },
+      { type:'type', q:'Чем заканчивается цикл repeat?', code:'repeat\n  ...\n___ x > 0;', answer:'until', chips:['until','while','end','done'], exp:'repeat...until — цикл с постусловием.' },
+      { type:'fix', q:'Исправь бесконечный цикл:', code:'x := 1;\nwhile x <= 5 do\n  writeln(x);', answer:'x := 1;\nwhile x <= 5 do begin\n  writeln(x);\n  x := x + 1;\nend;', chips:['x','x := x + 1','begin','end','while','writeln(x)'], exp:'Нужно увеличивать x, иначе цикл бесконечный.' },
+      { type:'type', q:'Как прервать цикл досрочно?', code:'while true do\n  if найдено then ___', answer:'break', chips:['break','stop','exit','halt'], exp:'break выходит из текущего цикла.' },
     ]
   },
   {
-    title: "Условные конструкции",
-    questions: [
-      { q: "Как начинается условие в Pascal?", code: "", opts: ["if ... then", "when ... do", "case ... of"], correct: 0, exp: "Базовый синтаксис условия: if условие then действие;" },
-      { q: "Что нужно, если в then несколько команд?", code: "if x > 0 then\n  writeln('A');\n  writeln('B');", opts: ["begin ... end", "{ ... }", "( ... )"], correct: 0, exp: "begin и end группируют несколько команд в один блок." },
-      { q: "Как проверить равенство?", code: "", opts: ["if x = 5 then", "if x == 5 then", "if x := 5 then"], correct: 0, exp: "В Pascal сравнение — это один знак =." },
-      { q: "Что делает else?", code: "", opts: ["Выполняется если false", "Завершает программу", "Повторяет условие"], correct: 0, exp: "else — альтернативная ветка." },
-      { q: "Как проверить неравенство?", code: "", opts: ["<>", "!=", "!=="], correct: 0, exp: "<> означает 'не равно' в Pascal." },
-      { q: "Что вернёт not true?", code: "", opts: ["false", "true", "nil"], correct: 0, exp: "not инвертирует логическое значение." },
+    id: 3, title: 'Массивы', icon: '📦', color: '#FFC800', colorDark: '#E6A800',
+    desc: 'Одномерные и двумерные массивы, сортировка',
+    xpReward: 125, rewardOutfitIdx: 7,
+    lessons: [
+      {
+        title: 'Объявление массивов',
+        questions: [
+          { q: 'Как объявить массив из 10 целых чисел?', opts: ['var a: array[1..10] of integer;', 'var a[10]: integer;', 'array a(10) integer;'], correct: 0, exp: 'Синтаксис: array[начало..конец] of тип;' },
+          { q: 'Как обратиться к 3-му элементу массива a?', opts: ['a[3]', 'a(3)', 'a.3'], correct: 0, exp: 'Элементы массива доступны через квадратные скобки.' },
+          { q: 'Что такое индекс массива?', opts: ['Номер позиции элемента', 'Длина массива', 'Тип элемента'], correct: 0, exp: 'Индекс — номер элемента, через который к нему обращаются.' },
+          { q: 'Каков стандартный индекс первого элемента в Pascal?', opts: ['1 (по умолчанию)', '0', 'Зависит от объявления'], correct: 2, exp: 'В Pascal можно задать любой диапазон, например [0..9] или [1..10].' },
+          { q: 'Как заполнить массив из 5 нулей?', opts: ['for i:=1 to 5 do a[i]:=0;', 'a := [0,0,0,0,0];', 'fill(a, 0);'], correct: 0, exp: 'Цикл for — стандартный способ инициализации массива.' },
+        ]
+      },
+      {
+        title: 'Работа с элементами',
+        questions: [
+          { q: 'Как вывести все элементы массива a[1..5]?', opts: ['for i:=1 to 5 do writeln(a[i]);', 'writeln(a);', 'print array a;'], correct: 0, exp: 'Перебираем индексы циклом и выводим каждый элемент.' },
+          { q: 'Как найти сумму всех элементов массива?', opts: ['sum:=0; for i:=1 to n do sum:=sum+a[i];', 'sum(a)', 'total := a[1]+a[2]+...'], correct: 0, exp: 'Накапливаем сумму в переменной через цикл.' },
+          { q: 'Что произойдёт при обращении к a[0] в массиве a[1..5]?', opts: ['Ошибка выполнения', '0', 'Последний элемент'], correct: 0, exp: 'Выход за границы массива — это ошибка!' },
+          { q: 'Как найти максимальный элемент массива?', opts: ['Перебрать все, запоминая наибольший', 'max(a)', 'a[last]'], correct: 0, exp: 'Инициализируй max:=a[1], затем сравнивай с каждым элементом.' },
+          { q: 'Как посчитать количество чётных чисел в массиве?', opts: ['Цикл + if a[i] mod 2 = 0 then inc(cnt)', 'count_even(a)', 'a mod 2'], correct: 0, exp: 'inc(cnt) увеличивает счётчик на 1 при выполнении условия.' },
+        ]
+      },
+      {
+        title: 'Ввод и обработка',
+        questions: [
+          { q: 'Как ввести 5 чисел в массив с клавиатуры?', opts: ['for i:=1 to 5 do readln(a[i]);', 'readln(a);', 'input a[1..5];'], correct: 0, exp: 'Читаем каждый элемент по очереди циклом.' },
+          { q: 'Как поменять местами a[2] и a[5]?', opts: ['tmp:=a[2]; a[2]:=a[5]; a[5]:=tmp;', 'swap(a[2],a[5]);', 'a[2] <-> a[5];'], correct: 0, exp: 'Обмен через временную переменную tmp — классический приём.' },
+          { q: 'Как найти индекс минимального элемента?', opts: ['Цикл: если a[i] < a[minIdx] то minIdx:=i', 'indexOf(min(a))', 'low(a)'], correct: 0, exp: 'Запоминаем индекс, а не только значение минимума.' },
+          { q: 'Как скопировать массив a в массив b?', opts: ['for i:=1 to n do b[i]:=a[i];', 'b := a;', 'copy(a, b);'], correct: 0, exp: 'Массивы копируются поэлементно через цикл (или оператором := для статических).' },
+          { q: 'Как развернуть массив задом наперёд?', opts: ['Обменять a[1]↔a[n], a[2]↔a[n-1]...', 'reverse(a)', 'for i:=n downto 1'], correct: 0, exp: 'Обмениваем симметричные элементы от краёв к центру.' },
+        ]
+      },
+      {
+        title: 'Сортировка',
+        questions: [
+          { q: 'Что такое сортировка пузырьком?', opts: ['Соседние элементы сравниваются и меняются', 'Делим массив пополам', 'Ищем минимум и ставим вперёд'], correct: 0, exp: 'Пузырёк: проходим n-1 раз, каждый раз «всплывает» максимум.' },
+          { q: 'Сколько проходов нужно пузырьку для массива из n элементов?', opts: ['n-1', 'n', 'n²'], correct: 0, exp: 'После n-1 прохода массив гарантированно отсортирован.' },
+          { q: 'Что такое сортировка выбором?', opts: ['Находим минимум, ставим в начало, повторяем', 'Сравниваем соседей', 'Делим пополам рекурсивно'], correct: 0, exp: 'Selection sort: находим минимум из оставшихся и ставим на место.' },
+          { q: 'Как определить, что массив уже отсортирован?', opts: ['Все a[i] <= a[i+1]', 'a[1] = минимум', 'Длина не изменилась'], correct: 0, exp: 'Если каждый следующий элемент >= предыдущего — массив отсортирован.' },
+          { q: 'Что делает inc(x) в Pascal?', opts: ['Увеличивает x на 1', 'Включает переменную', 'Инициализирует x'], correct: 0, exp: 'inc(x) — быстрый способ написать x := x + 1.' },
+        ]
+      },
+      {
+        title: 'Двумерные массивы',
+        questions: [
+          { q: 'Как объявить матрицу 3×3?', opts: ['var m: array[1..3,1..3] of integer;', 'var m: matrix[3][3];', 'var m[3,3]: integer;'], correct: 0, exp: 'Двумерный массив: array[строки, столбцы] of тип.' },
+          { q: 'Как обратиться к элементу 2-й строки, 3-го столбца?', opts: ['m[2,3] или m[2][3]', 'm(2,3)', 'm.2.3'], correct: 0, exp: 'В Pascal используются m[2,3] или m[2][3].' },
+          { q: 'Как перебрать все элементы матрицы n×n?', opts: ['Два вложенных for (i и j)', 'Один for с парами', 'while i*j <= n*n'], correct: 0, exp: 'Внешний цикл по строкам, внутренний по столбцам.' },
+          { q: 'Как найти сумму главной диагонали матрицы n×n?', opts: ['for i:=1 to n do sum:=sum+m[i,i];', 'diag(m)', 'sum row = col'], correct: 0, exp: 'Элементы главной диагонали: m[1,1], m[2,2], m[3,3]...' },
+          { q: 'Что такое транспонирование матрицы?', opts: ['Строки и столбцы меняются местами', 'Переворот массива', 'Умножение на -1'], correct: 0, exp: 'Транспонирование: b[i,j] := a[j,i].' },
+        ]
+      },
+    ],
+    trophyQuestions: [
+      { type:'type', q:'Как объявить массив из 10 целых?', code:'var a: array[1..__] of integer;', answer:'10', chips:['10','9','11','n'], exp:'array[1..10] — 10 элементов.' },
+      { type:'type', q:'Как обратиться к элементу i массива a?', code:'writeln(a[___]);', answer:'i', chips:['i','i+1','0','1'], exp:'a[i] — обращение к i-му элементу.' },
+      { type:'type', q:'Чем обмениваются элементы при swap?', code:'tmp:=a[i]; a[i]:=a[j]; a[j]:=___;', answer:'tmp', chips:['tmp','a[i]','a[j]','0'], exp:'Обмен через временную переменную tmp.' },
+      { type:'fix', q:'Исправь поиск суммы:', code:'for i:=1 to 5 do sum:=a[i];', answer:'sum:=0;\nfor i:=1 to 5 do sum:=sum+a[i];', chips:['sum:=0','sum:=sum+a[i]','sum:=a[i]','for','i:=1'], exp:'Нужна инициализация sum:=0 и накопление +a[i].' },
+      { type:'type', q:'Напиши функцию увеличения на 1:', code:'___(x);  // вместо x := x + 1', answer:'inc', chips:['inc','add','inc(x)','plus'], exp:'inc(x) увеличивает x на 1.' },
     ]
   },
   {
-    title: "Циклы",
-    questions: [
-      { q: "Какой цикл используется, когда известно количество повторений?", code: "", opts: ["for", "while", "repeat"], correct: 0, exp: "for удобен, когда заранее известно число итераций." },
-      { q: "Как записать for от 1 до 10?", code: "", opts: ["for i:=1 to 10 do", "for i=1; i<=10; i++", "loop 1 to 10"], correct: 0, exp: "Синтаксис Pascal: for переменная:=начало to конец do." },
-      { q: "Что делает while x < 5 do?", code: "", opts: ["Повторяет пока x<5", "Повторяет 5 раз", "Ожидает ввод"], correct: 0, exp: "while проверяет условие перед каждой итерацией." },
-      { q: "Чем repeat until отличается от while?", code: "", opts: ["Выполняется минимум 1 раз", "Ничем", "Медленнее"], correct: 0, exp: "repeat проверяет условие после тела цикла." },
-      { q: "Как уменьшить счётчик в for?", code: "", opts: ["downto", "to -1", "desc"], correct: 0, exp: "for i:=10 downto 1 do идёт в обратном порядке." },
-      { q: "Что делает break?", code: "", opts: ["Прерывает цикл", "Продолжает цикл", "Завершает программу"], correct: 0, exp: "break немедленно выходит из текущего цикла." },
+    id: 4, title: 'Процедуры и функции', icon: '⚙️', color: '#FF4B4B', colorDark: '#CC0000',
+    desc: 'Подпрограммы, параметры, рекурсия',
+    xpReward: 150, rewardOutfitIdx: 5,
+    lessons: [
+      {
+        title: 'Процедуры',
+        questions: [
+          { q: 'Что такое процедура в Pascal?', opts: ['Именованный блок команд без возврата значения', 'Функция с возвратом', 'Тип данных'], correct: 0, exp: 'Процедура — подпрограмма, которая выполняет действия, но не возвращает значение.' },
+          { q: 'Как объявить процедуру?', opts: ['procedure Greet; begin ... end;', 'def Greet(): ...', 'function Greet() {}'], correct: 0, exp: 'Ключевое слово procedure, потом имя, потом begin...end.' },
+          { q: 'Как вызвать процедуру Greet?', opts: ['Greet;', 'call Greet;', 'run Greet();'], correct: 0, exp: 'Процедура вызывается просто по имени с ;' },
+          { q: 'Где объявляется процедура?', opts: ['До основного begin', 'После end.', 'Внутри begin'], correct: 0, exp: 'Процедуры и функции объявляются до основного блока программы.' },
+          { q: 'Какое преимущество процедур?', opts: ['Повторное использование кода', 'Быстрее работает', 'Занимает меньше памяти'], correct: 0, exp: 'Процедуры позволяют писать код один раз и вызывать много раз.' },
+        ]
+      },
+      {
+        title: 'Параметры',
+        questions: [
+          { q: 'Как передать параметр в процедуру?', opts: ['procedure Add(x: integer); begin ... end;', 'procedure Add[x]; begin ... end;', 'procedure Add with x: integer;'], correct: 0, exp: 'Параметры перечисляются в скобках через запятую.' },
+          { q: 'В чём разница параметра-значения и параметра-переменной (var)?', opts: ['var позволяет изменять оригинал', 'Нет разницы', 'var быстрее'], correct: 0, exp: 'Параметр-значение — копия. Параметр-переменная (var) — оригинал.' },
+          { q: 'Что изменится в основной программе?', code: 'procedure Double(var x: integer);\nbegin x := x * 2; end;\n\nn := 5; Double(n);', opts: ['n = 10', 'n = 5', 'Ошибка'], correct: 0, exp: 'var-параметр изменяет оригинальную переменную: 5 * 2 = 10.' },
+          { q: 'Как передать несколько параметров?', opts: ['procedure P(a, b: integer; c: real);', 'procedure P(a; b; c);', 'procedure P[a, b, c];'], correct: 0, exp: 'Параметры одного типа можно объединять: a, b: integer.' },
+          { q: 'Что такое локальная переменная?', opts: ['Переменная, живущая только внутри подпрограммы', 'Глобальная переменная', 'Параметр по умолчанию'], correct: 0, exp: 'Локальные переменные объявляются в var внутри процедуры/функции.' },
+        ]
+      },
+      {
+        title: 'Функции',
+        questions: [
+          { q: 'Чем функция отличается от процедуры?', opts: ['Возвращает значение', 'Быстрее работает', 'Принимает больше параметров'], correct: 0, exp: 'Функция возвращает значение через своё имя.' },
+          { q: 'Как объявить функцию, возвращающую integer?', opts: ['function Sum(a,b: integer): integer;', 'integer function Sum(a,b);', 'func Sum(a,b) -> integer;'], correct: 0, exp: 'После параметров ставим : тип_возврата.' },
+          { q: 'Как вернуть значение из функции?', opts: ['имяФункции := результат;', 'return результат;', 'exit(результат);'], correct: 0, exp: 'В Pascal результат присваивается имени функции: Sum := a + b;' },
+          { q: 'Что выведет код?', code: 'function Sqr2(x: integer): integer;\nbegin Sqr2 := x * x; end;\n\nwriteln(Sqr2(4));', opts: ['16', '8', '4'], correct: 0, exp: 'Sqr2(4) = 4 * 4 = 16.' },
+          { q: 'Можно ли вызвать функцию внутри выражения?', opts: ['Да', 'Нет', 'Только в if'], correct: 0, exp: 'writeln(Sqr2(3) + 1) = 10 — функции можно встраивать.' },
+        ]
+      },
+      {
+        title: 'Рекурсия',
+        questions: [
+          { q: 'Что такое рекурсия?', opts: ['Функция, вызывающая саму себя', 'Цикл внутри функции', 'Несколько функций вместе'], correct: 0, exp: 'Рекурсия — когда функция вызывает себя с другим аргументом.' },
+          { q: 'Что обязательно нужно в рекурсивной функции?', opts: ['Базовый случай (условие остановки)', 'Глобальная переменная', 'Параметр var'], correct: 0, exp: 'Без базового случая рекурсия бесконечна и вызовет ошибку стека.' },
+          { q: 'Что вернёт Fact(4), если Fact(n) = n * Fact(n-1), Fact(0)=1?', opts: ['24', '12', '16'], correct: 0, exp: '4! = 4 * 3 * 2 * 1 = 24.' },
+          { q: 'Что такое переполнение стека?', opts: ['Рекурсия зашла слишком глубоко', 'Массив вышел за границы', 'Деление на 0'], correct: 0, exp: 'Stack overflow — рекурсия без базового случая или очень глубокая.' },
+          { q: 'Fibonacci(5) = Fibonacci(4) + Fibonacci(3). Чему равно Fibonacci(5)?', code: 'Fib(1)=1, Fib(2)=1', opts: ['5', '8', '3'], correct: 0, exp: 'Fib: 1,1,2,3,5 — F(5)=5.' },
+        ]
+      },
+      {
+        title: 'Строки и стандартные функции',
+        questions: [
+          { q: 'Как получить длину строки s?', opts: ['length(s)', 'len(s)', 'size(s)'], correct: 0, exp: 'length(s) возвращает количество символов в строке.' },
+          { q: 'Как получить i-й символ строки s?', opts: ['s[i]', 'charAt(s,i)', 's.char(i)'], correct: 0, exp: 'Строки в Pascal — массивы символов: s[1] — первый символ.' },
+          { q: 'Как соединить две строки?', opts: ["s1 + s2 или concat(s1, s2)", "s1 & s2", "append(s1, s2)"], correct: 0, exp: "Конкатенация строк: s := s1 + s2 или concat(s1, s2)." },
+          { q: 'Что делает copy(s, 3, 4)?', opts: ['Вырезает 4 символа с позиции 3', 'Копирует строку', 'Первые 3 символа'], correct: 0, exp: 'copy(строка, начало, длина) — вырезает подстроку.' },
+          { q: 'Как перевести строку в верхний регистр?', opts: ['UpCase(символ) для каждого', 'toUpper(s)', 'upper(s)'], correct: 0, exp: 'UpCase работает с char. Для строки — цикл по символам.' },
+        ]
+      },
+    ],
+    trophyQuestions: [
+      { type:'type', q:'Ключевое слово для подпрограммы без возврата:', code:'___ Greet; begin writeln(\'Hi\'); end;', answer:'procedure', chips:['procedure','function','sub','def'], exp:'procedure — подпрограмма без возврата значения.' },
+      { type:'type', q:'Как вернуть значение из функции Sum?', code:'function Sum(a,b:integer):integer;\nbegin\n  ___ := a + b;\nend;', answer:'Sum', chips:['Sum','result','return','exit'], exp:'Результат присваивается имени функции.' },
+      { type:'type', q:'Параметр с передачей по ссылке:', code:'procedure Double(___ x: integer);', answer:'var', chips:['var','ref','out','const'], exp:'var-параметр изменяет оригинальную переменную.' },
+      { type:'type', q:'Получить длину строки:', code:'n := ___(s);', answer:'length', chips:['length','len','size','count'], exp:'length(s) — длина строки.' },
+      { type:'fix', q:'Исправь функцию возведения в квадрат:', code:'function Square(x:integer):integer;\nbegin\n  result := x * x;\nend;', answer:'function Square(x:integer):integer;\nbegin\n  Square := x * x;\nend;', chips:['Square','result','x * x','function','integer'], exp:'Результат присваивается имени функции, не result.' },
     ]
-  }
+  },
 ];
 
-// ─── TROPHY TEST QUESTIONS ─────────────────────────────────────────────────────
-// Mix of: type-the-answer (typing), fill-the-blank, fix-the-error
-const TROPHY_QUESTIONS = [
-  {
-    type: 'type',
-    q: 'Напиши оператор присваивания Pascal (между переменной и значением):',
-    code: 'x ___ 5;',
-    answer: ':=',
-    chips: [':=', '==', '=', ':'],
-    exp: ':= — оператор присваивания в Pascal.'
-  },
-  {
-    type: 'type',
-    q: 'Как объявить переменную целого типа? Напиши ключевое слово раздела объявлений:',
-    code: '___ x: integer;',
-    answer: 'var',
-    chips: ['var', 'int', 'let', 'dim'],
-    exp: 'var — ключевое слово для объявления переменных.'
-  },
-  {
-    type: 'type',
-    q: 'Какой символ разделяет команды в Pascal? Напиши его:',
-    code: 'writeln(x) ___ writeln(y)',
-    answer: ';',
-    chips: [';', ',', '.', ':'],
-    exp: 'Точка с запятой (;) разделяет операторы в Pascal.'
-  },
-  {
-    type: 'fix',
-    q: 'Найди и исправь ошибку. Как правильно написать команду вывода?',
-    code: 'print("Hello");',
-    answer: "writeln('Hello');",
-    chips: ['writeln', 'write', 'println', "'Hello'", '"Hello"', ';'],
-    exp: "В Pascal используется writeln, а строки в одинарных кавычках."
-  },
-  {
-    type: 'type',
-    q: 'Напиши ключевое слово условной конструкции в Pascal:',
-    code: '___ x > 0 then writeln(x);',
-    answer: 'if',
-    chips: ['if', 'when', 'case', 'check'],
-    exp: 'if — ключевое слово условного оператора в Pascal.'
-  },
-  {
-    type: 'type',
-    q: 'Напиши тип данных для хранения дробных чисел:',
-    code: 'var pi: ___;',
-    answer: 'real',
-    chips: ['real', 'float', 'double', 'decimal'],
-    exp: 'real — тип данных с плавающей точкой в Pascal.'
-  },
-  {
-    type: 'fix',
-    q: 'Исправь ошибку в условии — как сравнить x с 5?',
-    code: 'if x == 5 then writeln(x);',
-    answer: 'if x = 5 then writeln(x);',
-    chips: ['if', 'x', '=', '==', '5', 'then', 'writeln', ';'],
-    exp: 'В Pascal сравнение пишется через один знак = (не ==).'
-  },
-  {
-    type: 'type',
-    q: 'Напиши ключевое слово для цикла с известным числом итераций:',
-    code: '___ i := 1 to 10 do ...',
-    answer: 'for',
-    chips: ['for', 'while', 'loop', 'repeat'],
-    exp: 'for — цикл со счётчиком, когда число итераций известно.'
-  },
-];
+// Build flat lessonsData for current module
+function getLessonsForModule(mIdx) {
+  return MODULES[mIdx].lessons;
+}
+
+// ─── TROPHY QUESTIONS now embedded in MODULES[i].trophyQuestions ────────────
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
 const ACHIEVEMENTS = {
-  progress: [
-    { id:'first_lesson', icon:'📖', name:'Первый шаг', desc:'Пройди первый урок', check: () => lessonCompleted[0] },
-    { id:'half_way', icon:'🌟', name:'Половина пути', desc:'Пройди 3 урока', check: () => lessonCompleted.filter(Boolean).length >= 3 },
-    { id:'all_lessons', icon:'🎓', name:'Выпускник', desc:'Пройди все 5 уроков', check: () => lessonCompleted.every(Boolean) },
-    { id:'trophy_done', icon:'🏆', name:'Чемпион', desc:'Пройди финальный тест', check: () => trophyTestDone },
-    { id:'xp100', icon:'⚡', name:'Заряженный', desc:'Набери 100 XP', check: () => xp >= 100 },
-    { id:'xp500', icon:'💥', name:'Взрывной', desc:'Набери 500 XP', check: () => xp >= 500 },
+  modules: [
+    { id:'mod0_done',   icon:'📘', name:'Новичок-паскальщик', desc:'Пройди модуль 1', check: () => MODULES[0].lessons.every((_,i) => lessonCompleted[0][i]) && trophyTestDone[0] },
+    { id:'mod1_done',   icon:'🔀', name:'Логик',              desc:'Пройди модуль 2', check: () => MODULES[1].lessons.every((_,i) => lessonCompleted[1][i]) && trophyTestDone[1] },
+    { id:'mod2_done',   icon:'🔁', name:'Циклопед',           desc:'Пройди модуль 3', check: () => MODULES[2].lessons.every((_,i) => lessonCompleted[2][i]) && trophyTestDone[2] },
+    { id:'mod3_done',   icon:'📦', name:'Архивариус',         desc:'Пройди модуль 4', check: () => MODULES[3].lessons.every((_,i) => lessonCompleted[3][i]) && trophyTestDone[3] },
+    { id:'mod4_done',   icon:'⚙️', name:'Программист',       desc:'Пройди модуль 5', check: () => MODULES[4].lessons.every((_,i) => lessonCompleted[4][i]) && trophyTestDone[4] },
+    { id:'all_modules', icon:'🌟', name:'Мастер Pascal',      desc:'Пройди все 5 модулей', check: () => MODULES.every((m,mi) => m.lessons.every((_,i) => lessonCompleted[mi][i]) && trophyTestDone[mi]) },
+  ],
+  xp: [
+    { id:'xp50',   icon:'⚡', name:'Первый разряд',  desc:'50 XP',   check: () => xp >= 50 },
+    { id:'xp200',  icon:'💡', name:'Заряженный',     desc:'200 XP',  check: () => xp >= 200 },
+    { id:'xp500',  icon:'💥', name:'Взрывной',       desc:'500 XP',  check: () => xp >= 500 },
+    { id:'xp1000', icon:'🌠', name:'Звёздный',       desc:'1000 XP', check: () => xp >= 1000 },
+    { id:'xp2000', icon:'🚀', name:'Космонавт',      desc:'2000 XP', check: () => xp >= 2000 },
   ],
   streak: [
-    { id:'streak3', icon:'🔥', name:'Горячо!', desc:'3 дня подряд', check: () => true },
-    { id:'no_errors', icon:'💎', name:'Без ошибок', desc:'Пройди урок идеально', check: () => lessonCompleted.some(Boolean) },
-    { id:'speed_run', icon:'⚡', name:'Спринтер', desc:'Пройди урок за раз', check: () => lessonCompleted.some(Boolean) },
+    { id:'streak3',    icon:'🔥', name:'Горячо!',       desc:'3 дня подряд',           check: () => true },
+    { id:'no_errors',  icon:'💎', name:'Без ошибок',    desc:'Пройди урок идеально',   check: () => MODULES.some((m,mi) => m.lessons.some((_,i) => lessonCompleted[mi][i])) },
+    { id:'speed_run',  icon:'⚡', name:'Спринтер',      desc:'Пройди урок быстро',     check: () => MODULES.some((m,mi) => m.lessons.some((_,i) => lessonCompleted[mi][i])) },
+    { id:'hard_test',  icon:'🏅', name:'Испытание',     desc:'Пройди любой финальный тест', check: () => trophyTestDone.some(Boolean) },
+    { id:'all_tests',  icon:'👑', name:'Экзаменатор',   desc:'Пройди все 5 тестов',    check: () => trophyTestDone.every(Boolean) },
   ],
   mastery: [
-    { id:'typed_right', icon:'⌨️', name:'Клавишник', desc:'Правильно введи ответ в тесте', check: () => trophyTestDone },
-    { id:'trophy_perfect', icon:'🌠', name:'Перфекционист', desc:'Пройди финальный тест без ошибок', check: () => trophyTestDone && trophyErrors === 0 },
-    { id:'all_done', icon:'🚀', name:'Кодер', desc:'Пройди весь модуль', check: () => lessonCompleted.every(Boolean) && trophyTestDone },
+    { id:'first_lesson',  icon:'📖', name:'Первый шаг',     desc:'Пройди первый урок',               check: () => lessonCompleted[0][0] },
+    { id:'typed_right',   icon:'⌨️', name:'Клавишник',      desc:'Правильно введи ответ в тесте',    check: () => trophyTestDone.some(Boolean) },
+    { id:'trophy_perfect',icon:'🌠', name:'Перфекционист',  desc:'Пройди финальный тест без ошибок', check: () => trophyTestDone.some(Boolean) && trophyErrors === 0 },
+    { id:'all_lessons',   icon:'🎓', name:'Выпускник',      desc:'Пройди все уроки всех модулей',    check: () => MODULES.every((m,mi) => m.lessons.every((_,i) => lessonCompleted[mi][i])) },
+    { id:'completionist', icon:'🏆', name:'Абсолютный',     desc:'Пройди всё на 100%',               check: () => MODULES.every((m,mi) => m.lessons.every((_,i) => lessonCompleted[mi][i])) && trophyTestDone.every(Boolean) },
   ]
 };
 
 const TITLES = [
-  { id: 'newbie',    icon: '🌱', name: 'Новичок',       req: 'Начни учиться',                        reqXP: 0,   check: () => true },
-  { id: 'coder',     icon: '💻', name: 'Кодер',          req: 'Пройди первый урок',                   reqXP: 0,   check: () => lessonCompleted[0] },
-  { id: 'debugger',  icon: '🐛', name: 'Дебаггер',       req: 'Пройди 3 урока',                       reqXP: 0,   check: () => lessonCompleted.filter(Boolean).length >= 3 },
-  { id: 'champion',  icon: '🏆', name: 'Чемпион',        req: 'Пройди финальный тест',                reqXP: 0,   check: () => trophyTestDone },
-  { id: 'master',    icon: '🎓', name: 'Мастер Pascal',  req: 'Пройди все уроки и финальный тест',    reqXP: 0,   check: () => lessonCompleted.every(Boolean) && trophyTestDone },
-  { id: 'legend',    icon: '⚡', name: 'Легенда',         req: '500 XP',                               reqXP: 500, check: () => xp >= 500 },
-  { id: 'dev_blood', icon: '🩸', name: 'Разработчик',    req: 'Секретный код EMPEROR77',              reqXP: 0,   check: () => unlockedSecrets.has(8), neon: 'blood', secret: true },
-  { id: 'dev_tech',  icon: '🖥️', name: 'Разработчик',    req: 'Секретный код RACCOONDEV',             reqXP: 0,   check: () => unlockedSecrets.has(7), neon: 'tech',  secret: true },
+  { id:'newbie',     icon:'🌱', name:'Новичок',            req:'Начни учиться',                    reqXP:0,   check:() => true },
+  { id:'coder',      icon:'💻', name:'Кодер',               req:'Пройди первый урок',               reqXP:0,   check:() => lessonCompleted[0][0] },
+  { id:'logician',   icon:'🔀', name:'Логик',               req:'Пройди модуль «Условия»',          reqXP:0,   check:() => trophyTestDone[1] },
+  { id:'looper',     icon:'🔁', name:'Циклопед',            req:'Пройди модуль «Циклы»',            reqXP:0,   check:() => trophyTestDone[2] },
+  { id:'archivist',  icon:'📦', name:'Архивариус',          req:'Пройди модуль «Массивы»',          reqXP:0,   check:() => trophyTestDone[3] },
+  { id:'champion',   icon:'🏆', name:'Чемпион',             req:'Пройди первый финальный тест',     reqXP:0,   check:() => trophyTestDone[0] },
+  { id:'engineer',   icon:'⚙️', name:'Инженер',            req:'Пройди модуль «Функции»',          reqXP:0,   check:() => trophyTestDone[4] },
+  { id:'master',     icon:'🎓', name:'Мастер Pascal',       req:'Пройди все 5 модулей',             reqXP:0,   check:() => trophyTestDone.every(Boolean) },
+  { id:'legend',     icon:'⚡', name:'Легенда',              req:'500 XP',                          reqXP:500, check:() => xp >= 500 },
+  { id:'star',       icon:'🌟', name:'Звезда',              req:'1000 XP',                         reqXP:1000,check:() => xp >= 1000 },
+  { id:'dev_blood',  icon:'🩸', name:'Разработчик',         req:'🔒 Секретный код',                 reqXP:0,   check:() => unlockedSecrets.has(8), neon:'blood', secret:true },
+  { id:'dev_tech',   icon:'🖥️', name:'Разработчик',        req:'🔒 Секретный код',                 reqXP:0,   check:() => unlockedSecrets.has(7), neon:'tech',  secret:true },
 ];
+
+// Rewards unlocked for completing modules
+const MODULE_REWARDS = [
+  { id:'rew_m1', icon:'🎨', name:'Набор «Основы»',    desc:'Разблокирован наряд Синяя футболка',     check:() => trophyTestDone[0] },
+  { id:'rew_m2', icon:'🎽', name:'Набор «Условия»',   desc:'Разблокирован наряд Худи',               check:() => trophyTestDone[1] },
+  { id:'rew_m3', icon:'🛡️', name:'Набор «Циклы»',    desc:'Разблокирована броня',                   check:() => trophyTestDone[2] },
+  { id:'rew_m4', icon:'👑', name:'Набор «Массивы»',   desc:'Разблокирована корона Короля',           check:() => trophyTestDone[3] },
+  { id:'rew_m5', icon:'🥷', name:'Набор «Функции»',   desc:'Разблокирован наряд Ниндзя',             check:() => trophyTestDone[4] },
+  { id:'rew_all', icon:'🌟', name:'Мастер-комплект',  desc:'Разблокирована Галактика + Лунная маска', check:() => trophyTestDone.every(Boolean) },
+];
+
+// Outfit indices unlocked per module completion
+const MODULE_OUTFIT_UNLOCKS = {
+  0: 1,  // blue tshirt
+  1: 2,  // hoodie
+  2: 4,  // armor
+  3: 7,  // king
+  4: 5,  // ninja
+};
+
+// Bg/mask unlocks
+const MODULE_EXTRA_UNLOCKS = {
+  4: { bg: 6, mask: 2 }, // module 5 unlocks galaxy + moon mask
+};
+
+
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function shuffle(arr) {
@@ -1824,53 +2459,129 @@ function updateStats() {
   document.getElementById('h-lesson').textContent = hearts;
   document.getElementById('g-count').textContent = xp;
   document.getElementById('p-xp').textContent = xp;
-  document.getElementById('p-lessons').textContent = `${lessonCompleted.filter(Boolean).length}/5`;
+  const totalLessons = MODULES.reduce((s,m) => s + m.lessons.length, 0);
+  const doneLessons = MODULES.reduce((s,m,mi) => s + m.lessons.filter((_,i) => lessonCompleted[mi][i]).length, 0);
+  document.getElementById('p-lessons').textContent = `${doneLessons}/${totalLessons}`;
   const curL = getCurrentLeague ? getCurrentLeague() : null;
   const lEl = document.getElementById('p-league-val');
   if (lEl && curL) { lEl.textContent = curL.name.slice(0,6); lEl.style.color = curL.color; }
 }
 
+// ─── HOME / MODULES ───────────────────────────────────────────────────────────
+function renderModulesList() {
+  const el = document.getElementById('modules-list-view');
+  const totalDone = MODULES.reduce((s,m,mi) => s + (trophyTestDone[mi] ? 1 : 0), 0);
+  let html = `<div class="modules-header">
+    <h2>📚 Pascal-курс</h2>
+    <p>${totalDone} из ${MODULES.length} модулей пройдено</p>
+  </div>`;
+  MODULES.forEach((m, mi) => {
+    const lessons = m.lessons;
+    const doneLessons = lessons.filter((_,li) => lessonCompleted[mi][li]).length;
+    const pct = Math.round(doneLessons / lessons.length * 100);
+    const modDone = trophyTestDone[mi];
+    const unlocked = mi === 0 || trophyTestDone[mi - 1];
+    const isActive = !modDone && unlocked;
+    const cls = modDone ? 'completed' : (unlocked ? 'unlocked' : 'locked-mod');
+    const badge = modDone
+      ? `<div class="mod-badge" style="background:var(--gold);color:#000;">✓ ПРОЙДЕН</div>`
+      : (!unlocked
+        ? `<div class="mod-badge" style="background:var(--surface-light);color:var(--text-muted);">🔒</div>`
+        : `<div class="mod-badge" style="background:rgba(88,204,2,0.15);color:var(--primary);">АКТИВЕН</div>`);
+    html += `<div class="module-card ${cls}" onclick="${unlocked ? `openModule(${mi})` : ''}">
+      <div class="mod-accent" style="background:${m.color};"></div>
+      <div class="mod-row">
+        <div class="mod-icon">${m.icon}</div>
+        <div class="mod-info">
+          <div class="mod-num">МОДУЛЬ ${mi + 1}</div>
+          <div class="mod-title">${m.title}</div>
+          <div class="mod-desc">${m.desc}</div>
+          <div class="mod-xp-reward">⚡ +${m.xpReward} XP</div>
+        </div>
+      </div>
+      ${badge}
+      <div class="mod-prog">
+        <div class="mod-prog-bar"><div class="mod-prog-fill" style="width:${pct}%;background:${m.color};"></div></div>
+        <div class="mod-prog-label">${doneLessons}/${lessons.length} уроков ${modDone ? '• Тест пройден ✓' : ''}</div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function openModule(mi) {
+  currentModuleIdx = mi;
+  document.getElementById('modules-list-view').style.display = 'none';
+  document.getElementById('module-path-view').style.display = 'block';
+  const m = MODULES[mi];
+  document.getElementById('module-path-title').textContent = `${m.icon} ${m.title}`;
+  document.getElementById('module-path-sub').textContent = `Модуль ${mi + 1} • ${m.desc}`;
+  renderPath();
+}
+
+function backToModules() {
+  document.getElementById('module-path-view').style.display = 'none';
+  document.getElementById('modules-list-view').style.display = 'block';
+  renderModulesList();
+}
+
 function renderPath() {
   const container = document.getElementById('path-container');
+  const m = MODULES[currentModuleIdx];
   let html = '';
-  for (let i = 0; i < 5; i++) {
-    const done = lessonCompleted[i];
-    const unlocked = i === 0 || lessonCompleted[i - 1];
+  m.lessons.forEach((lesson, i) => {
+    const done = lessonCompleted[currentModuleIdx][i];
+    const unlocked = i === 0 || lessonCompleted[currentModuleIdx][i - 1];
     const status = done ? 'done' : unlocked ? 'active' : 'locked';
     const icon = done ? '⭐' : status === 'active' ? '▶' : '🔒';
     const clickHandler = status !== 'locked' ? `startLesson(${i})` : '';
-    html += `
-      <div class="node-wrap">
-        <div class="node ${status}" onclick="${clickHandler}">${icon}</div>
-        <div class="lesson-label">${lessonsData[i].title}</div>
-      </div>
-    `;
-  }
-  const allDone = lessonCompleted.every(Boolean);
-  html += `
-    <div class="node-wrap">
-      <div class="node trophy-node ${allDone ? '' : 'locked'}" onclick="${allDone ? 'startTrophyTest()' : ''}">🏆</div>
-      <div class="lesson-label">Финальный тест</div>
-    </div>
-  `;
+    html += `<div class="node-wrap">
+      <div class="node ${status}" onclick="${clickHandler}">${icon}</div>
+      <div class="lesson-label">${lesson.title}</div>
+    </div>`;
+  });
+  const allDone = m.lessons.every((_,i) => lessonCompleted[currentModuleIdx][i]);
+  html += `<div class="node-wrap">
+    <div class="node trophy-node ${allDone ? '' : 'locked'}" onclick="${allDone ? 'startTrophyTest()' : ''}">🏆</div>
+    <div class="lesson-label">Финальный тест</div>
+  </div>`;
   container.innerHTML = html;
 }
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 'scr-home') { renderPath(); updateStats(); }
+  if (id === 'scr-home') { renderModulesList(); updateStats(); }
 }
 
-function goHome(el) { showScreen('scr-home'); navActive(el); }
-function goProfile(el) {
-  showScreen('scr-profile');
-  updateStats();
-  renderProfileScreen();
+function goHome(el) {
+  playClick();
+  showScreenAnimated('scr-home');
+  const lv = document.getElementById('modules-list-view');
+  const pv = document.getElementById('module-path-view');
+  if (lv) lv.style.display = 'block';
+  if (pv) pv.style.display = 'none';
+  renderModulesList(); updateStats();
   navActive(el);
 }
-function goLeague(el) { showScreen('scr-league'); renderLeagueScreen(); navActive(el); }
-function goAchievements(el) { showScreen('scr-ach'); renderAchievements(); navActive(el); }
+function goProfile(el) {
+  playClick();
+  showScreenAnimated('scr-profile');
+  updateStats(); renderProfileScreen();
+  navActive(el);
+}
+function goLeague(el) {
+  playClick();
+  navActive(el);
+  showScreenAnimated('scr-league');
+  try { renderLeagueScreen(); } catch(e) { console.error('league error', e); }
+}
+function goAchievements(el) {
+  playClick();
+  navActive(el);
+  showScreenAnimated('scr-ach');
+  try { renderAchievements(); } catch(e) { console.error('ach error', e); }
+}
 
 function navActive(el) {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -1879,14 +2590,13 @@ function navActive(el) {
 
 // ─── LESSON LOGIC ─────────────────────────────────────────────────────────────
 function startLesson(idx) {
-  if (idx >= 5) return;
   currentLessonIdx = idx;
   currentQIdx = 0;
   hearts = 5;
   lessonErrors = 0;
   answered = false;
   updateStats();
-  shuffledQuestions = shuffle(lessonsData[idx].questions);
+  shuffledQuestions = shuffle(MODULES[currentModuleIdx].lessons[idx].questions);
   showScreen('scr-lesson');
   document.querySelector('.nav').style.display = 'none';
   renderQuestion();
@@ -1895,6 +2605,7 @@ function startLesson(idx) {
 function closeLesson() {
   document.querySelector('.nav').style.display = 'flex';
   showScreen('scr-home');
+  openModule(currentModuleIdx);
   navActive(document.getElementById('nav-home'));
 }
 
@@ -1906,12 +2617,25 @@ function resetUI() {
   act.classList.add('show');
 }
 
+let currentShuffledCorrect = 0;
+
 function renderQuestion() {
   const q = shuffledQuestions[currentQIdx];
   const area = document.getElementById('q-area');
   document.getElementById('prog').style.width = `${(currentQIdx / shuffledQuestions.length) * 100}%`;
   const safeCode = q.code ? q.code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
-  let html = `
+  const m = MODULES[currentModuleIdx];
+
+  // Shuffle the answer options and track new correct index
+  const indices = q.opts.map((_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  const shuffledOpts = indices.map(i => q.opts[i]);
+  currentShuffledCorrect = indices.indexOf(q.correct);
+
+  area.innerHTML = `
     <div class="mascot-row">
       <svg class="golem-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <rect x="8" y="12" width="48" height="40" rx="12" fill="#4A41C0"/>
@@ -1925,10 +2649,9 @@ function renderQuestion() {
     <div class="q-title">${q.q}</div>
     ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
     <div class="opts" id="opts-container">
-      ${q.opts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${o}</button>`).join('')}
+      ${shuffledOpts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${o}</button>`).join('')}
     </div>
   `;
-  area.innerHTML = html;
   resetUI();
 }
 
@@ -1946,35 +2669,34 @@ function checkAnswer() {
   const btns = document.querySelectorAll('.opt');
   const act = document.getElementById('act-area');
   document.getElementById('opts-container').classList.add('answered');
-  if (selectedOption === q.correct) {
+  if (selectedOption === currentShuffledCorrect) {
     btns[selectedOption].classList.add('ok');
     xp += 10;
     updateStats();
-    showToast('🎉 +10 XP');
+    flashCorrect(btns[selectedOption]);
+    showXPPopup(10);
     act.innerHTML = `
       <div style="color:var(--primary);font-weight:800;font-size:18px;margin-bottom:10px;">✅ Верно!</div>
-      <button class="btn go" onclick="nextQuestion()">ДАЛЕЕ</button>
-    `;
+      <button class="btn go" onclick="nextQuestion()">ДАЛЕЕ</button>`;
   } else {
     btns[selectedOption].classList.add('err');
-    btns[q.correct].classList.add('ok');
+    btns[currentShuffledCorrect].classList.add('ok');
     hearts = Math.max(0, hearts - 1);
     lessonErrors++;
     updateStats();
+    flashWrong(btns[selectedOption]);
     if (lessonErrors >= 5 || hearts === 0) {
       act.innerHTML = `
         <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">💔 Слишком много ошибок!</div>
-        <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;">Урок «${lessonsData[currentLessonIdx].title}» начнётся заново.</div>
-        <button class="btn bad" onclick="startLesson(${currentLessonIdx})">НАЧАТЬ ЗАНОВО</button>
-      `;
+        <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;">Урок начнётся заново.</div>
+        <button class="btn bad" onclick="startLesson(${currentLessonIdx})">НАЧАТЬ ЗАНОВО</button>`;
       act.classList.add('show');
       return;
     }
     act.innerHTML = `
       <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">❌ Ошибка</div>
       <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;line-height:1.4;">💡 ${q.exp}</div>
-      <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>
-    `;
+      <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
   }
   act.classList.add('show');
 }
@@ -1984,13 +2706,17 @@ function nextQuestion() {
   if (currentQIdx < shuffledQuestions.length) {
     renderQuestion();
   } else {
-    lessonCompleted[currentLessonIdx] = true;
-  saveState();
+    lessonCompleted[currentModuleIdx][currentLessonIdx] = true;
+    saveState();
     xp += 20;
     updateStats();
+    vibrateSuccess(); playLevelUp();
+    showXPPopup(20);
     document.querySelector('.nav').style.display = 'flex';
-    showScreen('scr-home');
-    showToast('🏅 Урок пройден! +20 XP', 2000);
+    showScreenAnimated('scr-home');
+    openModule(currentModuleIdx);
+    const mTitle = MODULES[currentModuleIdx].lessons[currentLessonIdx].title;
+    showToast(`🏅 Урок «${mTitle}» пройден! +20 XP`, 2000);
     navActive(document.getElementById('nav-home'));
     checkNewAchievements();
   }
@@ -2003,7 +2729,7 @@ function finishModule() {
 
 // ─── TROPHY TEST ──────────────────────────────────────────────────────────────
 function startTrophyTest() {
-  trophyQuestions = shuffle(TROPHY_QUESTIONS);
+  trophyQuestions = shuffle(MODULES[currentModuleIdx].trophyQuestions);
   trophyQIdx = 0;
   trophyHearts = 5;
   trophyErrors = 0;
@@ -2018,6 +2744,7 @@ function startTrophyTest() {
 function closeTrophy() {
   document.querySelector('.nav').style.display = 'flex';
   showScreen('scr-home');
+  openModule(currentModuleIdx);
   navActive(document.getElementById('nav-home'));
 }
 
@@ -2035,41 +2762,28 @@ function renderTrophyQuestion() {
   trophyAnswered = false;
   trophyTypedAnswer = '';
   updateTrophyHead();
-
   const area = document.getElementById('trophy-area');
   const safeCode = q.code ? q.code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
-
-  let html = `
+  area.innerHTML = `
     <div class="trophy-q-label">Вопрос ${trophyQIdx + 1} / ${trophyQuestions.length}</div>
     <div class="trophy-q-title">${q.q}</div>
     ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
     <div style="margin-bottom:12px;">
       <div style="font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Твой ответ:</div>
       <div class="type-input-wrap">
-        <input 
-          type="text" 
-          class="type-input" 
-          id="trophy-type-input"
+        <input type="text" class="type-input" id="trophy-type-input"
           placeholder="Введи ответ..."
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           oninput="onTrophyType(this)"
-          onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"
-        />
+          onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"/>
       </div>
     </div>
     <div style="font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Подсказки:</div>
     <div class="hint-chips" id="hint-chips-row">
       ${q.chips.map((c,i) => `<div class="hint-chip" onclick="insertChip('${c.replace(/'/g,"\\'")}', ${i})" id="chip-${i}">${c}</div>`).join('')}
-    </div>
-  `;
-
-  area.innerHTML = html;
+    </div>`;
   resetTrophyAct();
-  // Auto-focus on mobile if possible
-  setTimeout(() => {
-    const inp = document.getElementById('trophy-type-input');
-    if (inp) inp.focus();
-  }, 200);
+  setTimeout(() => { const inp = document.getElementById('trophy-type-input'); if (inp) inp.focus(); }, 200);
 }
 
 function resetTrophyAct() {
@@ -2086,7 +2800,6 @@ function onTrophyType(inp) {
 function insertChip(text, idx) {
   const inp = document.getElementById('trophy-type-input');
   if (!inp || trophyAnswered) return;
-  // Append chip text with space
   inp.value = (inp.value + ' ' + text).trim();
   trophyTypedAnswer = inp.value;
   document.getElementById(`chip-${idx}`).classList.add('used');
@@ -2100,58 +2813,35 @@ function normalizeAnswer(s) {
 
 function checkTrophyAnswer() {
   if (trophyAnswered) return;
-  trophyAnswered = true;
-  const q = trophyQuestions[trophyQIdx];
   const inp = document.getElementById('trophy-type-input');
-  const userAns = normalizeAnswer(trophyTypedAnswer);
-  const correctAns = normalizeAnswer(q.answer);
-  const isCorrect = userAns === correctAns;
+  const userAns = normalizeAnswer(inp ? inp.value : trophyTypedAnswer);
+  const q = trophyQuestions[trophyQIdx];
+  const correct = normalizeAnswer(q.answer);
+  trophyAnswered = true;
   const act = document.getElementById('trophy-act-area');
-
-  if (inp) {
-    inp.classList.add(isCorrect ? 'ok' : 'err');
-    inp.disabled = true;
-  }
-  // Disable chips
-  document.querySelectorAll('.hint-chip').forEach(c => c.style.pointerEvents = 'none');
-
-  if (isCorrect) {
+  if (inp) inp.disabled = true;
+  if (userAns === correct) {
     trophyCorrect++;
     xp += 15;
     updateStats();
-    showToast('🔥 +15 XP');
+    if (inp) inp.classList.add('ok');
+    flashCorrect(inp || document.getElementById('trophy-area'));
+    showXPPopup(15);
     act.innerHTML = `
-      <div style="color:var(--primary);font-weight:800;font-size:17px;margin-bottom:10px;">✅ Правильно!</div>
-      <button class="btn trophy-btn" onclick="nextTrophyQuestion()">ДАЛЕЕ →</button>
-    `;
+      <div style="color:var(--primary);font-weight:800;font-size:17px;margin-bottom:4px;">✅ Верно!</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${q.exp}</div>
+      <button class="btn trophy-btn" onclick="nextTrophyQuestion()">ДАЛЕЕ</button>`;
   } else {
     trophyErrors++;
     trophyHearts = Math.max(0, trophyHearts - 1);
     updateTrophyHead();
-
-    // Show correct answer
-    if (inp) {
-      const correctEl = document.createElement('div');
-      correctEl.style.cssText = 'color:var(--primary);font-size:13px;font-weight:800;margin-top:8px;';
-      correctEl.textContent = `✓ Правильно: ${q.answer}`;
-      inp.parentNode.appendChild(correctEl);
-    }
-
-    if (trophyHearts === 0) {
-      act.innerHTML = `
-        <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
-        <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Попробуй финальный тест ещё раз</div>
-        <button class="btn bad" onclick="startTrophyTest()">НАЧАТЬ ЗАНОВО</button>
-      `;
-      act.classList.add('show');
-      return;
-    }
-
+    if (inp) inp.classList.add('err');
+    flashWrong(inp || document.getElementById('trophy-area'));
     act.innerHTML = `
       <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">❌ Ошибка</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Правильный ответ: <span style="color:var(--primary);font-family:monospace;">${q.answer}</span></div>
       <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${q.exp}</div>
-      <button class="btn bad" onclick="nextTrophyQuestion()">ПРОДОЛЖИТЬ</button>
-    `;
+      <button class="btn bad" onclick="nextTrophyQuestion()">ПРОДОЛЖИТЬ</button>`;
   }
   act.classList.add('show');
 }
@@ -2166,105 +2856,117 @@ function nextTrophyQuestion() {
 }
 
 function showTrophyResult() {
-  trophyTestDone = true;
-  saveState();
-  const pct = Math.round((trophyCorrect / trophyQuestions.length) * 100);
-  const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
-  const starsStr = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
-  let xpBonus = stars * 30;
-  xp += xpBonus;
-  updateStats();
-
+  const m = MODULES[currentModuleIdx];
+  const passed = trophyErrors <= 3;
+  const stars = trophyErrors === 0 ? 3 : trophyErrors <= 2 ? 2 : 1;
+  const starStr = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+  const bonusXP = m.xpReward;
   const area = document.getElementById('trophy-area');
-  const act = document.getElementById('trophy-act-area');
-
-  document.getElementById('trophy-prog').style.width = '100%';
-  document.getElementById('trophy-hearts-disp').textContent = `❤️${trophyHearts}`;
-
+  trophyTestDone[currentModuleIdx] = true;
+  xp += bonusXP;
+  updateStats();
+  saveState();
+  checkNewAchievements();
+  vibrateSuccess(); playLevelUp();
+  showXPPopup(bonusXP);
+  unlockModuleRewards(currentModuleIdx);
   area.innerHTML = `
     <div class="trophy-result-box">
-      <span class="big-icon">${stars === 3 ? '🏆' : stars === 2 ? '🥈' : '🥉'}</span>
-      <h2 style="color:var(--gold);">${stars === 3 ? 'Блестяще!' : stars === 2 ? 'Отлично!' : 'Хороший старт!'}</h2>
-      <div class="score-stars">${starsStr}</div>
-      <p>Финальный тест по модулю 1 пройден</p>
+      <span class="big-icon">${passed ? '🏆' : '💪'}</span>
+      <h2 style="color:${passed ? 'var(--gold)' : 'var(--text)'};">${passed ? 'Модуль пройден!' : 'Неплохо!'}</h2>
+      <div class="score-stars">${starStr}</div>
       <div class="trophy-score-detail">
-        <div class="trophy-score-item"><div class="ts-val" style="color:var(--primary);">${trophyCorrect}/${trophyQuestions.length}</div><div class="ts-lbl">Верных</div></div>
-        <div class="trophy-score-item"><div class="ts-val" style="color:var(--danger);">${trophyErrors}</div><div class="ts-lbl">Ошибок</div></div>
-        <div class="trophy-score-item"><div class="ts-val" style="color:var(--gold);">+${xpBonus}</div><div class="ts-lbl">XP</div></div>
+        <div class="trophy-score-item"><div class="ts-val" style="color:var(--primary);">${trophyCorrect}</div><div class="ts-lbl">ВЕРНО</div></div>
+        <div class="trophy-score-item"><div class="ts-val" style="color:var(--danger);">${trophyErrors}</div><div class="ts-lbl">ОШИБОК</div></div>
+        <div class="trophy-score-item"><div class="ts-val" style="color:var(--gold);">+${bonusXP}</div><div class="ts-lbl">БОНУС XP</div></div>
       </div>
-      <p style="color:var(--text-muted);font-size:13px;">Результат: ${pct}%</p>
-    </div>
-  `;
+      <p style="color:var(--text-muted);margin:10px 0 4px;">Завершён: <strong style="color:${m.color};">${m.icon} ${m.title}</strong></p>
+      <p style="color:var(--text-muted);font-size:13px;">Наряд разблокирован в редакторе персонажа!</p>
+      <button class="btn trophy-btn" style="margin-top:20px;" onclick="closeTrophyFinish()">НА КАРТУ КУРСА</button>
+    </div>`;
+  const act = document.getElementById('trophy-act-area');
+  act.innerHTML = '';
+  act.classList.remove('show');
+}
 
-  act.innerHTML = `<button class="btn trophy-btn" onclick="closeTrophyFinish()">НА ГЛАВНУЮ 🏠</button>`;
-  act.classList.add('show');
-  checkNewAchievements();
+function unlockModuleRewards(mi) {
+  // unlock outfit
+  // Outfit reqXP is bypassed if module completed
+  // We just track via lessonCompleted/trophyTestDone, the outfit grid already checks xp
+  // For extra unlocks (galaxy bg, moon mask)
+  if (MODULE_EXTRA_UNLOCKS[mi]) {
+    // These are available in char customizer by req logic
+  }
 }
 
 function closeTrophyFinish() {
   document.querySelector('.nav').style.display = 'flex';
   showScreen('scr-home');
+  backToModules();
   navActive(document.getElementById('nav-home'));
 }
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
 function checkNewAchievements() {
-  let any = false;
-  [...ACHIEVEMENTS.progress, ...ACHIEVEMENTS.streak, ...ACHIEVEMENTS.mastery].forEach(a => {
-    if (a.check()) { any = true; }
-  });
-  TITLES.forEach(t => {
-    if (t.check() && !profileData.equippedTitleId) {
-      // Auto-equip best title
-      profileData.equippedTitleId = t.id;
-    }
-  });
-  if (any) updateEquippedTitle();
+  if (!profileData.equippedTitleId) {
+    let bestTitle = null;
+    TITLES.forEach(t => { if (!t.secret && t.check()) bestTitle = t; });
+    if (bestTitle) profileData.equippedTitleId = bestTitle.id;
+  }
+  updateEquippedTitle();
 }
 
 function countUnlocked() {
-  return [...ACHIEVEMENTS.progress, ...ACHIEVEMENTS.streak, ...ACHIEVEMENTS.mastery]
+  return [...ACHIEVEMENTS.modules, ...ACHIEVEMENTS.xp, ...ACHIEVEMENTS.streak, ...ACHIEVEMENTS.mastery]
     .filter(a => a.check()).length;
 }
 
 function renderAchievements() {
-  const total = ACHIEVEMENTS.progress.length + ACHIEVEMENTS.streak.length + ACHIEVEMENTS.mastery.length;
+  const total = Object.values(ACHIEVEMENTS).reduce((s, arr) => s + arr.length, 0);
   document.getElementById('ach-count-label').textContent = `${countUnlocked()} из ${total} разблокировано`;
 
-  function renderGroup(groupKey, elId) {
+  function renderGroup(arr, elId) {
     const el = document.getElementById(elId);
-    el.innerHTML = ACHIEVEMENTS[groupKey].map(a => {
+    el.innerHTML = arr.map(a => {
       const ok = a.check();
-      return `
-        <div class="ach-card ${ok ? 'unlocked' : 'locked-ach'}">
-          ${!ok ? '<div class="ach-locked-icon">🔒</div>' : ''}
-          <span class="ach-icon">${a.icon}</span>
-          <div class="ach-name">${a.name}</div>
-          <div class="ach-desc">${a.desc}</div>
-        </div>
-      `;
+      return `<div class="ach-card ${ok ? 'unlocked' : 'locked-ach'}">
+        ${!ok ? '<div class="ach-locked-icon">🔒</div>' : ''}
+        <span class="ach-icon">${a.icon}</span>
+        <div class="ach-name">${a.name}</div>
+        <div class="ach-desc">${a.desc}</div>
+      </div>`;
     }).join('');
   }
-  renderGroup('progress', 'ach-grid-progress');
-  renderGroup('streak', 'ach-grid-streak');
-  renderGroup('mastery', 'ach-grid-mastery');
+  renderGroup(ACHIEVEMENTS.modules,  'ach-grid-modules');
+  renderGroup(ACHIEVEMENTS.xp,       'ach-grid-xp');
+  renderGroup(ACHIEVEMENTS.streak,   'ach-grid-streak');
+  renderGroup(ACHIEVEMENTS.mastery,  'ach-grid-mastery');
 
+  // Titles
   const tList = document.getElementById('titles-list');
   tList.innerHTML = TITLES.map(t => {
     const ok = t.check();
     const equipped = profileData.equippedTitleId === t.id;
     const neonClass = t.neon === 'blood' ? 'title-neon-blood' : t.neon === 'tech' ? 'title-neon-tech' : '';
     const nameStyle = neonClass ? `class="t-name ${neonClass}"` : `class="t-name"`;
-    return `
-      <div class="title-card ${ok ? 'unlocked' : 'locked-title'} ${equipped ? 'equipped' : ''}" onclick="${ok ? `equipTitle('${t.id}')` : ''}">
-        <div class="t-icon">${t.icon}</div>
-        <div class="t-info">
-          <div ${nameStyle}>${t.name}</div>
-          <div class="t-req">${t.req}</div>
-        </div>
-        ${equipped ? '<div class="t-equipped">АКТИВЕН</div>' : (ok ? '<div style="font-size:11px;color:var(--text-muted);font-weight:700;">Нажми чтобы надеть</div>' : '<div style="font-size:11px;color:var(--text-muted);">🔒</div>')}
-      </div>
-    `;
+    if (t.secret && !ok) return '';
+    const reqText = t.secret ? '🔒 Секретный код' : t.req;
+    return `<div class="title-card ${ok ? 'unlocked' : 'locked-title'} ${equipped ? 'equipped' : ''}" onclick="${ok ? `equipTitle('${t.id}')` : ''}">
+      <div class="t-icon">${t.icon}</div>
+      <div class="t-info"><div ${nameStyle}>${t.name}</div><div class="t-req">${reqText}</div></div>
+      ${equipped ? '<div class="t-equipped">АКТИВЕН</div>' : (ok ? '<div style="font-size:11px;color:var(--text-muted);font-weight:700;">Нажми чтобы надеть</div>' : '<div style="font-size:11px;color:var(--text-muted);">🔒</div>')}
+    </div>`;
+  }).join('');
+
+  // Rewards
+  const rList = document.getElementById('rewards-list');
+  rList.innerHTML = MODULE_REWARDS.map(r => {
+    const earned = r.check();
+    return `<div class="reward-card ${earned ? 'earned' : ''}">
+      <div class="r-icon">${r.icon}</div>
+      <div class="r-info"><div class="r-name">${r.name}</div><div class="r-desc">${r.desc}</div></div>
+      <div class="r-status ${earned ? 'earned-badge' : 'locked-badge'}">${earned ? '✓ Получено' : '🔒'}</div>
+    </div>`;
   }).join('');
 }
 
@@ -2296,9 +2998,29 @@ function updateEquippedTitle() {
   }
 }
 
+
+function isOutfitUnlockedByModule(outfitIdx) {
+  for (const [mi, oIdx] of Object.entries(MODULE_OUTFIT_UNLOCKS)) {
+    if (parseInt(oIdx) === outfitIdx && trophyTestDone[parseInt(mi)]) return true;
+  }
+  return false;
+}
+function isBgUnlockedByModule(bgIdx) {
+  for (const [mi, extras] of Object.entries(MODULE_EXTRA_UNLOCKS)) {
+    if (extras.bg === bgIdx && trophyTestDone[parseInt(mi)]) return true;
+  }
+  return false;
+}
+function isMaskUnlockedByModule(maskIdx) {
+  for (const [mi, extras] of Object.entries(MODULE_EXTRA_UNLOCKS)) {
+    if (extras.mask === maskIdx && trophyTestDone[parseInt(mi)]) return true;
+  }
+  return false;
+}
+
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
 function switchProfTab(tab) {
-  ['edit','look'].forEach(t => {
+  ['edit','look','devs'].forEach(t => {
     document.getElementById(`ptab-${t}`).classList.toggle('active', t === tab);
     document.getElementById(`ptab-content-${t}`).style.display = t === tab ? 'block' : 'none';
   });
@@ -2311,9 +3033,12 @@ function renderProfileScreen() {
   document.getElementById('prof-disp-name').textContent = profileData.name;
   document.getElementById('prof-disp-user').textContent = '@' + profileData.username;
 
-  // Render character on profile
-  const svg = document.getElementById('char-display-svg');
-  renderCharSVG(svg, charState.body, charState.outfit, charState.mask, charState.bg);
+  // Main avatar is now photo-only (canvas), no SVG render here
+  // Restore photo if no image loaded yet (placeholder shown by initAvaUpload)
+  if (!_avaImg) {
+    const canvas = document.getElementById('ava-upload-canvas');
+    drawAvaPlaceholder(canvas);
+  }
 
   // Banner
   const banner = document.getElementById('prof-banner');
@@ -2356,25 +3081,30 @@ function trySecretCode() {
       result.textContent = '✨ Этот персонаж уже разблокирован!';
     } else {
       unlockedSecrets.add(idx);
-      charState.tempBody = idx;
-      charState.body = idx;
-      // auto-equip matching secret outfit
-      const specialId = CHAR_BODIES[idx].special;
-      const secretOutfitIdx = CHAR_OUTFITS.findIndex(o => o.secret === specialId);
-      if (secretOutfitIdx !== -1) {
-        charState.outfit = secretOutfitIdx;
-        charState.tempOutfit = secretOutfitIdx;
-      }
-      renderCharSVG(document.getElementById('char-display-svg'), charState.body, charState.outfit, charState.mask, charState.bg);
-      result.style.color = 'var(--primary)';
-      const charName = idx === 7 ? '🦝 Разраб Енот разблокирован!' : '👑 Императора разблокирован!';
-      result.textContent = '🔓 ' + charName;
-      showToast('✨ Секретный персонаж открыт!');
-      switchCharTab('body');
-      saveState();
-      // Show emperor avatar upload panel
       if (idx === 8) {
+        // EMPEROR77: skip SVG character entirely, go straight to photo upload
+        result.style.color = 'var(--primary)';
+        result.textContent = '🔓 👑 Режим Императора активирован!';
+        showToast('📷 Загрузи своё фото!', 2500);
+        saveState();
         initAvaUpload();
+      } else {
+        charState.tempBody = idx;
+        charState.body = idx;
+        // auto-equip matching secret outfit
+        const specialId = CHAR_BODIES[idx].special;
+        const secretOutfitIdx = CHAR_OUTFITS.findIndex(o => o.secret === specialId);
+        if (secretOutfitIdx !== -1) {
+          charState.outfit = secretOutfitIdx;
+          charState.tempOutfit = secretOutfitIdx;
+        }
+        renderCharSVG(document.getElementById('char-display-svg'), charState.body, charState.outfit, charState.mask, charState.bg);
+        result.style.color = 'var(--primary)';
+        const charName = '🦝 Разраб Енот разблокирован!';
+        result.textContent = '🔓 ' + charName;
+        showToast('✨ Секретный персонаж открыт!');
+        switchCharTab('body');
+        saveState();
       }
     }
   } else {
@@ -2390,34 +3120,19 @@ let _avaImg = null;
 let _emperorMode = false;
 
 function onAvaTap() {
-  if (_emperorMode) {
-    document.getElementById('ava-file-input').click();
-  } else {
-    openAvaModal();
-  }
+  document.getElementById('ava-file-input').click();
 }
 
 function initAvaUpload() {
   _emperorMode = true;
-  // Hide SVG, show camera placeholder in the circle
-  document.getElementById('char-display-svg').style.display = 'none';
+  // Hide SVG if present
+  const svg = document.getElementById('char-display-svg');
+  if (svg) svg.style.display = 'none';
   const badge = document.getElementById('ava-edit-badge');
-  if (badge) badge.style.display = 'none';
+  if (badge) { badge.textContent = '📷'; badge.style.display = 'flex'; }
   const canvas = document.getElementById('ava-upload-canvas');
-  // Show a camera icon placeholder on the canvas
-  const S = 200;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, S, S);
-  ctx.fillStyle = '#252F3B';
-  ctx.beginPath(); ctx.arc(S/2, S/2, S/2, 0, Math.PI*2); ctx.fill();
-  ctx.font = '56px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('📷', S/2, S/2 - 8);
-  ctx.font = '800 18px Arial';
-  ctx.fillStyle = '#8B95A1';
-  ctx.fillText('Загрузить фото', S/2, S/2 + 40);
-  canvas.style.display = 'block';
+  // Draw placeholder
+  drawAvaPlaceholder(canvas);
 
   const fileInput = document.getElementById('ava-file-input');
   if (fileInput._bound) return;
@@ -2441,6 +3156,22 @@ function initAvaUpload() {
     };
     reader.readAsDataURL(file);
   });
+}
+
+function drawAvaPlaceholder(canvas) {
+  if (!canvas) return;
+  const S = 200;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, S, S);
+  ctx.fillStyle = '#252F3B';
+  ctx.beginPath(); ctx.arc(S/2, S/2, S/2, 0, Math.PI*2); ctx.fill();
+  ctx.font = '56px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('📷', S/2, S/2 - 10);
+  ctx.font = '800 15px Arial';
+  ctx.fillStyle = '#8B95A1';
+  ctx.fillText('Загрузить фото', S/2, S/2 + 42);
 }
 
 function drawAvaUpload() {
@@ -2480,6 +3211,40 @@ function pickBannerPattern(id) {
   const patEl = document.getElementById('prof-banner-pattern');
   patEl.className = pat.class;
   renderProfileScreen();
+}
+
+function confirmReset() {
+  document.getElementById('reset-modal-step1').style.display = 'block';
+  document.getElementById('reset-modal-step2').style.display = 'none';
+  document.getElementById('reset-confirm-input').value = '';
+  document.getElementById('reset-final-btn').disabled = true;
+  document.getElementById('reset-final-btn').style.opacity = '0.4';
+  document.getElementById('reset-modal-bg').classList.add('open');
+}
+
+function closeResetModal() {
+  document.getElementById('reset-modal-bg').classList.remove('open');
+}
+
+function resetStep2() {
+  document.getElementById('reset-modal-step1').style.display = 'none';
+  document.getElementById('reset-modal-step2').style.display = 'block';
+  setTimeout(() => document.getElementById('reset-confirm-input').focus(), 100);
+}
+
+function checkResetWord() {
+  const val = document.getElementById('reset-confirm-input').value.trim().toUpperCase();
+  const ok = (val === 'СБРОС');
+  const btn = document.getElementById('reset-final-btn');
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.4';
+}
+
+function doReset() {
+  closeResetModal();
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  showToast('🗑️ Прогресс сброшен! Перезагружаю...', 2000);
+  setTimeout(() => location.reload(), 1500);
 }
 
 function saveProfile() {
@@ -2546,7 +3311,7 @@ function renderBodyGrid() {
   const grid = document.getElementById('body-grid');
   grid.innerHTML = CHAR_BODIES.map((b, i) => {
     if (b.secret && !unlockedSecrets.has(i)) return ''; // hide secret chars
-    const locked = b.reqXP && xp < b.reqXP;
+    const locked = b.reqXP && xp < b.reqXP && !isBgUnlockedByModule(i);
     const isSecret = b.secret && unlockedSecrets.has(i);
     const borderStyle = isSecret ? 'border-color:#ffc800;background:rgba(255,200,0,0.08);' : '';
     return `
@@ -2568,7 +3333,7 @@ function renderOutfitGrid() {
   grid.innerHTML = CHAR_OUTFITS.map((o, i) => {
     // hide secret outfits unless current body matches
     if (o.secret && o.secret !== currentBody.special) return '';
-    const locked = o.reqXP && xp < o.reqXP;
+    const locked = o.reqXP && xp < o.reqXP && !isOutfitUnlockedByModule(i);
     const icon = OUTFIT_ICONS[o.id] || '👕';
     const isSecret = !!o.secret;
     const borderStyle = isSecret ? 'border:2px solid #ffc800;' : '';
@@ -2588,7 +3353,7 @@ function renderOutfitGrid() {
 function renderMaskGrid() {
   const grid = document.getElementById('mask-grid');
   grid.innerHTML = CHAR_MASKS.map((m, i) => {
-    const locked = m.reqXP && xp < m.reqXP;
+    const locked = m.reqXP && xp < m.reqXP && !isMaskUnlockedByModule(i);
     const icon = m.noMask ? '🚫' : (m.preview || '🎭');
     return `
       <div class="custom-item ${charState.tempMask === i ? 'picked' : ''}" onclick="${!locked ? `pickMask(${i})` : ''}">
@@ -2717,15 +3482,435 @@ function renderLeagueScreen() {
   }).join('');
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-renderPath();
+// ─── DISCORD OAUTH2 (Implicit Flow) ──────────────────────────────────────────
+// Set your Discord app client_id here after registering at discord.com/developers
+const DISCORD_CLIENT_ID = ''; // ← вставь сюда твой client_id
+const DISCORD_REDIRECT   = window.location.href.split('?')[0].split('#')[0];
+const DISCORD_SCOPE      = 'identify';
+const DISCORD_KEY        = 'geltcode_discord_v1';
+const DISCORD_BOUND_KEY  = 'geltcode_discord_bound_v1'; // maps discordId → saveKey
+
+function discordOAuthURL() {
+  return `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT)}&response_type=token&scope=${DISCORD_SCOPE}`;
+}
+
+function openDiscordAuth() {
+  document.getElementById('discord-auth-screen').classList.add('open');
+  document.getElementById('da-tag').value = '';
+  document.getElementById('da-error').textContent = '';
+}
+
+function closeDiscordAuth() {
+  document.getElementById('discord-auth-screen').classList.remove('open');
+}
+
+function discordLoginOAuth() {
+  if (!DISCORD_CLIENT_ID) {
+    // No client_id set — fall back to manual tag entry
+    openDiscordAuth();
+    return;
+  }
+  // Real OAuth2 implicit flow
+  window.location.href = discordOAuthURL();
+}
+
+function discordAuthConfirm() {
+  const tag = document.getElementById('da-tag').value.trim();
+  const errEl = document.getElementById('da-error');
+  if (!tag || tag.length < 2) { errEl.textContent = '❗ Введи Discord username'; return; }
+
+  // Check if this Discord tag is already bound to ANOTHER save
+  const bound = JSON.parse(localStorage.getItem(DISCORD_BOUND_KEY) || '{}');
+  const tagKey = tag.toLowerCase().replace(/[^a-z0-9_.]/g,'');
+  const existingSaveKey = bound[tagKey];
+  if (existingSaveKey && existingSaveKey !== SAVE_KEY) {
+    if (!confirm(`⚠️ Этот Discord аккаунт уже привязан к другому профилю.\n\nЗагрузить тот прогресс? (твой текущий будет заменён)`)) {
+      errEl.textContent = '❌ Привязка отменена';
+      return;
+    }
+    // Load the other profile
+    const otherSave = localStorage.getItem(existingSaveKey);
+    if (otherSave) {
+      localStorage.setItem(SAVE_KEY, otherSave);
+      showToast('✅ Загружен привязанный прогресс!', 2000);
+      setTimeout(() => location.reload(), 1500);
+      return;
+    }
+  }
+
+  // Bind this tag to current save
+  bound[tagKey] = SAVE_KEY;
+  localStorage.setItem(DISCORD_BOUND_KEY, JSON.stringify(bound));
+
+  const discordData = {
+    id: tagKey, username: tag,
+    avatar: null, linkedAt: new Date().toISOString(),
+  };
+  localStorage.setItem(DISCORD_KEY, JSON.stringify(discordData));
+
+  closeDiscordAuth();
+  applyDiscordLink(discordData);
+  showToast('🎮 Discord привязан!', 2000);
+  saveState();
+}
+
+// Handle OAuth2 token redirect (fragment)
+function handleDiscordOAuthCallback() {
+  const hash = window.location.hash;
+  if (!hash.includes('access_token')) return;
+  const params = new URLSearchParams(hash.slice(1));
+  const token = params.get('access_token');
+  if (!token) return;
+  // Clear fragment
+  history.replaceState(null, '', window.location.pathname);
+  // Fetch user info
+  fetch('https://discord.com/api/users/@me', {
+    headers: { Authorization: `Bearer ${token}` }
+  }).then(r => r.json()).then(user => {
+    // Check binding uniqueness
+    const bound = JSON.parse(localStorage.getItem(DISCORD_BOUND_KEY) || '{}');
+    const existingSaveKey = bound[user.id];
+    if (existingSaveKey && existingSaveKey !== SAVE_KEY) {
+      if (confirm(`⚠️ Этот Discord аккаунт уже привязан к другому профилю.\n\nЗагрузить тот прогресс?`)) {
+        const otherSave = localStorage.getItem(existingSaveKey);
+        if (otherSave) {
+          localStorage.setItem(SAVE_KEY, otherSave);
+          showToast('✅ Загружен привязанный прогресс!', 2000);
+          setTimeout(() => location.reload(), 1500);
+          return;
+        }
+      }
+    }
+    bound[user.id] = SAVE_KEY;
+    localStorage.setItem(DISCORD_BOUND_KEY, JSON.stringify(bound));
+
+    const discordData = {
+      id: user.id, username: user.username,
+      globalName: user.global_name || user.username,
+      avatar: user.avatar, linkedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(DISCORD_KEY, JSON.stringify(discordData));
+    applyDiscordLink(discordData);
+    showToast('🎮 Discord подключён!', 2000);
+    saveState();
+  }).catch(() => showToast('❌ Ошибка Discord OAuth'));
+}
+
+function applyDiscordLink(d) {
+  document.getElementById('discord-not-linked').style.display = 'none';
+  document.getElementById('discord-linked').style.display = 'block';
+  const name = d.globalName || d.username || d.id;
+  document.getElementById('discord-username').textContent = name;
+  const avatarEl = document.getElementById('discord-avatar');
+  if (d.avatar && d.id) {
+    avatarEl.src = `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.png?size=80`;
+    avatarEl.style.display = 'block';
+  }
+}
+
+function loadDiscordState() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DISCORD_KEY) || 'null');
+    if (d && (d.id || d.username)) applyDiscordLink(d);
+  } catch(e) {}
+}
+
+function discordUnlink() {
+  if (!confirm('Отвязать Discord аккаунт?')) return;
+  try { localStorage.removeItem(DISCORD_KEY); } catch(e) {}
+  document.getElementById('discord-not-linked').style.display = 'block';
+  document.getElementById('discord-linked').style.display = 'none';
+  showToast('Discord отвязан');
+}
+
+function discordSyncSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY) || '{}';
+    const code = btoa(unescape(encodeURIComponent(raw)));
+    navigator.clipboard.writeText(code).then(() => {
+      showToast('☁️ Код прогресса скопирован!', 2500);
+    }).catch(() => {
+      const el = document.getElementById('save-export-code');
+      if (el) { el.value = code; el.select(); document.execCommand('copy'); }
+      showToast('☁️ Код скопирован!', 2500);
+    });
+  } catch(e) { showToast('❌ Ошибка синхронизации'); }
+}
+
+function discordLogin() { discordLoginOAuth(); }
+
+// ─── SOUND ENGINE ─────────────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let _actx = null;
+function getACtx() {
+  if (!_actx) { try { _actx = new AudioCtx(); } catch(e){} }
+  return _actx;
+}
+function playTone(freq, dur, type='sine', vol=0.18, decay=0.9) {
+  try {
+    const ctx = getACtx(); if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur * decay);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function playCorrect() {
+  playTone(523, 0.12, 'sine', 0.15);
+  setTimeout(() => playTone(659, 0.12, 'sine', 0.15), 80);
+  setTimeout(() => playTone(784, 0.18, 'sine', 0.15), 160);
+}
+function playWrong() {
+  playTone(220, 0.15, 'sawtooth', 0.12);
+  setTimeout(() => playTone(180, 0.2, 'sawtooth', 0.1), 100);
+}
+function playLevelUp() {
+  [523,659,784,1047].forEach((f,i) => setTimeout(() => playTone(f, 0.18, 'sine', 0.18), i*80));
+}
+function playClick() { playTone(880, 0.06, 'sine', 0.07); }
+function playXP() { playTone(1047, 0.1, 'sine', 0.12); setTimeout(() => playTone(1319, 0.15, 'sine', 0.12), 60); }
+
+// ─── VIBRATION ────────────────────────────────────────────────────────────────
+function vibrate(pattern) {
+  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
+}
+function vibrateOk() { vibrate([30]); }
+function vibrateWrong() { vibrate([40, 20, 40]); }
+function vibrateSuccess() { vibrate([20, 10, 20, 10, 80]); }
+
+// ─── XP POPUP ─────────────────────────────────────────────────────────────────
+function showXPPopup(amount) {
+  const el = document.getElementById('xp-popup');
+  el.textContent = '+' + amount + ' XP';
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
+  playXP();
+}
+
+// ─── STREAK MODAL ─────────────────────────────────────────────────────────────
+function checkAndShowStreak() {
+  const today = new Date().toDateString();
+  const lastSeen = localStorage.getItem('geltcode_last_seen');
+  const streak = parseInt(localStorage.getItem('geltcode_streak') || '1');
+  if (lastSeen !== today) {
+    localStorage.setItem('geltcode_last_seen', today);
+    if (streak > 1) {
+      document.getElementById('streak-modal-days').textContent = streak;
+      document.getElementById('streak-modal-title').textContent = streak >= 7 ? '🔥 Огненная серия!' : 'Серия продолжается!';
+      document.getElementById('streak-modal-bg').classList.add('open');
+    }
+  }
+}
+function closeStreakModal() {
+  document.getElementById('streak-modal-bg').classList.remove('open');
+}
+
+// ─── SPLASH SCREEN ────────────────────────────────────────────────────────────
+function runSplash(cb) {
+  const bar = document.getElementById('splash-bar');
+  let p = 0;
+  const iv = setInterval(() => {
+    p += Math.random() * 15 + 5;
+    if (p >= 100) { p = 100; clearInterval(iv); }
+    bar.style.width = p + '%';
+    if (p >= 100) setTimeout(() => {
+      document.getElementById('splash').classList.add('hiding');
+      setTimeout(() => {
+        document.getElementById('splash').style.display = 'none';
+        cb();
+      }, 500);
+    }, 200);
+  }, 80);
+}
+
+// ─── ONBOARDING ───────────────────────────────────────────────────────────────
+const ONBOARD_STEPS = [
+  { graphic:'🐲', title:'Добро пожаловать!', sub:'Изучай Pascal через короткие уроки — как игру. Прокачивай персонажа и собирай достижения.' },
+  { graphic:'⚡', title:'Зарабатывай XP', sub:'За каждый правильный ответ ты получаешь опыт. Поднимайся по лигам — от Каменной до Обсидиановой.' },
+  { graphic:'🔥', title:'Поддерживай серию', sub:'Занимайся каждый день — не теряй огонь! Серия даёт бонусы и открывает секретный контент.' },
+  { graphic:'🎮', title:'Готов начать?', sub:'Выбери имя и создай своего персонажа. Первый урок займёт всего 2 минуты!' },
+];
+let onboardStep = 0;
+
+function onboardNext() {
+  playClick();
+  onboardStep++;
+  if (onboardStep >= ONBOARD_STEPS.length) { finishOnboard(); return; }
+  const s = ONBOARD_STEPS[onboardStep];
+  document.getElementById('ob-graphic').textContent = s.graphic;
+  document.getElementById('ob-graphic').style.animation = 'none';
+  setTimeout(() => document.getElementById('ob-graphic').style.animation = 'bounceIn 0.5s', 10);
+  document.getElementById('ob-title').textContent = s.title;
+  document.getElementById('ob-sub').textContent = s.sub;
+  ONBOARD_STEPS.forEach((_,i) => {
+    const d = document.getElementById('od'+i);
+    if (d) d.classList.toggle('active', i === onboardStep);
+  });
+  if (onboardStep === ONBOARD_STEPS.length - 1) {
+    document.querySelector('#onboard-screen .btn.go').textContent = 'НАЧАТЬ! 🚀';
+  }
+}
+
+function skipOnboard() {
+  finishOnboard();
+}
+
+function finishOnboard() {
+  localStorage.setItem('geltcode_onboarded', '1');
+  document.getElementById('onboard-screen').classList.add('hidden');
+  vibrateSuccess(); playLevelUp();
+  // Show profile setup if user has no name yet
+  if (!profileData.name) {
+    setTimeout(() => {
+      document.getElementById('profile-setup-screen').classList.remove('hidden');
+    }, 300);
+  } else {
+    setTimeout(() => checkAndShowStreak(), 400);
+  }
+}
+
+function finishProfileSetup() {
+  const name = document.getElementById('setup-name').value.trim();
+  const user = document.getElementById('setup-username').value.trim();
+  const bio  = document.getElementById('setup-bio').value.trim();
+  const errEl = document.getElementById('setup-error');
+  if (!name) { errEl.textContent = '❗ Введи своё имя'; return; }
+  if (!user) { errEl.textContent = '❗ Введи имя пользователя'; return; }
+  errEl.textContent = '';
+  profileData.name = name;
+  profileData.username = user;
+  profileData.bio = bio;
+  document.getElementById('edit-name').value = name;
+  document.getElementById('edit-username').value = user;
+  document.getElementById('edit-bio').value = bio;
+  document.getElementById('prof-disp-name').textContent = name;
+  document.getElementById('prof-disp-user').textContent = '@' + user;
+  saveState();
+  document.getElementById('profile-setup-screen').classList.add('hidden');
+  vibrateSuccess();
+  setTimeout(() => checkAndShowStreak(), 400);
+}
+
+function showOnboardingIfNeeded() {
+  if (!localStorage.getItem('geltcode_onboarded')) {
+    document.getElementById('onboard-screen').classList.remove('hidden');
+  } else if (!profileData.name) {
+    // Already onboarded but no profile name (legacy save or reset)
+    document.getElementById('profile-setup-screen').classList.remove('hidden');
+  } else {
+    setTimeout(() => checkAndShowStreak(), 600);
+  }
+}
+
+// ─── LEADERBOARD ─────────────────────────────────────────────────────────────
+const LB_BOTS = [
+  { name:'PascalMaster', username:'pascal_pro', xp:2840, ava:'🤖' },
+  { name:'CodeDragon',   username:'c0d3dragon',  xp:2310, ava:'🐲' },
+  { name:'AlgoKing',     username:'algoking99',  xp:1980, ava:'👑' },
+  { name:'ByteNinja',    username:'byte_ninja',  xp:1650, ava:'🥷' },
+  { name:'StackFox',     username:'stack_fox',   xp:1320, ava:'🦊' },
+  { name:'VarGhost',     username:'var_ghost',   xp:980,  ava:'👻' },
+  { name:'LoopWizard',   username:'loopwiz',     xp:740,  ava:'🧙' },
+  { name:'DebugRaccoon', username:'debug_rac',   xp:510,  ava:'🦝' },
+  { name:'NullPointer',  username:'null_ptr',    xp:280,  ava:'💀' },
+];
+
+function renderLeaderboard() {
+  const d = JSON.parse(localStorage.getItem(DISCORD_KEY) || '{}');
+  const myName = d.username || profileData.name || 'Ты';
+  const myEntry = { name: myName, username: profileData.username || 'me', xp, ava: null, isMe: true };
+  const all = [...LB_BOTS, myEntry].sort((a,b) => b.xp - a.xp);
+  const myRank = all.findIndex(e => e.isMe) + 1;
+  document.getElementById('lb-sub-label').textContent = `Твоё место: #${myRank} из ${all.length}`;
+
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('lb-list').innerHTML = all.map((e, i) => {
+    const rank = i + 1;
+    const cls = e.isMe ? 'me' : rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+    const medal = medals[i] || rank;
+    return `<div class="lb-row ${cls}">
+      <div class="lb-rank">${medal}</div>
+      <div class="lb-ava">${e.isMe && _avaImg ? `<canvas id="lb-me-canvas" width="42" height="42" style="width:42px;height:42px;border-radius:50%;"></canvas>` : `<span style="font-size:20px;">${e.ava || '👤'}</span>`}</div>
+      <div class="lb-info">
+        <div class="lb-name">${e.name}${e.isMe ? ' <span style="color:var(--secondary);font-size:10px;">ВЫ</span>' : ''}</div>
+        <div class="lb-sub">@${e.username}</div>
+      </div>
+      <div class="lb-xp">⚡${e.xp}</div>
+    </div>`;
+  }).join('');
+  // Draw user photo on lb canvas
+  if (_avaImg) {
+    requestAnimationFrame(() => {
+      const lbC = document.getElementById('lb-me-canvas');
+      if (lbC) {
+        const ctx = lbC.getContext('2d');
+        const S = 42;
+        ctx.clearRect(0,0,S,S);
+        ctx.save();
+        ctx.beginPath(); ctx.arc(S/2,S/2,S/2,0,Math.PI*2); ctx.clip();
+        const short = Math.min(_avaImg.naturalWidth, _avaImg.naturalHeight);
+        const drawW = (_avaImg.naturalWidth / short) * S;
+        const drawH = (_avaImg.naturalHeight / short) * S;
+        ctx.drawImage(_avaImg, (S-drawW)/2, (S-drawH)/2, drawW, drawH);
+        ctx.restore();
+      }
+    });
+  }
+}
+
+function goLeaderboard(el) {
+  playClick();
+  navActive(el);
+  showScreenAnimated('scr-lb');
+  try { renderLeaderboard(); } catch(e) { console.error('lb error', e); }
+}
+
+// ─── ANIMATED SCREEN TRANSITIONS ─────────────────────────────────────────────
+function showScreenAnimated(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const next = document.getElementById(id);
+  if (next) next.classList.add('active');
+}
+
+// ─── ENHANCED ANSWER FEEDBACK ────────────────────────────────────────────────
+function flashCorrect(el) {
+  el.classList.add('pop');
+  setTimeout(() => el.classList.remove('pop'), 350);
+  vibrateOk(); playCorrect();
+}
+function flashWrong(el) {
+  el.classList.add('shake');
+  setTimeout(() => el.classList.remove('shake'), 450);
+  vibrateWrong(); playWrong();
+}
+
+
+
+// Init on load
+handleDiscordOAuthCallback(); // check if returning from Discord OAuth
+loadState();
+loadDiscordState();
+
+renderModulesList();
 updateStats();
-// Init character on profile — dragon anon is default
-charState.bg = 0; // dark bg
-setTimeout(() => {
-  const svg = document.getElementById('char-display-svg');
-  if (svg) renderCharSVG(svg, 0, 0, 0, 0);
-}, 100);
+charState.bg = 0;
+
+// Always init photo upload (for all users)
+setTimeout(() => initAvaUpload(), 200);
+
+// Splash → onboarding → app
+runSplash(() => {
+  showOnboardingIfNeeded();
+});
+
+
+
+
 </script>
 </body>
 </html>
