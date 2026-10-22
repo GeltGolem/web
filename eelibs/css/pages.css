@@ -61,6 +61,7 @@ body.nav-floating .page .pageContent {
 .page-header {
     display: inline-flex;
     flex-direction: column;
+    position: relative;
     width: 100%;
     height: max(5px, 40dvh);
     min-height: max(5px, 40dvh);
@@ -91,7 +92,7 @@ body.nav-floating .page .pageContent {
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: space-between;
-    width: calc(100%);
+    width: calc(100% - var(--ds) * 2);
     position: sticky;
     top: 0;
     left: 0;
@@ -178,6 +179,52 @@ body.nav-floating .page .pageContent {
             }
         }*/
     }
+
+    &.page-header-compact {
+        align-items: center;
+
+        .page-header-title-container {
+            display: flex;
+            flex-direction: column;
+            flex: 0 1 auto;
+            align-items: center;
+            gap: var(--dss);
+            min-width: 0;
+            max-width: 65%;
+            margin-right: auto;
+        }
+
+        .page-header-title-container .page-header-title {
+            display: block;
+            margin: 0;
+            min-width: 0;
+            flex: 0 1 auto;
+            margin-right: auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transform-origin: top left;
+        }
+
+        .page-header-title-container h1 {
+            max-width: min(30vw, 14rem);
+            color: var(--text-pri);
+            font-size: 1rem;
+            line-height: 1.2;
+            margin-bottom: 0;
+            margin-top: 0;
+        }
+
+        .page-header-title-container h3 {
+            max-width: min(22vw, 9rem);
+            color: var(--text-sec);
+            font-size: 0.8rem;
+            font-weight: 300;
+            line-height: 1.2;
+            margin-bottom: 0;
+            margin-top: 0;
+        }
+    }
 }
 
 @media (min-width: 769px) {
@@ -243,6 +290,22 @@ body.nav-floating .page .pageContent {
 
 .page-header, .page-header-btns, .pageContent {
     background-color: var(--bg-base);
+}
+
+.page-header-title-placeholder {
+    display: block;
+    flex: 0 0 auto;
+    visibility: hidden;
+}
+
+.page-header-scroll-sentinel {
+    position: absolute;
+    top: 66.666%;
+    left: 0;
+    display: block;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
 }
 
 #blackDown {

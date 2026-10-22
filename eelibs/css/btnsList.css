@@ -23,6 +23,7 @@
         height: calc(24px + 8px * 2);
         position: relative;
         text-decoration: none;
+        border: none;
 
         &:hover {
             background-color: var(--bg-sec-hover);
