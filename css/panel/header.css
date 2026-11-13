@@ -21,3 +21,7 @@
     text-wrap-style: balance;
     text-align: center;
 }
+
+.page-header-btns {
+    width: 100%;
+}

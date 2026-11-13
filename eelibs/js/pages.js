@@ -57,6 +57,7 @@ function observePageHeader(page) {
         placeholder.setAttribute('aria-hidden', 'true');
         placeholder.style.width = `${rect.width}px`;
         placeholder.style.height = `${rect.height}px`;
+        placeholder.style.height = '0'
         heading.before(placeholder);
         placeholders.set(heading, placeholder);
     });

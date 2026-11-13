@@ -63,14 +63,15 @@ body.nav-floating .page .pageContent {
     flex-direction: column;
     position: relative;
     width: 100%;
-    height: max(5px, 40dvh);
-    min-height: max(5px, 40dvh);
+    height: max(275px, 40dvh);
+    min-height: max(275px, 40dvh);
     align-items: center;
     justify-content: center;
 
     h1 {
         font-size: 2rem;
         color: var(--text-pri);
+        text-align: center;
     }
     h3 {
         font-size: 1rem;
@@ -115,6 +116,11 @@ body.nav-floating .page .pageContent {
             &:hover, &:active {
                 transform: none;
             }
+        }
+
+        img {
+            max-width: vaR(--ds2);
+            max-height: var(--ds2);
         }
     }
     
