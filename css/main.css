@@ -466,28 +466,79 @@
     flex-direction: column;
 }
 
+/* ── ONE UI STYLE ICONS ─────────────────────────────────────────────────────── */
+.ui-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* ── TROPHY TEST — CHISTAYA SETKA ───────────────────────────────────────────── */
 .trophy-head {
-    display: flex;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
+    column-gap: 10px;
+    row-gap: 10px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 12px;
     background: linear-gradient(135deg, #2a1a00, #1a1000);
     border-bottom: 1px solid #3a2a00;
 }
 
+.trophy-back {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--gold);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+.trophy-back:active { transform: scale(0.94); }
+.trophy-back .ui-icon { width: 24px; height: 24px; }
+
 .trophy-head-title {
-    font-size: 16px;
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: 15px;
     font-weight: 800;
     color: var(--gold);
-    flex: 1;
-    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
 }
+.trophy-head-title .ui-icon { width: 22px; height: 22px; color: var(--gold); }
+
+.trophy-hearts {
+    grid-column: 3;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--danger);
+}
+.trophy-hearts .ui-icon { width: 19px; height: 19px; }
+.trophy-hearts.empty { color: var(--text-muted); }
 
 .trophy-progress-track {
-    flex: 1;
-    height: 14px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 7px;
+    grid-column: 2 / 4;
+    grid-row: 2;
+    width: 100%;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.45);
+    border-radius: 999px;
     overflow: hidden;
 }
 
@@ -495,31 +546,108 @@
     height: 100%;
     background: linear-gradient(90deg, #ffc800, #ff8c00);
     width: 0%;
-    transition: width 0.4s;
-    border-radius: 7px;
+    transition: width 0.35s ease;
+    border-radius: 999px;
 }
 
 .trophy-content {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 20px 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.trophy-question-card {
+    background: var(--surface);
+    border: 2px solid var(--surface-light);
+    border-radius: 22px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.trophy-q-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .trophy-q-label {
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
+    font-weight: 900;
+    letter-spacing: 1px;
     color: var(--gold);
     text-transform: uppercase;
-    margin-bottom: 8px;
+}
+
+.trophy-q-step {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    background: var(--surface-light);
+    border-radius: 999px;
+    padding: 4px 9px;
 }
 
 .trophy-q-title {
-    font-size: 19px;
-    font-weight: 700;
-    margin-bottom: 18px;
-    line-height: 1.35;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.4;
+    margin: 0;
 }
+
+.trophy-field-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.trophy-field-label .ui-icon { width: 16px; height: 16px; color: var(--gold); }
+
+.type-input-wrap {
+    background: var(--surface-light);
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 0 12px;
+}
+.type-input-wrap:focus-within { border-color: var(--secondary); }
+
+.type-input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+    padding: 13px 0;
+}
+
+#trophy-act-area {
+    position: sticky;
+    bottom: 0;
+    margin: auto -16px -16px;
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, rgba(15, 20, 25, 0), var(--bg) 22%);
+}
+#trophy-act-area .btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+#trophy-act-area .ui-icon { width: 18px; height: 18px; }
+.trophy-question-card .hint-chips { margin-bottom: 0; }
 
 .trophy-result-box {
     text-align: center;
@@ -1514,7 +1642,15 @@ body {
     flex-shrink: 0;
     width: 52px;
     text-align: center;
+    display: grid;
+    place-items: center;
 }
+.module-card .mod-icon .ui-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--gold);
+}
+.mod-badge .ui-icon { width: 14px; height: 14px; }
 
 .module-card .mod-info {
     flex: 1;
@@ -2038,3 +2174,12 @@ body {
 .btn.go, .opt, .btn.bad {
     padding: var(--ds) !important;
 }
+/* eelibs вставляет сюда пустой заголовок высотой ~420px — убираем его */
+#scr-trophy > .pageContainer { display: none !important; }
+
+.trophy-result-box .big-icon .ui-icon {
+    width: 72px;
+    height: 72px;
+    color: var(--gold);
+}
+.trophy-result-box strong .ui-icon { width: 18px; height: 18px; }

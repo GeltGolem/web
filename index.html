@@ -343,10 +343,10 @@
         </div>
         <div class="page block" id="scr-trophy">
             <div class="trophy-head">
-                <button class="btn" style="padding:8px 12px;box-shadow:none;" onclick="closeTrophy()">←</button>
-                <div class="trophy-head-title">🏆 Финальный тест</div>
-                <div id="trophy-hearts-disp" style="font-size:14px;font-weight:800;">❤️3</div>
-                <div class="trophy-progress-track" style="max-width:110px;">
+                <button type="button" class="trophy-back" aria-label="Назад" onclick="closeTrophy()"><span data-icon="arrow-left"></span></button>
+                <div class="trophy-head-title"><span data-icon="trophy"></span> Финальный тест</div>
+                <div id="trophy-hearts-disp" class="trophy-hearts"><span data-icon="heart"></span><span id="trophy-hearts-num">3</span></div>
+                <div class="trophy-progress-track">
                     <div class="trophy-progress-fill" id="trophy-prog"></div>
                 </div>
             </div>

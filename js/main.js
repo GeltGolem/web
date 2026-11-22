@@ -654,6 +654,38 @@ const LEVELS = {
 const TEST_MODE_KEY = 'geltcode_test_mode';
 let testMode = localStorage.getItem(TEST_MODE_KEY) === '1';
 
+// ─── ИКОНКИ В СТИЛЕ ONE UI (чистые outline SVG) ───────────────────────────────
+const UI_ICONS = {
+    'arrow-left': '<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>',
+    'trophy': '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/>',
+    'heart': '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8Z"/>',
+    'bulb': '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/>',
+    'keyboard': '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
+    'check': '<path d="m5 13 4 4L19 7"/>',
+    'close': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    'lock': '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+    'book': '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
+    'code': '<path d="m8 17-5-5 5-5"/><path d="m16 7 5 5-5 5"/><path d="m14 4-4 16"/>',
+    'layers': '<path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/>',
+    'rocket': '<path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2 0-2.7-.7-.7-1.9-.7-3-.3Z"/><path d="m12 15-3-3a22 22 0 0 1 7-7c2.5-1.5 5-1 5-1s.5 2.5-1 5a22 22 0 0 1-7 7Z"/><path d="M9 12H5s.5-3 3-4"/><path d="M12 15v4s3-.5 4-3"/>',
+    'star': '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2Z"/>',
+};
+const MODULE_ICON_NAMES = ['book', 'code', 'layers', 'rocket', 'trophy'];
+
+function iconSvg(name, cls = '') {
+    return `<svg class="ui-icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${UI_ICONS[name] || UI_ICONS.star}</svg>`;
+}
+function renderIcons(root = document) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll('[data-icon]').forEach(el => {
+        if (el.dataset.iconDone) return;
+        el.innerHTML = iconSvg(el.dataset.icon);
+        el.dataset.iconDone = '1';
+    });
+}
+window.iconSvg = iconSvg;
+window.renderIcons = renderIcons;
+
 // ─── CHARACTER SVG BUILDER (Duolingo-style) ────────────────────────────────────
 function buildCharSVG(bodyIdx, outfitIdx, maskIdx, bgIdx) {
     const body = CHAR_BODIES[bodyIdx] || CHAR_BODIES[0];
@@ -2142,15 +2174,16 @@ function renderModulesList() {
         const unlocked = testMode || mi === 0 || trophyTestDone[mi - 1];
         const isActive = !modDone && unlocked;
         const cls = modDone ? 'completed' : (unlocked ? 'unlocked' : 'locked-mod');
+        const iconName = MODULE_ICON_NAMES[mi] || 'star';
         const badge = modDone
             ? `<div class="mod-badge" style="background:var(--gold);color:#000;">✓ ПРОЙДЕН</div>`
             : (!unlocked
-                ? `<div class="mod-badge" style="background:var(--surface-light);color:var(--text-muted);">🔒</div>`
+                ? `<div class="mod-badge" style="background:var(--surface-light);color:var(--text-muted);"><span data-icon="lock"></span></div>`
                 : `<div class="mod-badge" style="background:rgba(88,204,2,0.15);color:var(--primary);">АКТИВЕН</div>`);
         html += `<div class="module-card ${cls}" onclick="${unlocked ? `window.changePage('langmodule', '${currentLang}-${mi}'); openModule(${mi})` : ''}">
       <div class="mod-accent" style="background:${m.color};"></div>
       <div class="mod-row">
-        <div class="mod-icon">${m.icon}</div>
+        <div class="mod-icon" data-icon="${iconName}"></div>
         <div class="mod-info">
           <div class="mod-num">МОДУЛЬ ${mi + 1}</div>
           <div class="mod-title">${m.title}</div>
@@ -2171,6 +2204,7 @@ function renderModulesList() {
     </div>`;
     });
     el.innerHTML = html;
+    renderIcons(el);
 }
 
 function openModule(mi) {
@@ -2725,7 +2759,10 @@ function trophyActClick() {
 
 function updateTrophyHead() {
     document.getElementById('trophy-prog').style.width = `${(trophyQIdx / trophyQuestions.length) * 100}%`;
-    document.getElementById('trophy-hearts-disp').textContent = `❤️${trophyHearts}`;
+    const hNum = document.getElementById('trophy-hearts-num');
+    if (hNum) hNum.textContent = String(trophyHearts);
+    const hDisp = document.getElementById('trophy-hearts-disp');
+    if (hDisp) hDisp.classList.toggle('empty', trophyHearts <= 0);
 }
 
 function renderTrophyQuestion() {
@@ -2736,30 +2773,39 @@ function renderTrophyQuestion() {
     const area = document.getElementById('trophy-area');
     const safeCode = q.code ? q.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
     area.innerHTML = `
-    <div class="trophy-q-label">Вопрос ${trophyQIdx + 1} / ${trophyQuestions.length}</div>
-    <div class="trophy-q-title">${q.q}</div>
-    ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
-    <div style="margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Твой ответ:</div>
-      <div class="type-input-wrap">
-        <input type="text" class="type-input" id="trophy-type-input"
-          placeholder="Введи ответ..."
-          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-          oninput="onTrophyType(this)"
-          onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"/>
+    <div class="trophy-question-card">
+      <div class="trophy-q-top">
+        <span class="trophy-q-label">Вопрос ${trophyQIdx + 1} из ${trophyQuestions.length}</span>
+        <span class="trophy-q-step">${Math.round(((trophyQIdx + 1) / trophyQuestions.length) * 100)}%</span>
       </div>
-    </div>
-    <div style="font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Подсказки:</div>
-    <div class="hint-chips" id="hint-chips-row">
-      ${q.chips.map((c, i) => `<div class="hint-chip" onclick="insertChip('${c.replace(/'/g, "\\'")}', ${i})" id="chip-${i}">${c}</div>`).join('')}
+      <div class="trophy-q-title">${q.q}</div>
+      ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
+      <div class="trophy-field">
+        <div class="trophy-field-label"><span data-icon="keyboard"></span> Твой ответ</div>
+        <div class="type-input-wrap">
+          <input type="text" class="type-input" id="trophy-type-input"
+            placeholder="Введи ответ..."
+            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            oninput="onTrophyType(this)"
+            onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"/>
+        </div>
+      </div>
+      <div class="trophy-field">
+        <div class="trophy-field-label"><span data-icon="bulb"></span> Подсказки</div>
+        <div class="hint-chips" id="hint-chips-row">
+          ${q.chips.map((c, i) => `<button type="button" class="hint-chip" onclick="insertChip('${c.replace(/'/g, "\\'")}', ${i})" id="chip-${i}">${c}</button>`).join('')}
+        </div>
+      </div>
     </div>`;
+    renderIcons(area);
     resetTrophyAct();
     setTimeout(() => { const inp = document.getElementById('trophy-type-input'); if (inp) inp.focus(); }, 200);
 }
 
 function resetTrophyAct() {
     const act = document.getElementById('trophy-act-area');
-    act.innerHTML = `<button class="btn trophy-btn" id="trophy-act-btn" onclick="trophyActClick()" disabled>ПРОВЕРИТЬ</button>`;
+    act.innerHTML = `<button class="btn trophy-btn" id="trophy-act-btn" onclick="trophyActClick()" disabled><span data-icon="check"></span> ПРОВЕРИТЬ</button>`;
+    renderIcons(act);
     act.classList.add('show');
 }
 
@@ -2845,9 +2891,11 @@ function showTrophyResult() {
     vibrateSuccess(); playLevelUp();
     showXPPopup(bonusXP);
     unlockModuleRewards(currentModuleIdx);
+    const resultIcon = passed ? 'trophy' : 'star';
+    const modIcon = MODULE_ICON_NAMES[currentModuleIdx] || 'star';
     area.innerHTML = `
     <div class="trophy-result-box">
-      <span class="big-icon">${passed ? '🏆' : '💪'}</span>
+      <span class="big-icon" data-icon="${resultIcon}"></span>
       <h2 style="color:${passed ? 'var(--gold)' : 'var(--text)'};">${passed ? 'Модуль пройден!' : 'Неплохо!'}</h2>
       <div class="score-stars">${starStr}</div>
       <div style="margin:12px 0 6px;font-size:42px;font-weight:900;color:${pctColor};">${pct}%</div>
@@ -2857,10 +2905,11 @@ function showTrophyResult() {
         <div class="trophy-score-item"><div class="ts-val" style="color:var(--danger);">${trophyErrors}</div><div class="ts-lbl">ОШИБОК</div></div>
         <div class="trophy-score-item"><div class="ts-val" style="color:var(--gold);">+${bonusXP}</div><div class="ts-lbl">БОНУС XP</div></div>
       </div>
-      <p style="color:var(--text-muted);margin:10px 0 4px;">Завершён: <strong style="color:${m.color};">${m.icon} ${m.title}</strong></p>
+      <p style="color:var(--text-muted);margin:10px 0 4px;">Завершён: <strong style="color:${m.color};display:inline-flex;align-items:center;gap:6px;"><span data-icon="${modIcon}"></span>${m.title}</strong></p>
       <p style="color:var(--text-muted);font-size:13px;">Наряд разблокирован в редакторе персонажа!</p>
       <button class="btn trophy-btn" style="margin-top:20px;" onclick="closeTrophyFinish()">НА КАРТУ КУРСА</button>
     </div>`;
+    renderIcons(area);
     const act = document.getElementById('trophy-act-area');
     act.innerHTML = '';
     act.classList.remove('show');
@@ -4044,6 +4093,7 @@ await window.waitForVariable(() => window.eelibMgr?.isLoaded, true)
 MODULES = COURSES[currentLang] || MODULES;
 applyLangProgress(currentLang);
 renderModulesList();
+renderIcons();
 setupBackButtons();
 updateTestModeBadge();
 updateStats();
