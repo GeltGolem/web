@@ -68,13 +68,14 @@ function saveState() {
             level: profileData.level || 'some',
             lang: currentLang,
             introDone,
+            testMode,
             progressByLang: serializeProgress(),
             emperorMode: _emperorMode,
             avatarPhoto: _avaImg ? (() => { try { const c = document.getElementById('ava-upload-canvas'); return c ? c.toDataURL('image/jpeg', 0.85) : null; } catch (e) { return null; } })() : null,
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-        // Cloud save if user has a username
-        if (profileData.username && window._fb) {
+        // Cloud save if user has a username (тестовый режим — только локально)
+        if (profileData.username && !testMode && window._fb) {
             window._fb.saveCloud(profileData.username, data);
         }
     } catch (e) { }
@@ -124,6 +125,11 @@ function loadState() {
         if (d.profileData) profileData = Object.assign(profileData, d.profileData);
         if (d.level) profileData.level = d.level;
         if (d.introDone !== undefined) introDone = !!d.introDone;
+        if (d.testMode !== undefined) {
+            testMode = !!d.testMode;
+            if (testMode) localStorage.setItem(TEST_MODE_KEY, '1');
+            else localStorage.removeItem(TEST_MODE_KEY);
+        }
         if (d.lang && COURSES[d.lang]) {
             currentLang = d.lang;
             MODULES = COURSES[d.lang];
@@ -643,6 +649,10 @@ const LEVELS = {
     some: { icon: '📘', title: 'Чуток знаю', desc: 'Слышал про код, но не писал', color: '#1CB0F6' },
     good: { icon: '⚡', title: 'Шарю', desc: 'Уже писал код и хочу сложнее', color: '#FFC800' },
 };
+
+// Тестовый режим: все модули, уроки и финальные тесты доступны сразу.
+const TEST_MODE_KEY = 'geltcode_test_mode';
+let testMode = localStorage.getItem(TEST_MODE_KEY) === '1';
 
 // ─── CHARACTER SVG BUILDER (Duolingo-style) ────────────────────────────────────
 function buildCharSVG(bodyIdx, outfitIdx, maskIdx, bgIdx) {
@@ -2129,7 +2139,7 @@ function renderModulesList() {
         const perfectDoneLessons = lessons.filter((_, li) => perfectLessons[mi][li]).length;
         const pct = Math.round(doneLessons / lessons.length * 100);
         const modDone = trophyTestDone[mi];
-        const unlocked = mi === 0 || trophyTestDone[mi - 1];
+        const unlocked = testMode || mi === 0 || trophyTestDone[mi - 1];
         const isActive = !modDone && unlocked;
         const cls = modDone ? 'completed' : (unlocked ? 'unlocked' : 'locked-mod');
         const badge = modDone
@@ -2167,11 +2177,14 @@ function openModule(mi) {
     currentModuleIdx = mi;
     //document.getElementById('module-path-view').style.display = 'block';
     const m = MODULES[mi];
-    document.querySelector('#langmodule .page-header h1').textContent = `${m.icon} ${m.title}`;
+    if (!m) return;
+    const h1 = document.querySelector('#langmodule .page-header h1');
+    if (h1) h1.textContent = `${m.icon} ${m.title}`;
     const _mpDone = m.lessons.filter((_, li) => lessonCompleted[mi][li]).length;
     const _mpPct = Math.round(_mpDone / m.lessons.length * 100);
     const _mpPerfect = m.lessons.filter((_, li) => perfectLessons[mi][li]).length;
-    document.querySelector('#langmodule .page-header h3').textContent = `Модуль ${mi + 1} • ${_mpPct}% пройдено${_mpPerfect > 0 ? ' • ⭐ ' + _mpPerfect + ' идеально' : ''}`;
+    const h3 = document.querySelector('#langmodule .page-header h3');
+    if (h3) h3.textContent = `Модуль ${mi + 1} • ${_mpPct}% пройдено${_mpPerfect > 0 ? ' • ⭐ ' + _mpPerfect + ' идеально' : ''}`;
     renderPath();
 }
 window.openModule = openModule
@@ -2208,7 +2221,7 @@ function renderPath() {
     m.lessons.forEach((lesson, i) => {
         const done = lessonCompleted[currentModuleIdx][i];
         const perfect = perfectLessons[currentModuleIdx][i];
-        const unlocked = i === 0 || lessonCompleted[currentModuleIdx][i - 1];
+        const unlocked = testMode || i === 0 || lessonCompleted[currentModuleIdx][i - 1];
         const status = done ? 'done' : unlocked ? 'active' : 'locked';
         const icon = perfect ? '💎' : done ? '⭐' : status === 'active' ? '▶' : '🔒';
         const clickHandler = status !== 'locked' ? `startLesson(${i})` : '';
@@ -2218,8 +2231,9 @@ function renderPath() {
     </div>`;
     });
     const allDone = m.lessons.every((_, i) => lessonCompleted[currentModuleIdx][i]);
+    const trophyOpen = testMode || allDone;
     html += `<div class="node-wrap">
-    <div class="node trophy-node ${allDone ? '' : 'locked'}" onclick="${allDone ? 'startTrophyTest()' : ''}">🏆</div>
+    <div class="node trophy-node ${trophyOpen ? '' : 'locked'}" onclick="${trophyOpen ? 'startTrophyTest()' : ''}">🏆</div>
     <div class="lesson-label">Финальный тест</div>
   </div>`;
     container.innerHTML = html;
@@ -3258,7 +3272,7 @@ function checkResetWord() {
 
 function doReset() {
     closeResetModal();
-    try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
+    try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(TEST_MODE_KEY); } catch (e) { }
     showToast('🗑️ Прогресс сброшен! Перезагружаю...', 2000);
     setTimeout(() => location.reload(), 1500);
 }
@@ -3670,12 +3684,56 @@ function finishOnboard() {
 function selectLevel(level, silent) {
     if (!LEVELS[level]) return;
     profileData.level = level;
-    document.querySelectorAll('#registration .level-card').forEach(card => {
+    document.querySelectorAll('#registration .level-card[data-level]').forEach(card => {
         card.classList.toggle('selected', card.dataset.level === level);
     });
     if (!silent) playClick();
 }
 window.selectLevel = selectLevel
+
+function updateTestModeBadge() {
+    const badge = document.getElementById('test-mode-badge');
+    if (badge) badge.style.display = testMode ? 'flex' : 'none';
+    const btn = document.getElementById('profile-test-mode-btn');
+    if (btn) btn.textContent = testMode ? '🧪 Выйти из тестового режима' : '🧪 Включить тестовый режим';
+}
+
+function enterTestMode() {
+    testMode = true;
+    localStorage.setItem(TEST_MODE_KEY, '1');
+    localStorage.setItem('geltcode_onboarded', '1');
+    if (!profileData.name) profileData.name = 'Тестер';
+    if (!profileData.username) profileData.username = 'test_mode';
+    const chosen = document.querySelector('#registration .level-card[data-level].selected');
+    if (chosen) profileData.level = chosen.dataset.level;
+    saveState();
+    renderModulesList();
+    updateStats();
+    updateTestModeBadge();
+    window.changePage('home');
+    showToast('🧪 Тестовый режим: все модули и уроки открыты', 2600);
+}
+
+function exitTestMode() {
+    testMode = false;
+    localStorage.removeItem(TEST_MODE_KEY);
+    saveState();
+    renderModulesList();
+    updateStats();
+    updateTestModeBadge();
+    window.changePage('home');
+    showToast('Тестовый режим выключен', 1800);
+}
+
+function toggleTestMode() {
+    if (testMode) exitTestMode();
+    else enterTestMode();
+}
+
+window.enterTestMode = enterTestMode;
+window.exitTestMode = exitTestMode;
+window.toggleTestMode = toggleTestMode;
+window.updateTestModeBadge = updateTestModeBadge;
 
 function finishProfileSetup() {
     localStorage.setItem('geltcode_onboarded', '1');
@@ -3987,6 +4045,7 @@ MODULES = COURSES[currentLang] || MODULES;
 applyLangProgress(currentLang);
 renderModulesList();
 setupBackButtons();
+updateTestModeBadge();
 updateStats();
 const homeTitle = document.querySelector('#home .page-header h1');
 if (homeTitle) homeTitle.textContent = COURSE_LABELS[currentLang] || currentLang;

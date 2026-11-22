@@ -37,6 +37,16 @@
     box-shadow: 0 0 0 3px rgba(88, 204, 2, 0.12);
 }
 
+.test-mode-card {
+    margin-top: 10px;
+    border: 2px dashed #9B59B6;
+    background: rgba(155, 89, 182, 0.10);
+}
+
+.test-mode-card .level-icon {
+    color: #9B59B6;
+}
+
 .level-icon {
     grid-row: 1 / 3;
     font-size: 28px;

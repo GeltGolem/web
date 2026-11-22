@@ -31,6 +31,10 @@
         <div class="page block" id="home">
             <div class="pageContainer">
                 <div class="pageContent">
+                    <div id="test-mode-badge" style="display:none;align-items:center;justify-content:space-between;gap:10px;background:rgba(155,89,182,0.15);border:2px dashed #9B59B6;border-radius:14px;padding:10px 12px;margin-bottom:12px;">
+                        <span style="font-size:12px;font-weight:900;color:#9B59B6;">🧪 ТЕСТОВЫЙ РЕЖИМ — всё открыто</span>
+                        <button class="btn" style="padding:6px 10px;font-size:11px;color:#9B59B6;border-color:#9B59B6;background:transparent;" onclick="exitTestMode()">ВЫЙТИ</button>
+                    </div>
                     <div id="langsModules">
                         <div id="pascalModules" class="langModule" data-lang="pascal"></div>
                     </div>
@@ -186,6 +190,7 @@
                             <button class="btn go" style="flex:1;min-width:0;" onclick="saveProfile()">СОХРАНИТЬ</button>
                             <button class="btn bad" style="flex:1;min-width:0;" onclick="confirmReset()">🗑️ СБРОС</button>
                             </div>
+                            <button class="btn" id="profile-test-mode-btn" style="width:100%;margin-top:8px;border:2px dashed #9B59B6;background:transparent;color:#9B59B6;font-size:12px;" onclick="toggleTestMode()">🧪 Включить тестовый режим</button>
                         </div>
 
                         <!-- Tab: Look -->
@@ -423,6 +428,11 @@
                                         <span class="level-desc">Уже писал код — дай практику</span>
                                     </button>
                                 </div>
+                                <button type="button" class="level-card test-mode-card" onclick="enterTestMode()">
+                                    <span class="level-icon">🧪</span>
+                                    <span class="level-title">Тестовый режим</span>
+                                    <span class="level-desc">Все модули, уроки и тесты сразу открыты — проверяй без прохождения</span>
+                                </button>
                             </div>
                             <div>
                             <div class="edit-label" style="margin-bottom:8px;">Пароль <span
