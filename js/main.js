@@ -2113,6 +2113,12 @@ function updateOverallStats() {
 // ─── HOME / MODULES ───────────────────────────────────────────────────────────
 function renderModulesList() {
     const el = document.getElementById('pascalModules');
+    // CSS скрывает .langModule без класса active — карточки были в DOM, но не кликались.
+    document.querySelectorAll('#langsModules .langModule').forEach(x => x.classList.remove('active'));
+    if (el) {
+        el.dataset.lang = currentLang;
+        el.classList.add('active');
+    }
     const totalDone = MODULES.reduce((s, m, mi) => s + (trophyTestDone[mi] ? 1 : 0), 0);
     let html = `<div class="modules-header">
     <p>${totalDone} из ${MODULES.length} модулей пройдено</p>
@@ -2131,7 +2137,7 @@ function renderModulesList() {
             : (!unlocked
                 ? `<div class="mod-badge" style="background:var(--surface-light);color:var(--text-muted);">🔒</div>`
                 : `<div class="mod-badge" style="background:rgba(88,204,2,0.15);color:var(--primary);">АКТИВЕН</div>`);
-        html += `<div class="module-card ${cls}" onclick="${unlocked ? `window.changePage('langmodule', 'pascal-${mi}'); openModule(${mi})` : ''}">
+        html += `<div class="module-card ${cls}" onclick="${unlocked ? `window.changePage('langmodule', '${currentLang}-${mi}'); openModule(${mi})` : ''}">
       <div class="mod-accent" style="background:${m.color};"></div>
       <div class="mod-row">
         <div class="mod-icon">${m.icon}</div>
@@ -2177,6 +2183,16 @@ function backToModules() {
     if (listView) listView.style.display = 'block';
     renderModulesList();
 }
+
+// eelibs «назад» возвращает на последнюю страницу и застревает между уроком и модулем.
+// Явно возвращаем: урок → модуль, модуль → главная.
+function setupBackButtons() {
+    const lessonBack = document.querySelector('#lesson .leftBtnsNav');
+    if (lessonBack) lessonBack.onclick = () => window.changePage('langmodule');
+    const moduleBack = document.querySelector('#langmodule .leftBtnsNav');
+    if (moduleBack) moduleBack.onclick = () => { window.changePage('home'); backToModules(); };
+}
+window.setupBackButtons = setupBackButtons
 
 function renderPath() {
     const container = document.getElementById('path-container');
@@ -3970,6 +3986,7 @@ await window.waitForVariable(() => window.eelibMgr?.isLoaded, true)
 MODULES = COURSES[currentLang] || MODULES;
 applyLangProgress(currentLang);
 renderModulesList();
+setupBackButtons();
 updateStats();
 const homeTitle = document.querySelector('#home .page-header h1');
 if (homeTitle) homeTitle.textContent = COURSE_LABELS[currentLang] || currentLang;

@@ -1952,6 +1952,15 @@ body {
     color: var(--gold);
 }
 
+/* Скрытая модальная панель eelibs не должна перехватывать тапы по интерфейсу. */
+.modal:not(.active) {
+    pointer-events: none;
+}
+
+.modal.active {
+    pointer-events: auto;
+}
+
 /* ── XP POPUP ────────────────────────────────────────────── */
 .xp-popup {
     position: absolute;
