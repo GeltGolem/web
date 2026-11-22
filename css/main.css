@@ -577,11 +577,11 @@
 }
 
 .trophy-q-label {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 1px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
     color: var(--gold);
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .trophy-q-step {
@@ -604,11 +604,11 @@
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 11px;
-    font-weight: 900;
+    font-size: 12px;
+    font-weight: 800;
     color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-transform: none;
     margin-bottom: 8px;
 }
 .trophy-field-label .ui-icon { width: 16px; height: 16px; color: var(--gold); }
@@ -2183,3 +2183,8 @@ body {
     color: var(--gold);
 }
 .trophy-result-box strong .ui-icon { width: 18px; height: 18px; }
+
+/* SVG icons inside module header and lesson path */
+#langmodule .page-header h1 .ui-icon { width: 32px; height: 32px; vertical-align: middle; color: var(--gold); }
+.node .ui-icon { width: 24px; height: 24px; }
+.trophy-node .ui-icon { width: 28px; height: 28px; color: var(--gold); }

@@ -669,6 +669,7 @@ const UI_ICONS = {
     'layers': '<path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/>',
     'rocket': '<path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2 0-2.7-.7-.7-1.9-.7-3-.3Z"/><path d="m12 15-3-3a22 22 0 0 1 7-7c2.5-1.5 5-1 5-1s.5 2.5-1 5a22 22 0 0 1-7 7Z"/><path d="M9 12H5s.5-3 3-4"/><path d="M12 15v4s3-.5 4-3"/>',
     'star': '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2Z"/>',
+    'play': '<path d="m8 5 11 7-11 7V5Z"/>',
 };
 const MODULE_ICON_NAMES = ['book', 'code', 'layers', 'rocket', 'trophy'];
 
@@ -2213,7 +2214,7 @@ function openModule(mi) {
     const m = MODULES[mi];
     if (!m) return;
     const h1 = document.querySelector('#langmodule .page-header h1');
-    if (h1) h1.textContent = `${m.icon} ${m.title}`;
+    if (h1) { h1.innerHTML = `<span data-icon="${MODULE_ICON_NAMES[mi] || 'star'}"></span> ${m.title}`; renderIcons(h1); }
     const _mpDone = m.lessons.filter((_, li) => lessonCompleted[mi][li]).length;
     const _mpPct = Math.round(_mpDone / m.lessons.length * 100);
     const _mpPerfect = m.lessons.filter((_, li) => perfectLessons[mi][li]).length;
@@ -2257,20 +2258,21 @@ function renderPath() {
         const perfect = perfectLessons[currentModuleIdx][i];
         const unlocked = testMode || i === 0 || lessonCompleted[currentModuleIdx][i - 1];
         const status = done ? 'done' : unlocked ? 'active' : 'locked';
-        const icon = perfect ? '💎' : done ? '⭐' : status === 'active' ? '▶' : '🔒';
+        const iconName = perfect ? 'star' : done ? 'star' : status === 'active' ? 'play' : 'lock';
         const clickHandler = status !== 'locked' ? `startLesson(${i})` : '';
         html += `<div class="node-wrap">
-      <div class="node ${status}" onclick="${clickHandler}">${icon}</div>
+      <div class="node ${status}" onclick="${clickHandler}" data-icon="${iconName}"></div>
       <div class="lesson-label">${lesson.title}</div>
     </div>`;
     });
     const allDone = m.lessons.every((_, i) => lessonCompleted[currentModuleIdx][i]);
     const trophyOpen = testMode || allDone;
     html += `<div class="node-wrap">
-    <div class="node trophy-node ${trophyOpen ? '' : 'locked'}" onclick="${trophyOpen ? 'startTrophyTest()' : ''}">🏆</div>
+    <div class="node trophy-node ${trophyOpen ? '' : 'locked'}" onclick="${trophyOpen ? 'startTrophyTest()' : ''}" data-icon="trophy"></div>
     <div class="lesson-label">Финальный тест</div>
   </div>`;
     container.innerHTML = html;
+    renderIcons(container);
 }
 
 // Старые имена экранов из игровой логики совпадают не со всеми id страниц.
@@ -2781,7 +2783,7 @@ function renderTrophyQuestion() {
       <div class="trophy-q-title">${q.q}</div>
       ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
       <div class="trophy-field">
-        <div class="trophy-field-label"><span data-icon="keyboard"></span> Твой ответ</div>
+        <div class="trophy-field-label">Твой ответ</div>
         <div class="type-input-wrap">
           <input type="text" class="type-input" id="trophy-type-input"
             placeholder="Введи ответ..."
