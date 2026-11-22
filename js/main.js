@@ -2786,7 +2786,6 @@ function renderTrophyQuestion() {
         <div class="trophy-field-label">Твой ответ</div>
         <div class="type-input-wrap">
           <input type="text" class="type-input" id="trophy-type-input"
-            placeholder="Введи ответ..."
             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
             oninput="onTrophyType(this)"
             onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"/>
