@@ -2863,7 +2863,10 @@ function renderTrophyQuestion() {
     </div>`;
     renderIcons(area);
     resetTrophyAct();
-    setTimeout(() => { const inp = document.getElementById('trophy-type-input'); if (inp) inp.focus(); }, 200);
+    requestAnimationFrame(() => {
+        const inp = document.getElementById('trophy-type-input');
+        if (inp) inp.focus();
+    });
 }
 
 function resetTrophyAct() {
@@ -4151,27 +4154,42 @@ function flashWrong(el) {
 
 
 
-// The mobile keyboard shrinks only the visual viewport. We keep the check
-// button in the normal flow (never floating above the text) and scroll it into
-// view instead, adding space below the content while the keyboard is open.
+// The mobile keyboard fires many visualViewport events per frame. Coalesce
+// them into one rAF and write styles only when the value actually changes.
+let keyboardFrame = 0;
+let keyboardOffsetPx = -1;
+let keyboardIsOpen = false;
+
 function setupKeyboardOffset() {
     const root = document.documentElement;
     const vv = window.visualViewport;
-    const sync = () => {
-        const overlap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-        root.style.setProperty('--kb-offset', `${Math.round(overlap)}px`);
-        root.classList.toggle('kb-open', overlap > 80);
-        keepActionVisible();
+    const scheduleSync = () => {
+        if (keyboardFrame) return;
+        keyboardFrame = requestAnimationFrame(() => {
+            keyboardFrame = 0;
+            const overlap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+            const px = Math.round(overlap);
+            if (px !== keyboardOffsetPx) {
+                root.style.setProperty('--kb-offset', `${px}px`);
+                keyboardOffsetPx = px;
+            }
+            const open = overlap > 80;
+            if (open !== keyboardIsOpen) {
+                root.classList.toggle('kb-open', open);
+                keyboardIsOpen = open;
+            }
+            keepActionVisible();
+        });
     };
     if (vv) {
-        vv.addEventListener('resize', sync);
-        vv.addEventListener('scroll', sync);
+        vv.addEventListener('resize', scheduleSync, { passive: true });
+        vv.addEventListener('scroll', scheduleSync, { passive: true });
     }
-    window.addEventListener('resize', sync);
+    window.addEventListener('resize', scheduleSync, { passive: true });
     document.addEventListener('focusin', (event) => {
         if (event.target instanceof Element && event.target.matches('input, textarea')) keepActionVisible();
     });
-    sync();
+    scheduleSync();
 }
 
 function keepActionVisible() {
@@ -4193,8 +4211,8 @@ function keepActionVisible() {
         const visibleBottom = vv.height + vv.offsetTop - 24;
         const overflow = button.getBoundingClientRect().bottom - visibleBottom;
         if (overflow > 0) scroller.scrollTop += overflow;
-        // Keyboard padding and fonts settle over a few frames.
-        if (++attempts < 6) setTimeout(tick, 80);
+        // Two extra passes cover the layout shift caused by the keyboard padding.
+        if (++attempts < 3) setTimeout(tick, 110);
     };
     tick();
 }
