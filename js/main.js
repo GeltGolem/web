@@ -45,6 +45,7 @@ let trophyErrors = 0;
 let trophyCorrect = 0;
 let trophyAnswered = false;
 let trophyTypedAnswer = '';
+const usedTrophyChips = new Set();
 
 // ─── CHARACTER STATE ──────────────────────────────────────────────────────────
 let charState = {
@@ -2423,9 +2424,66 @@ function esc(value) {
         .replace(/"/g, '&quot;');
 }
 
+// Keyboard hint follows the device: phones have no hardware Enter key,
+// Apple desktops/tablets use Command, other desktops use Ctrl.
+function enterHintText() {
+    const ua = navigator.userAgent;
+    const platform = navigator.platform || '';
+    const touchPoints = navigator.maxTouchPoints || 0;
+    const isIPhone = /iPhone|iPod/i.test(ua);
+    const isIPad = /iPad/i.test(ua) || (platform === 'MacIntel' && touchPoints > 1);
+    const isMac = /Mac/i.test(platform) && !isIPad && !isIPhone;
+    if (isIPhone || /Android.*Mobile/i.test(ua)) return '';
+    if (isIPad || isMac) return '⌘ + Enter';
+    const touchOnly = window.matchMedia('(pointer: coarse)').matches
+        && !window.matchMedia('(pointer: fine)').matches;
+    return touchOnly ? '' : 'Ctrl + Enter';
+}
+
+function handlePracticeKey(event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') actClick();
+}
+
+// Minimal LCS line diff — enough to show a Git-style change without a library.
+function diffLines(before, after) {
+    const a = String(before || '').replace(/\r/g, '').split('\n');
+    const b = String(after || '').replace(/\r/g, '').split('\n');
+    const lcs = Array.from({ length: a.length + 1 }, () => new Uint16Array(b.length + 1));
+    for (let i = a.length - 1; i >= 0; i--) {
+        for (let j = b.length - 1; j >= 0; j--) {
+            lcs[i][j] = a[i] === b[j]
+                ? lcs[i + 1][j + 1] + 1
+                : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+        }
+    }
+    const rows = [];
+    let i = 0;
+    let j = 0;
+    while (i < a.length && j < b.length) {
+        if (a[i] === b[j]) { rows.push([' ', a[i++]]); j++; }
+        else if (lcs[i + 1][j] >= lcs[i][j + 1]) rows.push(['-', a[i++]]);
+        else rows.push(['+', b[j++]]);
+    }
+    while (i < a.length) rows.push(['-', a[i++]]);
+    while (j < b.length) rows.push(['+', b[j++]]);
+    return rows;
+}
+
+function codeDiffHtml(userCode, correctCode) {
+    const body = diffLines(userCode, correctCode).map(([sign, text]) => {
+        const kind = sign === '+' ? 'add' : sign === '-' ? 'del' : 'ctx';
+        return `<div class="diff-line diff-${kind}"><span class="diff-sign">${sign}</span><code>${esc(text)}</code></div>`;
+    }).join('');
+    return `<div class="code-diff">
+      <div class="diff-head"><span>--- твой вариант</span><span>+++ правильный вариант</span></div>
+      <div class="diff-body">${body}</div>
+    </div>`;
+}
+
 // Подсказки текущего практического задания. Храним их отдельно, чтобы не
 // вставлять произвольный текст прямо в HTML-атрибут onclick.
 let currentPracticeChips = [];
+const usedPracticeChips = new Set();
 
 function renderQuestion() {
     const q = isReviewMode ? errorQuestions[currentQIdx] : shuffledQuestions[currentQIdx];
@@ -2436,6 +2494,8 @@ function renderQuestion() {
     const safeCode = q.code ? esc(q.code) : '';
     const isPractice = q.type === 'practice';
     currentPracticeChips = isPractice && q.chips ? q.chips : [];
+    usedPracticeChips.clear();
+    const enterHint = enterHintText();
 
     let shuffledOpts = [];
     if (!isPractice && q.opts) {
@@ -2462,9 +2522,9 @@ function renderQuestion() {
             <textarea id="practice-input" class="practice-input" rows="4" spellcheck="false"
               autocomplete="off" autocapitalize="off" placeholder="Напиши код..."
               oninput="onPracticeInput(this)"
-              onkeydown="if((event.ctrlKey || event.metaKey) && event.key === 'Enter') actClick()">${esc(q.starter || '')}</textarea>
+              onkeydown="handlePracticeKey(event)">${esc(q.starter || '')}</textarea>
             ${currentPracticeChips.length ? `<div class="practice-chips">${currentPracticeChips.map((c, i) => `<button class="practice-chip" onclick="insertPracticeChip(${i})">${esc(c)}</button>`).join('')}</div>` : ''}
-            <div class="practice-foot">Ctrl + Enter — чтобы проверить</div>
+            ${enterHint ? `<div class="practice-foot">${esc(enterHint)} — чтобы проверить</div>` : ''}
           </div>`
         : `<div class="opts" id="opts-container">
             ${shuffledOpts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${esc(o)}</button>`).join('')}
@@ -2490,6 +2550,7 @@ function renderQuestion() {
     resetUI();
 }
 window.renderQuestion = renderQuestion
+window.handlePracticeKey = handlePracticeKey
 
 function onPracticeInput(inp) {
     const btn = document.getElementById('act-btn');
@@ -2500,7 +2561,7 @@ window.onPracticeInput = onPracticeInput
 function insertPracticeChip(idx) {
     const inp = document.getElementById('practice-input');
     const text = currentPracticeChips[idx];
-    if (!inp || answered || text === undefined) return;
+    if (!inp || answered || text === undefined || usedPracticeChips.has(idx)) return;
     if (typeof inp.setRangeText === 'function') {
         const start = inp.selectionStart === undefined ? inp.value.length : inp.selectionStart;
         const end = inp.selectionEnd === undefined ? start : inp.selectionEnd;
@@ -2510,6 +2571,7 @@ function insertPracticeChip(idx) {
     }
     inp.focus();
     onPracticeInput(inp);
+    usedPracticeChips.add(idx);
     const chip = document.querySelectorAll('.practice-chip')[idx];
     if (chip) chip.classList.add('used');
 }
@@ -2642,7 +2704,7 @@ function checkPracticeAnswer(q) {
 
     act.innerHTML = `
       <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:6px;">❌ Почти!</div>
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Правильный ответ: <span style="color:var(--primary);font-family:monospace;">${esc(q.answer || '')}</span></div>
+      ${codeDiffHtml(inp ? inp.value : '', q.answer || '')}
       <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${esc(q.exp || '')}</div>
       <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
     act.classList.add('show');
@@ -2771,6 +2833,7 @@ function renderTrophyQuestion() {
     const q = trophyQuestions[trophyQIdx];
     trophyAnswered = false;
     trophyTypedAnswer = '';
+    usedTrophyChips.clear();
     updateTrophyHead();
     const area = document.getElementById('trophy-area');
     const safeCode = q.code ? q.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
@@ -2817,7 +2880,8 @@ function onTrophyType(inp) {
 
 function insertChip(text, idx) {
     const inp = document.getElementById('trophy-type-input');
-    if (!inp || trophyAnswered) return;
+    if (!inp || trophyAnswered || usedTrophyChips.has(idx)) return;
+    usedTrophyChips.add(idx);
     inp.value = (inp.value + ' ' + text).trim();
     trophyTypedAnswer = inp.value;
     document.getElementById(`chip-${idx}`).classList.add('used');
@@ -4087,20 +4151,48 @@ function flashWrong(el) {
 
 
 
-// The Android keyboard shrinks only the visual viewport, so bottom-sticky
-// buttons stay hidden behind it. Expose the overlap to CSS as --kb-offset.
+// The mobile keyboard shrinks only the visual viewport. We keep the check
+// button in the normal flow (never floating above the text) and scroll it into
+// view instead, adding space below the content while the keyboard is open.
 function setupKeyboardOffset() {
+    const root = document.documentElement;
     const vv = window.visualViewport;
-    const apply = () => {
+    const sync = () => {
         const overlap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
-        document.documentElement.style.setProperty('--kb-offset', `${Math.round(overlap)}px`);
+        root.style.setProperty('--kb-offset', `${Math.round(overlap)}px`);
+        root.classList.toggle('kb-open', overlap > 80);
+        keepActionVisible();
     };
     if (vv) {
-        vv.addEventListener('resize', apply);
-        vv.addEventListener('scroll', apply);
+        vv.addEventListener('resize', sync);
+        vv.addEventListener('scroll', sync);
     }
-    window.addEventListener('resize', apply);
-    apply();
+    window.addEventListener('resize', sync);
+    document.addEventListener('focusin', (event) => {
+        if (event.target instanceof Element && event.target.matches('input, textarea')) keepActionVisible();
+    });
+    sync();
+}
+
+function keepActionVisible() {
+    const active = document.activeElement;
+    if (!active || !active.matches('input, textarea')) return;
+    const scroller = active.closest('.pageContent, .trophy-content');
+    const button = scroller && scroller.querySelector('.action.show');
+    if (!button) return;
+    requestAnimationFrame(() => {
+        const vv = window.visualViewport;
+        const keyboard = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+        if (!keyboard) {
+            button.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            return;
+        }
+        // The visual viewport shrinks but the layout viewport does not, so
+        // scrollIntoView() alone leaves the button under the keyboard.
+        const visibleBottom = vv.height + vv.offsetTop;
+        const overflow = button.getBoundingClientRect().bottom - (visibleBottom - 16);
+        if (overflow > 0) scroller.scrollTop += overflow;
+    });
 }
 
 // Init on load

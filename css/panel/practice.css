@@ -161,7 +161,8 @@
 .practice-chip.used {
     border-color: var(--primary);
     color: var(--primary);
-    opacity: 0.7;
+    opacity: 0.35;
+    pointer-events: none;
 }
 
 .practice-foot {
