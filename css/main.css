@@ -322,6 +322,37 @@
     pointer-events: none;
 }
 
+/* Answer fields must keep typed code exactly as entered: no auto-capital
+   styling, no native widget look, no browser text-selection handles. */
+input[type='text'],
+textarea,
+.type-input,
+.practice-input {
+    -webkit-appearance: none;
+    appearance: none;
+    text-transform: none;
+    letter-spacing: normal;
+    font-variant: normal;
+    font-feature-settings: normal;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+button,
+.opt,
+.hint-chip,
+.practice-chip,
+.module-card,
+.node,
+.lang-tab,
+.note-card,
+.trophy-question-card,
+.code-diff {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
 /* TYPING QUESTION */
 .type-input-wrap {
     position: relative;

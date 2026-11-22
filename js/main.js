@@ -2424,6 +2424,35 @@ function esc(value) {
         .replace(/"/g, '&quot;');
 }
 
+// Mobile keyboards may capitalize the first typed character, and password
+// managers may inject their own glyphs. Every answer field gets the same
+// explicit attributes so code answers stay exactly as typed.
+function safeInputAttrs(extra = '') {
+    return [
+        'autocomplete="off"',
+        'autocorrect="off"',
+        'autocapitalize="none"',
+        'spellcheck="false"',
+        'inputmode="text"',
+        'data-lpignore="true"',
+        extra,
+    ].filter(Boolean).join(' ');
+}
+
+// Applies the same protection to static fields created in index.html.
+function hardenTextInputs(root = document) {
+    root.querySelectorAll('input[type="text"], textarea').forEach(el => {
+        if (el.dataset.geltInputHardened) return;
+        el.setAttribute('autocomplete', 'off');
+        el.setAttribute('autocorrect', 'off');
+        el.setAttribute('autocapitalize', 'none');
+        el.setAttribute('spellcheck', 'false');
+        el.setAttribute('inputmode', 'text');
+        el.setAttribute('data-lpignore', 'true');
+        el.dataset.geltInputHardened = '1';
+    });
+}
+
 // Keyboard hint follows the device: phones have no hardware Enter key,
 // Apple desktops/tablets use Command, other desktops use Ctrl.
 function enterHintText() {
@@ -2519,8 +2548,8 @@ function renderQuestion() {
     const answerBlock = isPractice
         ? `<div class="practice-card">
             <div class="practice-label">Допиши строку кода</div>
-            <textarea id="practice-input" class="practice-input" rows="4" spellcheck="false"
-              autocomplete="off" autocapitalize="off" placeholder="Напиши код..."
+            <textarea id="practice-input" class="practice-input" rows="4"
+              ${safeInputAttrs()} placeholder="Напиши код..."
               oninput="onPracticeInput(this)"
               onkeydown="handlePracticeKey(event)">${esc(q.starter || '')}</textarea>
             ${currentPracticeChips.length ? `<div class="practice-chips">${currentPracticeChips.map((c, i) => `<button class="practice-chip" onclick="insertPracticeChip(${i})">${esc(c)}</button>`).join('')}</div>` : ''}
@@ -2849,7 +2878,7 @@ function renderTrophyQuestion() {
         <div class="trophy-field-label">Твой ответ</div>
         <div class="type-input-wrap">
           <input type="text" class="type-input" id="trophy-type-input"
-            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            ${safeInputAttrs('enterkeyhint="done"')}
             oninput="onTrophyType(this)"
             onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"/>
         </div>
@@ -4225,6 +4254,7 @@ MODULES = COURSES[currentLang] || MODULES;
 applyLangProgress(currentLang);
 renderModulesList();
 renderIcons();
+hardenTextInputs();
 setupBackButtons();
 setupKeyboardOffset();
 updateTestModeBadge();
