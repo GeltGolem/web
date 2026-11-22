@@ -67,7 +67,7 @@ window.eelib.pages = [
     },
     {
         id: 'lesson',
-        title: 'langmodule',
+        title: '',
         icon: 'img/ui/notebook.svg',
         noLeft: true,
         noBottom: true,

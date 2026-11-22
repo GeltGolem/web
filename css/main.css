@@ -2188,3 +2188,17 @@ body {
 #langmodule .page-header h1 .ui-icon { width: 32px; height: 32px; vertical-align: middle; color: var(--gold); }
 .node .ui-icon { width: 24px; height: 24px; }
 .trophy-node .ui-icon { width: 28px; height: 28px; color: var(--gold); }
+
+/* Урок: убираем системный заголовок eelibs, который ехал рядом со шкалой */
+#lesson .page-header-title-container,
+#lesson .page-header-title-placeholder { display: none !important; }
+
+/* Поле ответа: никаких скрытых подсказок, курсор и текст только为用户 */
+.type-input {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: normal;
+    text-transform: none;
+    caret-color: var(--secondary);
+}
+.type-input::placeholder { color: transparent; }
