@@ -31,6 +31,6 @@
         position: absolute;
         left: var(--ds);
         right: var(--ds);
-        bottom: var(--ds);
+        bottom: calc(var(--ds) + var(--kb-offset, 0px));
     }
 }

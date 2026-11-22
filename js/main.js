@@ -2834,11 +2834,11 @@ function checkTrophyAnswer() {
     const inp = document.getElementById('trophy-type-input');
     const userAns = normalizeAnswer(inp ? inp.value : trophyTypedAnswer);
     const q = trophyQuestions[trophyQIdx];
-    const correct = normalizeAnswer(q.answer);
+    const accepted = [q.answer, ...(q.accept || [])].map(normalizeAnswer);
     trophyAnswered = true;
     const act = document.getElementById('trophy-act-area');
     if (inp) inp.disabled = true;
-    if (userAns === correct) {
+    if (accepted.includes(userAns)) {
         trophyCorrect++;
         xp += 15;
         updateStats();
@@ -2857,7 +2857,7 @@ function checkTrophyAnswer() {
         flashWrong(inp || document.getElementById('trophy-area'));
         act.innerHTML = `
       <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">❌ Ошибка</div>
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Правильный ответ: <span style="color:var(--primary);font-family:monospace;">${q.answer}</span></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Правильный ответ: <span style="color:var(--primary);font-family:monospace;">${[q.answer, ...(q.accept || [])].join(' или ')}</span></div>
       <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${q.exp}</div>
       <button class="btn bad" onclick="nextTrophyQuestion()">ПРОДОЛЖИТЬ</button>`;
     }
@@ -4087,6 +4087,22 @@ function flashWrong(el) {
 
 
 
+// The Android keyboard shrinks only the visual viewport, so bottom-sticky
+// buttons stay hidden behind it. Expose the overlap to CSS as --kb-offset.
+function setupKeyboardOffset() {
+    const vv = window.visualViewport;
+    const apply = () => {
+        const overlap = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+        document.documentElement.style.setProperty('--kb-offset', `${Math.round(overlap)}px`);
+    };
+    if (vv) {
+        vv.addEventListener('resize', apply);
+        vv.addEventListener('scroll', apply);
+    }
+    window.addEventListener('resize', apply);
+    apply();
+}
+
 // Init on load
 loadState();
 
@@ -4096,6 +4112,7 @@ applyLangProgress(currentLang);
 renderModulesList();
 renderIcons();
 setupBackButtons();
+setupKeyboardOffset();
 updateTestModeBadge();
 updateStats();
 const homeTitle = document.querySelector('#home .page-header h1');

@@ -1,4 +1,5 @@
 :root {
+    --kb-offset: 0px;
     --bg: #0F1419;
     --surface: #1A222C;
     --surface-light: #252F3B;
@@ -396,6 +397,7 @@
     position: sticky;
     left: 0;
     right: 0;
+    bottom: var(--kb-offset, 0px);
     padding: 16px;
     display: none;
     z-index: 20;
@@ -634,7 +636,7 @@
 
 #trophy-act-area {
     position: sticky;
-    bottom: 0;
+    bottom: var(--kb-offset, 0px);
     margin: auto -16px -16px;
     padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(180deg, rgba(15, 20, 25, 0), var(--bg) 22%);
@@ -2193,12 +2195,6 @@ body {
 #lesson .page-header-title-container,
 #lesson .page-header-title-placeholder { display: none !important; }
 
-/* Поле ответа: никаких скрытых подсказок, курсор и текст только为用户 */
-.type-input {
-    font-weight: 600;
-    font-size: 15px;
-    letter-spacing: normal;
-    text-transform: none;
-    caret-color: var(--secondary);
-}
-.type-input::placeholder { color: transparent; }
+/* Keyboard: keep the focused input clear of the sticky check button */
+#trophy-type-input,
+#practice-input { scroll-margin-bottom: 180px; }

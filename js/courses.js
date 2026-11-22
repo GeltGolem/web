@@ -14,7 +14,7 @@ const practice = (q, starter, answer, chips, exp, note = '', code = '') => ({
 });
 const L = (title, note, code, q, opts, correct, exp, task) => ({ title, note, code, q, opts, correct, exp, practice: task });
 const P = (q, starter, answer, chips, exp, note = '', code = '') => practice(q, starter, answer, chips, exp, note, code);
-const T = (q, answer, chips, exp, code = '') => ({ type: 'type', q, code, answer, chips, exp });
+const T = (q, answer, chips, exp, code = '', accept = []) => ({ type: 'type', q, code, answer, chips, exp, accept });
 
 function course(modules, intro) {
     return modules.map((m, id) => ({
@@ -196,7 +196,7 @@ export const JS_MODULES = course([
         trophy: [
             T('Ключевое слово цикла со счётчиком.', 'for', ['for', 'while', 'do'], 'for — с известным числом повторов.'),
             T('Команда досрочного выхода.', 'break', ['break', 'continue', 'stop'], 'break завершает цикл.'),
-            T('Условие для 10 повторов с нуля.', 'i < 10', ['i < 10', 'i <= 10', 'i = 10'], '0..9 — десять значений.')
+            T('Условие для 10 повторов с нуля (i начинается с 0).', 'i < 10', ['i < 10', 'i <= 9', 'i <= 10', 'i = 10'], '0..9 — десять значений. Подойдут и i < 10, и i <= 9.', '', ['i <= 9'])
         ]
     },
     {
@@ -904,7 +904,7 @@ export const CPP_MODULES = course([
         trophy: [
             T('Ключевое слово цикла со счётчиком.', 'for', ['for', 'while', 'do'], 'for — с известным числом повторов.'),
             T('Досрочный выход.', 'break', ['break', 'continue', 'stop'], 'break завершает цикл.'),
-            T('Условие для пяти проходов.', 'i < 5', ['i < 5', 'i <= 5', 'i = 5'], 'Значения 0..4.')
+            T('Условие для пяти проходов (i начинается с 0).', 'i < 5', ['i < 5', 'i <= 4', 'i <= 5', 'i = 5'], '0..4 — пять значений. Подойдут и i < 5, и i <= 4.', '', ['i <= 4'])
         ]
     },
     {
