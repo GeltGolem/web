@@ -4180,7 +4180,7 @@ function keepActionVisible() {
     const scroller = active.closest('.pageContent, .trophy-content');
     const button = scroller && scroller.querySelector('.action.show');
     if (!button) return;
-    requestAnimationFrame(() => {
+    const scrollIntoPlace = () => {
         const vv = window.visualViewport;
         const keyboard = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
         if (!keyboard) {
@@ -4189,10 +4189,13 @@ function keepActionVisible() {
         }
         // The visual viewport shrinks but the layout viewport does not, so
         // scrollIntoView() alone leaves the button under the keyboard.
-        const visibleBottom = vv.height + vv.offsetTop;
-        const overflow = button.getBoundingClientRect().bottom - (visibleBottom - 16);
+        const visibleBottom = vv.height + vv.offsetTop - 24;
+        const overflow = button.getBoundingClientRect().bottom - visibleBottom;
         if (overflow > 0) scroller.scrollTop += overflow;
-    });
+    };
+    // Run twice: fonts and the screen transition can change heights a frame later.
+    scrollIntoPlace();
+    requestAnimationFrame(scrollIntoPlace);
 }
 
 // Init on load
