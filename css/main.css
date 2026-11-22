@@ -322,6 +322,23 @@
     pointer-events: none;
 }
 
+/* Answer controls always have a flat dark fill: no decorative background
+   images, no repeating glyphs, no tiled patterns. */
+input,
+textarea,
+select,
+.type-input,
+.practice-input,
+.type-input-wrap,
+.practice-card,
+.trophy-question-card,
+.trophy-field,
+.code-diff,
+.opt {
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+}
+
 /* Answer fields must keep typed code exactly as entered: no auto-capital
    styling, no native widget look, no browser text-selection handles. */
 input[type='text'],
