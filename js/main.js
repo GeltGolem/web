@@ -4180,7 +4180,8 @@ function keepActionVisible() {
     const scroller = active.closest('.pageContent, .trophy-content');
     const button = scroller && scroller.querySelector('.action.show');
     if (!button) return;
-    const scrollIntoPlace = () => {
+    let attempts = 0;
+    const tick = () => {
         const vv = window.visualViewport;
         const keyboard = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
         if (!keyboard) {
@@ -4192,10 +4193,10 @@ function keepActionVisible() {
         const visibleBottom = vv.height + vv.offsetTop - 24;
         const overflow = button.getBoundingClientRect().bottom - visibleBottom;
         if (overflow > 0) scroller.scrollTop += overflow;
+        // Keyboard padding and fonts settle over a few frames.
+        if (++attempts < 6) setTimeout(tick, 80);
     };
-    // Run twice: fonts and the screen transition can change heights a frame later.
-    scrollIntoPlace();
-    requestAnimationFrame(scrollIntoPlace);
+    tick();
 }
 
 // Init on load
