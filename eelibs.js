@@ -75,6 +75,15 @@ window.eelib.pages = [
         leftBtn: 'back',
     },
     {
+        id: 'scr-trophy',
+        title: 'Финальный тест',
+        icon: 'img/ui/notebook.svg',
+        noLeft: true,
+        noBottom: true,
+        noNav: true,
+        leftBtn: 'back',
+    },
+    {
         id: 'splash',
         title: 'splashscreen',
         icon: 'img/ui/home.svg',

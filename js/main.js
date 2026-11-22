@@ -1,3 +1,5 @@
+import { JS_MODULES, PY_MODULES, CS_MODULES, CPP_MODULES } from './courses.js';
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let xp = 0;
 let hearts = 3;
@@ -21,6 +23,8 @@ let answered = false;
 let errorQuestions = []; // questions answered wrongly, shown at end
 let isReviewMode = false; // true when replaying error questions
 let reviewRound = 0; // how many review rounds have happened
+let isIntroLesson = false; // подготовительный урок для полных новичков
+let introDone = false;
 
 // perfectLessons[moduleIdx][lessonIdx] = true if completed with 0 errors ever
 let perfectLessons = [
@@ -61,6 +65,10 @@ function saveState() {
             charState: { body: charState.body, outfit: charState.outfit, mask: charState.mask, bg: charState.bg },
             unlockedSecrets: [...unlockedSecrets],
             profileData,
+            level: profileData.level || 'some',
+            lang: currentLang,
+            introDone,
+            progressByLang: serializeProgress(),
             emperorMode: _emperorMode,
             avatarPhoto: _avaImg ? (() => { try { const c = document.getElementById('ava-upload-canvas'); return c ? c.toDataURL('image/jpeg', 0.85) : null; } catch (e) { return null; } })() : null,
         };
@@ -114,6 +122,15 @@ function loadState() {
         }
         if (d.unlockedSecrets) unlockedSecrets = new Set(d.unlockedSecrets);
         if (d.profileData) profileData = Object.assign(profileData, d.profileData);
+        if (d.level) profileData.level = d.level;
+        if (d.introDone !== undefined) introDone = !!d.introDone;
+        if (d.lang && COURSES[d.lang]) {
+            currentLang = d.lang;
+            MODULES = COURSES[d.lang];
+        }
+        if (d.progressByLang) hydrateProgress(d.progressByLang);
+        else PROGRESS_BY_LANG.pascal = snapshotProgress();
+        applyLangProgress(currentLang);
         // Re-register username in registry (in case of first load on new device)
         if (profileData.username) {
             try {
@@ -616,6 +633,15 @@ let profileData = {
     name: '', username: '', bio: '',
     bannerId: 'blue', patternId: 'none',
     equippedTitleId: null,
+    level: 'some', // zero | some | good — выбирается при регистрации
+    lang: 'pascal',
+};
+
+// ─── УРОВНИ ПОДГОТОВКИ ────────────────────────────────────────────────────────
+const LEVELS = {
+    zero: { icon: '🌱', title: 'С нуля', desc: 'Ничего не знаю — объясняй по шагам', color: '#58CC02' },
+    some: { icon: '📘', title: 'Чуток знаю', desc: 'Слышал про код, но не писал', color: '#1CB0F6' },
+    good: { icon: '⚡', title: 'Шарю', desc: 'Уже писал код и хочу сложнее', color: '#FFC800' },
 };
 
 // ─── CHARACTER SVG BUILDER (Duolingo-style) ────────────────────────────────────
@@ -1219,22 +1245,43 @@ function renderCharSVG(svgEl, bodyIdx, outfitIdx, maskIdx, bgIdx) {
 }
 
 // ─── MODULES & LESSONS DATA ──────────────────────────────────────────────────
-const MODULES = [
+let MODULES = [
     {
         id: 0, title: 'Основы Pascal', icon: '📘', color: '#58CC02', colorDark: '#46A302',
         desc: 'Вывод, переменные, ввод и операторы',
         xpReward: 50, rewardOutfitIdx: -1,
+        // Показывается только тем, кто выбрал уровень «С нуля»
+        introLesson: {
+            title: 'Подготовка: данные и база данных',
+            questions: [
+                { q: 'Что такое данные?', opts: ['Любые сведения, которые можно записать', 'Только цифры', 'Только картинки'], correct: 0, exp: 'Данные — это факты: числа, текст, даты, картинки. Компьютер с ними работает.', note: 'Представь тетрадь: всё, что ты в неё записал, — это данные.' },
+                { q: 'Что такое база данных?', opts: ['Упорядоченное хранилище данных', 'Программа для рисования', 'Скорость интернета'], correct: 0, exp: 'База данных хранит данные так, чтобы их быстро находить, добавлять и менять.', note: 'База данных — как аккуратная картотека: не куча бумаг, а полки с указателями.' },
+                { q: 'Зачем программе база данных?', opts: ['Чтобы сохранять и находить информацию', 'Чтобы ускорить экран', 'Чтобы рисовать героя'], correct: 0, exp: 'База данных помогает не потерять информацию между запусками программы.', note: 'Когда ты выходишь из игры и возвращаешься, прогресс сохраняется именно в хранилище.' }
+            ]
+        },
         lessons: [
             {
                 title: 'Вывод данных',
                 questions: [
-                    { q: 'Какая команда выводит текст в Pascal?', opts: ['writeln(\'Hi\')', 'print(\'Hi\')', 'echo \'Hi\''], correct: 0, exp: 'writeln — стандартный вывод с переходом на новую строку.' },
-                    { q: 'Как вывести текст БЕЗ перевода строки?', opts: ['write(\'A\')', 'writeln(\'A\')', 'print(\'A\')'], correct: 0, exp: 'write не добавляет перенос строки в конце.' },
-                    { q: 'Что выведет writeln(2+3)?', opts: ['2+3', '5', 'Ошибка'], correct: 1, exp: 'Выражение вычисляется, потом выводится результат.' },
-                    { q: 'Как вывести переменную x?', code: 'var x: integer;', opts: ['writeln(x)', 'writeln(\'x\')', 'write x'], correct: 0, exp: 'Без кавычек выводится значение переменной.' },
-                    { q: 'Какой символ используется для строк в Pascal?', opts: ["Одинарная кавычка '", 'Двойная кавычка "', 'Обратный слеш \\'], correct: 0, exp: "В Pascal строки в одинарных кавычках: 'Hello'." },
-                    { q: 'Что делает readln?', opts: ['Читает ввод с клавиатуры', 'Выводит текст', 'Очищает экран'], correct: 0, exp: 'readln ждёт ввода от пользователя и нажатия Enter.' },
-                ]
+                    { q: 'Какая команда выводит текст в Pascal?', opts: ['writeln(\'Hi\')', 'print(\'Hi\')', 'echo \'Hi\''], correct: 0, exp: 'writeln — стандартный вывод с переходом на новую строку.', note: 'writeln читается как «райт-лайн»: записать строку и перейти на новую.' },
+                    { q: 'Как вывести текст БЕЗ перевода строки?', opts: ['write(\'A\')', 'writeln(\'A\')', 'print(\'A\')'], correct: 0, exp: 'write не добавляет перенос строки в конце.', note: 'write и writeln — почти близнецы. У write нет слова line, значит и перехода строки нет.' },
+                    { q: 'Что выведет writeln(2+3)?', opts: ['2+3', '5', 'Ошибка'], correct: 1, exp: 'Выражение вычисляется, потом выводится результат.', note: 'Компьютер сначала считает 2+3, а потом показывает ответ.' },
+                    { q: 'Как вывести переменную x?', code: 'var x: integer;', opts: ['writeln(x)', 'writeln(\'x\')', 'write x'], correct: 0, exp: 'Без кавычек выводится значение переменной.', note: 'Кавычки превращают x в обычный текст. Без кавычек — это имя коробки со значением.' },
+                    { q: 'Какой символ используется для строк в Pascal?', opts: ["Одинарная кавычка '", 'Двойная кавычка "', 'Обратный слеш \\'], correct: 0, exp: "В Pascal строки в одинарных кавычках: 'Hello'.", note: 'В Pascal строки пишутся в одинарных кавычках, в JavaScript — чаще в двойных.' },
+                    { q: 'Что делает readln?', opts: ['Читает ввод с клавиатуры', 'Выводит текст', 'Очищает экран'], correct: 0, exp: 'readln ждёт ввода от пользователя и нажатия Enter.', note: 'readln — наоборот: не показывает, а получает данные от человека.' },
+                ],
+                // Дополнительная практика для тех, кто выбрал уровень «Шарю»
+                practice: {
+                    type: 'practice',
+                    q: 'Допиши команду, которая выведет сообщение «Готово!»',
+                    note: 'В Pascal команда вывода заканчивается точкой с запятой, а строка — одинарными кавычками.',
+                    code: "begin\n  ________\nend.",
+                    starter: '',
+                    answer: "writeln('Готово!');",
+                    caseSensitive: false, // Pascal не различает регистр ключевых слов
+                    chips: ['writeln', "'Готово!'", ';'],
+                    exp: 'writeln выводит строку и переводит курсор на новую строку.'
+                }
             },
             {
                 title: 'Переменные и типы',
@@ -1389,6 +1436,7 @@ const MODULES = [
                     { q: 'Как проверить на нечётность?', opts: ['x mod 2 <> 0', 'x mod 2 = 1 or x mod 2 = -1', 'odd(x)'], correct: 2, exp: 'odd(x) возвращает true если x нечётное — стандартная функция.' },
                     { q: 'Что вернёт (5 > 3) and (2 < 1)?', opts: ['false', 'true', 'Ошибка типов'], correct: 0, exp: '5 > 3 = true, 2 < 1 = false. true and false = false.' },
                     { q: 'Как корректно написать abs(-7) > 5?', code: '', opts: ['if abs(-7) > 5 then', 'if -7 > 5 then', 'if |−7| > 5 then'], correct: 0, exp: 'abs(-7) = 7, 7 > 5 = true. Всё верно.' },
+                    { type: 'practice', q: 'Допиши условие: вывести «Да», если x положительное.', note: 'Условие пишется в круглых скобках после if. В Pascal сравнение — один знак =.', code: 'if (____) then writeln(\'Да\');', starter: '', answer: 'if (x > 0) then writeln(\'Да\');', caseSensitive: false, chips: ['x > 0', 'if', 'then'], exp: 'x > 0 — истина для положительных чисел.' },
                 ]
             },
             {
@@ -1554,6 +1602,7 @@ const MODULES = [
                     { q: 'Какой цикл лучше для: «повторять пока пользователь не введёт правильный пароль»?', opts: ['repeat...until', 'for', 'while c заранее известным числом'], correct: 0, exp: 'repeat: спрашиваем минимум 1 раз, продолжаем пока пароль неверный.' },
                     { q: 'Что выведет?', code: 'i := 1;\nwhile i <= 10 do begin\n  if i = 5 then break;\n  i := i + 1;\nend;\nwriteln(i);', opts: ['5', '10', '6'], correct: 0, exp: 'Цикл прерывается при i=5, writeln выведет 5.' },
                     { q: 'Как вывести числа Фибоначчи до 100?', opts: ['a:=1; b:=1; while a<=100 do begin write(a); c:=a+b; a:=b; b:=c; end', 'for i:=1 to 100', 'Только рекурсией'], correct: 0, exp: 'Итеративно: держим два последних числа и суммируем их.' },
+                    { type: 'practice', q: 'Допиши заголовок цикла от 1 до 10.', note: 'for — цикл с известным числом повторов. После to указывается конечное значение включительно.', code: '____ i := 1 to 10 do writeln(i);', starter: '', answer: 'for i := 1 to 10 do writeln(i);', caseSensitive: false, chips: ['for', 'to', 'do'], exp: 'for i := 1 to 10 — десять проходов, i принимает значения 1..10.' },
                 ]
             },
         ],
@@ -1658,6 +1707,7 @@ const MODULES = [
                     { q: 'Что выведет?', code: 'a[1]:=3; a[2]:=1; a[3]:=2;\nwriteln(a[2]);', opts: ['1', '3', '2'], correct: 0, exp: 'a[2] = 1.' },
                     { q: 'Как посчитать сумму элементов массива?', opts: ['sum:=0; for i:=1 to n do sum:=sum+a[i]', 'sum(a)', 'add_all(a)'], correct: 0, exp: 'Классика: инициализация нулём + накопление в цикле.' },
                     { q: 'Как найти количество отрицательных элементов?', opts: ['cnt:=0; for i:=1 to n do if a[i]<0 then cnt:=cnt+1', 'negCount(a)', 'Отсортировать и посчитать'], correct: 0, exp: 'Счётчик + условие a[i] < 0.' },
+                    { type: 'practice', q: 'Присвой третьему элементу массива a значение 7.', note: 'Индекс в квадратных скобках, присваивание — :=.', code: 'var a: array[1..10] of integer;\nbegin\n  ________\nend.', starter: '', answer: 'a[3] := 7;', caseSensitive: false, chips: ['a[3]', ':=', '7', ';'], exp: 'a[3] — третий элемент массива с индексацией от 1.' },
                 ]
             },
             {
@@ -1772,6 +1822,7 @@ const MODULES = [
                     { q: 'Что выведет?', code: 'procedure Hello(n: integer);\nbegin\n  for i:=1 to n do writeln(\'Hi\');\nend;\nHello(3);', opts: ['Hi Hi Hi', 'Hi', 'Ошибка'], correct: 0, exp: 'Процедура вызывается с n=3, выводит Hi три раза.' },
                     { q: 'Зачем разбивать программу на процедуры?', opts: ['Читаемость, повторное использование, легче отлаживать', 'Только для ускорения', 'Обязательно по правилам Pascal'], correct: 0, exp: 'Структурное программирование: каждая процедура — одна задача.' },
                     { q: 'Можно ли из функции вызвать procedure?', opts: ['Да', 'Нет', 'Только если void'], correct: 0, exp: 'Функции и процедуры могут вызывать любые другие подпрограммы.' },
+                    { type: 'practice', q: 'В функции Sum верни сумму a и b через имя функции.', note: 'В Pascal результат функции возвращается присваиванием её имени, а не словом return.', code: 'function Sum(a, b: integer): integer;\nbegin\n  ________\nend;', starter: '', answer: 'Sum := a + b;', caseSensitive: false, chips: ['Sum', ':=', 'a + b', ';'], exp: 'Имя функции в левой части присваивания — так Pascal возвращает результат.' },
                 ]
             },
             {
@@ -1795,6 +1846,128 @@ const MODULES = [
     },
 ];
 
+// ─── КУРСЫ И ПРОГРЕСС ПО ЯЗЫКАМ ───────────────────────────────────────────────
+// Pascal остаётся курсом по умолчанию, но вкладки вверху теперь переключают
+// реальные программы. Прогресс хранится отдельно для каждого языка.
+const COURSES = {
+    pascal: MODULES,
+    javascript: JS_MODULES,
+    python: PY_MODULES,
+    csharp: CS_MODULES,
+    cpp: CPP_MODULES,
+};
+
+const COURSE_LABELS = {
+    pascal: 'Pascal',
+    javascript: 'JavaScript',
+    python: 'Python',
+    csharp: 'C#',
+    cpp: 'C++',
+};
+
+const SUBCATEGORY_TO_LANG = {
+    'pascal': 'pascal',
+    'javascript': 'javascript',
+    'js': 'javascript',
+    'python': 'python',
+    'c#': 'csharp',
+    'csharp': 'csharp',
+    'c++': 'cpp',
+    'cpp': 'cpp',
+};
+
+let currentLang = 'pascal';
+
+function normalizeLangKey(text) {
+    return SUBCATEGORY_TO_LANG[String(text).trim().toLowerCase()] || 'pascal';
+}
+
+function makeEmptyProgress(course) {
+    return {
+        lessonCompleted: course.map(m => Array(m.lessons.length).fill(false)),
+        trophyTestDone: course.map(() => false),
+        perfectLessons: course.map(m => Array(m.lessons.length).fill(false)),
+        perfectTests: course.map(() => false),
+    };
+}
+
+function snapshotProgress() {
+    return {
+        lessonCompleted: lessonCompleted.map(row => [...row]),
+        trophyTestDone: [...trophyTestDone],
+        perfectLessons: perfectLessons.map(row => [...row]),
+        perfectTests: [...perfectTests],
+    };
+}
+
+function normalizeMatrix(saved, sizes) {
+    return sizes.map((n, i) => Array.from({ length: n }, (_, j) => !!(saved && saved[i] && saved[i][j])));
+}
+
+function normalizeFlags(saved, n) {
+    return Array.from({ length: n }, (_, i) => !!(saved && saved[i]));
+}
+
+function hydrateProgress(saved) {
+    Object.keys(COURSES).forEach(lang => {
+        const p = saved[lang];
+        if (!p) return;
+        const course = COURSES[lang];
+        PROGRESS_BY_LANG[lang] = {
+            lessonCompleted: normalizeMatrix(p.lessonCompleted, course.map(m => m.lessons.length)),
+            trophyTestDone: normalizeFlags(p.trophyTestDone, course.length),
+            perfectLessons: normalizeMatrix(p.perfectLessons, course.map(m => m.lessons.length)),
+            perfectTests: normalizeFlags(p.perfectTests, course.length),
+        };
+    });
+}
+
+const PROGRESS_BY_LANG = {};
+Object.keys(COURSES).forEach(lang => {
+    PROGRESS_BY_LANG[lang] = makeEmptyProgress(COURSES[lang]);
+});
+
+function serializeProgress() {
+    PROGRESS_BY_LANG[currentLang] = snapshotProgress();
+    const out = {};
+    Object.keys(PROGRESS_BY_LANG).forEach(lang => {
+        out[lang] = PROGRESS_BY_LANG[lang];
+    });
+    return out;
+}
+
+function applyLangProgress(lang) {
+    const p = PROGRESS_BY_LANG[lang] || makeEmptyProgress(COURSES[lang]);
+    lessonCompleted = p.lessonCompleted;
+    trophyTestDone = p.trophyTestDone;
+    perfectLessons = p.perfectLessons;
+    perfectTests = p.perfectTests;
+}
+
+function switchLang(lang) {
+    if (!COURSES[lang]) return;
+    PROGRESS_BY_LANG[currentLang] = snapshotProgress();
+    currentLang = lang;
+    MODULES = COURSES[lang];
+    profileData.lang = lang;
+    applyLangProgress(lang);
+    if (currentModuleIdx >= MODULES.length) currentModuleIdx = 0;
+    saveState();
+    renderModulesList();
+    updateStats();
+    const h1 = document.querySelector('#home .page-header h1');
+    if (h1) h1.textContent = COURSE_LABELS[lang] || lang;
+    const h3 = document.querySelector('#home .page-header h3');
+    if (h3) h3.textContent = `${trophyTestDone.filter(Boolean).length} из ${MODULES.length} модулей пройдено`;
+    document.querySelectorAll('#home .page-header-btns .btnsList button').forEach(btn => {
+        btn.classList.toggle('active', normalizeLangKey(btn.textContent) === lang);
+    });
+}
+window.switchLang = switchLang
+window.changeCourse = switchLang
+window.getCourseLang = () => currentLang
+window.normalizeLangKey = normalizeLangKey
+
 // Build flat lessonsData for current module
 function getLessonsForModule(mIdx) {
     return MODULES[mIdx].lessons;
@@ -1805,12 +1978,12 @@ function getLessonsForModule(mIdx) {
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
 const ACHIEVEMENTS = {
     modules: [
-        { id: 'mod0_done', icon: '📘', name: 'Новичок-паскальщик', desc: 'Пройди модуль 1', check: () => MODULES[0].lessons.every((_, i) => lessonCompleted[0][i]) && trophyTestDone[0] },
-        { id: 'mod1_done', icon: '🔀', name: 'Логик', desc: 'Пройди модуль 2', check: () => MODULES[1].lessons.every((_, i) => lessonCompleted[1][i]) && trophyTestDone[1] },
-        { id: 'mod2_done', icon: '🔁', name: 'Циклопед', desc: 'Пройди модуль 3', check: () => MODULES[2].lessons.every((_, i) => lessonCompleted[2][i]) && trophyTestDone[2] },
-        { id: 'mod3_done', icon: '📦', name: 'Архивариус', desc: 'Пройди модуль 4', check: () => MODULES[3].lessons.every((_, i) => lessonCompleted[3][i]) && trophyTestDone[3] },
-        { id: 'mod4_done', icon: '⚙️', name: 'Программист', desc: 'Пройди модуль 5', check: () => MODULES[4].lessons.every((_, i) => lessonCompleted[4][i]) && trophyTestDone[4] },
-        { id: 'all_modules', icon: '🌟', name: 'Мастер Pascal', desc: 'Пройди все 5 модулей', check: () => MODULES.every((m, mi) => m.lessons.every((_, i) => lessonCompleted[mi][i]) && trophyTestDone[mi]) },
+        { id: 'mod0_done', icon: '📘', name: 'Новичок-паскальщик', desc: 'Пройди модуль 1', check: () => !!MODULES[0] && MODULES[0].lessons.every((_, i) => lessonCompleted[0][i]) && trophyTestDone[0] },
+        { id: 'mod1_done', icon: '🔀', name: 'Логик', desc: 'Пройди модуль 2', check: () => !!MODULES[1] && MODULES[1].lessons.every((_, i) => lessonCompleted[1][i]) && trophyTestDone[1] },
+        { id: 'mod2_done', icon: '🔁', name: 'Циклопед', desc: 'Пройди модуль 3', check: () => !!MODULES[2] && MODULES[2].lessons.every((_, i) => lessonCompleted[2][i]) && trophyTestDone[2] },
+        { id: 'mod3_done', icon: '📦', name: 'Архивариус', desc: 'Пройди модуль 4', check: () => !!MODULES[3] && MODULES[3].lessons.every((_, i) => lessonCompleted[3][i]) && trophyTestDone[3] },
+        { id: 'mod4_done', icon: '⚙️', name: 'Программист', desc: 'Пройди модуль 5', check: () => !!MODULES[4] && MODULES[4].lessons.every((_, i) => lessonCompleted[4][i]) && trophyTestDone[4] },
+        { id: 'all_modules', icon: '🌟', name: 'Мастер Pascal', desc: 'Пройди все модули курса', check: () => MODULES.length > 0 && MODULES.every((m, mi) => m.lessons.every((_, i) => lessonCompleted[mi][i]) && trophyTestDone[mi]) },
     ],
     xp: [
         { id: 'xp50', icon: '⚡', name: 'Первый разряд', desc: '50 XP', check: () => xp >= 50 },
@@ -1998,8 +2171,10 @@ function openModule(mi) {
 window.openModule = openModule
 
 function backToModules() {
-    document.getElementById('module-path-view').style.display = 'none';
-    document.getElementById('modules-list-view').style.display = 'block';
+    const pathView = document.getElementById('module-path-view');
+    const listView = document.getElementById('modules-list-view');
+    if (pathView) pathView.style.display = 'none';
+    if (listView) listView.style.display = 'block';
     renderModulesList();
 }
 
@@ -2007,6 +2182,13 @@ function renderPath() {
     const container = document.getElementById('path-container');
     const m = MODULES[currentModuleIdx];
     let html = '';
+    // Подготовительный урок получают только полные новички
+    if (currentModuleIdx === 0 && profileData.level === 'zero' && m.introLesson) {
+        html += `<div class="node-wrap">
+      <div class="node ${introDone ? 'done' : 'active'}" onclick="startIntroLesson()">${introDone ? '⭐' : '🌱'}</div>
+      <div class="lesson-label">Подготовительный урок</div>
+    </div>`;
+    }
     m.lessons.forEach((lesson, i) => {
         const done = lessonCompleted[currentModuleIdx][i];
         const perfect = perfectLessons[currentModuleIdx][i];
@@ -2027,11 +2209,25 @@ function renderPath() {
     container.innerHTML = html;
 }
 
+// Старые имена экранов из игровой логики совпадают не со всеми id страниц.
+// Небольшая карта сохраняет совместимость, не переписывая навигацию.
+const SCREEN_TO_PAGE = {
+    'scr-home': 'home',
+    'scr-profile': 'profile',
+    'scr-league': 'league',
+    'scr-ach': 'achivements',
+    'scr-lb': 'leaderboard',
+    'scr-trophy': 'scr-trophy',
+};
+
+function setNavVisible(visible) {
+    const navEl = document.querySelector('.nav') || document.getElementById('nav');
+    if (navEl) navEl.style.display = visible ? 'flex' : 'none';
+}
+
 function showScreen(id) {
-    window.changePage(id)
-    return
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const pageId = SCREEN_TO_PAGE[id] || id;
+    if (document.getElementById(pageId)) window.changePage(pageId);
     if (id === 'scr-home') { renderModulesList(); updateStats(); }
 }
 
@@ -2079,8 +2275,20 @@ function startLesson(idx) {
     isReviewMode = false;
     reviewRound = 0;
     answered = false;
+    isIntroLesson = false;
     updateStats();
-    shuffledQuestions = shuffle(MODULES[currentModuleIdx].lessons[idx].questions);
+    const lesson = MODULES[currentModuleIdx].lessons[idx];
+    const baseQuestions = shuffle([...lesson.questions]);
+    // Практическое задание есть в каждом уроке; «Шарю» получает его первым
+    if (lesson.practice) {
+        if (currentModuleIdx === 0 && idx === 0 && profileData.level === 'good') {
+            shuffledQuestions = [lesson.practice, ...baseQuestions];
+        } else {
+            shuffledQuestions = [...baseQuestions, lesson.practice];
+        }
+    } else {
+        shuffledQuestions = baseQuestions;
+    }
     if (!document.querySelector('#lesson .page-header-btns .lefthead .progress-track')) {
         document.querySelector('#lesson .page-header-btns .lefthead').innerHTML = `
             <div class="progress-track">
@@ -2095,8 +2303,36 @@ function startLesson(idx) {
 }
 window.startLesson = startLesson
 
+function startIntroLesson() {
+    const intro = MODULES[currentModuleIdx] && MODULES[currentModuleIdx].introLesson;
+    if (!intro) return;
+    currentLessonIdx = -1;
+    currentQIdx = 0;
+    hearts = 3;
+    lessonErrors = 0;
+    errorQuestions = [];
+    isReviewMode = false;
+    reviewRound = 0;
+    answered = false;
+    isIntroLesson = true;
+    updateStats();
+    // Подготовку не перемешиваем: сначала «данные», потом «база данных», затем «зачем»
+    shuffledQuestions = [...intro.questions];
+    if (!document.querySelector('#lesson .page-header-btns .lefthead .progress-track')) {
+        document.querySelector('#lesson .page-header-btns .lefthead').innerHTML = `
+            <div class="progress-track">
+                <div class="progress-fill" id="prog" style="width: 0%;"></div>
+            </div>
+            <div class="hearts-lesson">❤️ <span id="h-lesson">3</span></div>
+        `
+    }
+    window.changePage('lesson', 'intro')
+    renderQuestion()
+}
+window.startIntroLesson = startIntroLesson
+
 function closeLesson() {
-    document.querySelector('.nav').style.display = 'flex';
+    setNavVisible(true);
     showScreen('scr-home');
     openModule(currentModuleIdx);
     navActive(document.getElementById('nav-home'));
@@ -2112,26 +2348,61 @@ function resetUI() {
 
 let currentShuffledCorrect = 0;
 
+// Экранируем строки, которые попадают в innerHTML
+function esc(value) {
+    return String(value === undefined || value === null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// Подсказки текущего практического задания. Храним их отдельно, чтобы не
+// вставлять произвольный текст прямо в HTML-атрибут onclick.
+let currentPracticeChips = [];
+
 function renderQuestion() {
     const q = isReviewMode ? errorQuestions[currentQIdx] : shuffledQuestions[currentQIdx];
     const total = isReviewMode ? errorQuestions.length : shuffledQuestions.length;
     const area = document.getElementById('q-area');
-    document.getElementById('prog').style.width = `${(currentQIdx / total) * 100}%`;
-    const safeCode = q.code ? q.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-    const m = MODULES[currentModuleIdx];
+    const prog = document.getElementById('prog');
+    if (prog) prog.style.width = `${(currentQIdx / total) * 100}%`;
+    const safeCode = q.code ? esc(q.code) : '';
+    const isPractice = q.type === 'practice';
+    currentPracticeChips = isPractice && q.chips ? q.chips : [];
 
-    // Shuffle the answer options and track new correct index
-    const indices = q.opts.map((_, i) => i);
-    for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
+    let shuffledOpts = [];
+    if (!isPractice && q.opts) {
+        const indices = q.opts.map((_, i) => i);
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        shuffledOpts = indices.map(i => q.opts[i]);
+        currentShuffledCorrect = indices.indexOf(q.correct);
     }
-    const shuffledOpts = indices.map(i => q.opts[i]);
-    currentShuffledCorrect = indices.indexOf(q.correct);
 
     const reviewBanner = isReviewMode
-        ? `<div style="background:rgba(255,75,75,0.12);border:1.5px solid var(--danger);border-radius:12px;padding:8px 14px;margin-bottom:14px;font-size:13px;font-weight:800;color:var(--danger);">🔁 Исправь ошибку! ${currentQIdx + 1} из ${total}</div>`
+        ? `<div class="review-banner">🔁 Исправь ошибку! ${currentQIdx + 1} из ${total}</div>`
         : '';
+
+    const noteBlock = q.note
+        ? `<div class="note-card"><span class="note-icon">💡</span><div><strong>Подсказка</strong><br>${esc(q.note)}</div></div>`
+        : '';
+
+    const answerBlock = isPractice
+        ? `<div class="practice-card">
+            <div class="practice-label">Допиши строку кода</div>
+            <textarea id="practice-input" class="practice-input" rows="4" spellcheck="false"
+              autocomplete="off" autocapitalize="off" placeholder="Напиши код..."
+              oninput="onPracticeInput(this)"
+              onkeydown="if((event.ctrlKey || event.metaKey) && event.key === 'Enter') actClick()">${esc(q.starter || '')}</textarea>
+            ${currentPracticeChips.length ? `<div class="practice-chips">${currentPracticeChips.map((c, i) => `<button class="practice-chip" onclick="insertPracticeChip(${i})">${esc(c)}</button>`).join('')}</div>` : ''}
+            <div class="practice-foot">Ctrl + Enter — чтобы проверить</div>
+          </div>`
+        : `<div class="opts" id="opts-container">
+            ${shuffledOpts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${esc(o)}</button>`).join('')}
+          </div>`;
 
     area.innerHTML = `
     ${reviewBanner}
@@ -2143,17 +2414,40 @@ function renderQuestion() {
         <path d="M28 38 Q32 42 36 38" stroke="#00E5FF" stroke-width="3" fill="none"/>
         <circle cx="52" cy="18" r="4" fill="#FFC800" opacity="0.8"/>
       </svg>
-      <div class="bubble">${isReviewMode ? '🔁 Исправь ошибки!' : `Вопрос ${currentQIdx + 1} из ${total}`}</div>
+      <div class="bubble">${isReviewMode ? '🔁 Исправь ошибки!' : isIntroLesson ? '🌱 Подготовка' : `Вопрос ${currentQIdx + 1} из ${total}`}</div>
     </div>
-    <div class="q-title">${q.q}</div>
+    <div class="q-title">${esc(q.q)}</div>
+    ${noteBlock}
     ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
-    <div class="opts" id="opts-container">
-      ${shuffledOpts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${o}</button>`).join('')}
-    </div>
+    ${answerBlock}
   `;
     resetUI();
 }
 window.renderQuestion = renderQuestion
+
+function onPracticeInput(inp) {
+    const btn = document.getElementById('act-btn');
+    if (btn) btn.disabled = inp.value.trim().length === 0;
+}
+window.onPracticeInput = onPracticeInput
+
+function insertPracticeChip(idx) {
+    const inp = document.getElementById('practice-input');
+    const text = currentPracticeChips[idx];
+    if (!inp || answered || text === undefined) return;
+    if (typeof inp.setRangeText === 'function') {
+        const start = inp.selectionStart === undefined ? inp.value.length : inp.selectionStart;
+        const end = inp.selectionEnd === undefined ? start : inp.selectionEnd;
+        inp.setRangeText(text, start, end, 'end');
+    } else {
+        inp.value = inp.value + ' ' + text;
+    }
+    inp.focus();
+    onPracticeInput(inp);
+    const chip = document.querySelectorAll('.practice-chip')[idx];
+    if (chip) chip.classList.add('used');
+}
+window.insertPracticeChip = insertPracticeChip
 
 function selectOption(idx) {
     if (answered) return;
@@ -2164,9 +2458,11 @@ function selectOption(idx) {
 window.selectOption = selectOption
 
 function checkAnswer() {
-    if (answered || selectedOption === null) return;
-    answered = true;
+    if (answered) return;
     const q = isReviewMode ? errorQuestions[currentQIdx] : shuffledQuestions[currentQIdx];
+    if (q.type === 'practice') { checkPracticeAnswer(q); return; }
+    if (selectedOption === null) return;
+    answered = true;
     const btns = document.querySelectorAll('.opt');
     const act = document.getElementById('act-area');
     document.getElementById('opts-container').classList.add('answered');
@@ -2205,7 +2501,7 @@ function checkAnswer() {
             act.innerHTML = `
         <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">💔 Нет сердец!</div>
         <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;">Урок начнётся заново.</div>
-        <button class="btn bad" onclick="startLesson(${currentLessonIdx})">НАЧАТЬ ЗАНОВО</button>`;
+        <button class="btn bad" onclick="${isIntroLesson ? 'startIntroLesson()' : `startLesson(${currentLessonIdx})`}">НАЧАТЬ ЗАНОВО</button>`;
             act.classList.add('show');
             return;
         }
@@ -2214,6 +2510,75 @@ function checkAnswer() {
       <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;line-height:1.4;">💡 ${q.exp}</div>
       <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
     }
+    act.classList.add('show');
+}
+
+function normalizePracticeCode(s, caseSensitive) {
+    let out = String(s).replace(/\r/g, '').trim()
+        .replace(/[ \t]+/g, ' ')
+        .replace(/ *\n */g, '\n')
+        .replace(/;+\s*$/, '');
+    if (!caseSensitive) out = out.toLowerCase();
+    return out;
+}
+
+function checkPracticeAnswer(q) {
+    answered = true;
+    const inp = document.getElementById('practice-input');
+    const act = document.getElementById('act-area');
+    const caseSensitive = q.caseSensitive !== false;
+    const userAnswer = normalizePracticeCode(inp ? inp.value : '', caseSensitive);
+    const rightAnswer = normalizePracticeCode(q.answer || '', caseSensitive);
+    if (inp) inp.disabled = true;
+
+    if (userAnswer === rightAnswer) {
+        xp += 10;
+        updateStats();
+        if (inp) inp.classList.add('ok');
+        flashCorrect(inp || document.getElementById('q-area'));
+        showXPPopup(10);
+        act.innerHTML = `
+      <div style="color:var(--primary);font-weight:800;font-size:18px;margin-bottom:8px;">✅ Верно! +10 XP</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${esc(q.exp || '')}</div>
+      <button class="btn go" onclick="nextQuestion()">ДАЛЕЕ</button>`;
+        act.classList.add('show');
+        return;
+    }
+
+    hearts = Math.max(0, hearts - 1);
+    lessonErrors++;
+    updateStats();
+    if (inp) inp.classList.add('err');
+    flashWrong(inp || document.getElementById('q-area'));
+    if (!isReviewMode) errorQuestions.push(q);
+    else q._hadErrorThisRound = true;
+
+    if (hearts === 0) {
+        if (isIntroLesson) {
+            act.innerHTML = `
+          <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
+          <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Начнём подготовку заново.</div>
+          <button class="btn bad" onclick="startIntroLesson()">НАЧАТЬ ЗАНОВО</button>`;
+        } else if (isReviewMode) {
+            act.innerHTML = `
+          <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
+          <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Урок завершён, попробуй ещё раз позже.</div>
+          <button class="btn bad" onclick="nextQuestion()">ЗАВЕРШИТЬ УРОК</button>`;
+        } else {
+            act.innerHTML = `
+          <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
+          <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Урок начнётся заново.</div>
+          <button class="btn bad" onclick="startLesson(${currentLessonIdx})">НАЧАТЬ ЗАНОВО</button>`;
+        }
+        act.classList.add('show');
+        return;
+    }
+
+    act.innerHTML = `
+      <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:6px;">❌ Почти!</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Правильный ответ: <span style="color:var(--primary);font-family:monospace;">${esc(q.answer || '')}</span></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${esc(q.exp || '')}</div>
+      <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
     act.classList.add('show');
 }
 
@@ -2237,6 +2602,20 @@ function _showReviewTransition(count, round) {
 
 function _finishLesson() {
     const isPerfect = lessonErrors === 0;
+    if (isIntroLesson) {
+        introDone = true;
+        saveState();
+        xp += 10;
+        updateStats();
+        vibrateSuccess(); playLevelUp();
+        showXPPopup(10);
+        window.changePage('langmodule')
+        openModule(currentModuleIdx);
+        showToast('🌱 Подготовка пройдена! Можно начинать с первого урока. +10 XP', 2400);
+        isIntroLesson = false;
+        checkNewAchievements();
+        return;
+    }
     if (isPerfect) perfectLessons[currentModuleIdx][currentLessonIdx] = true;
     lessonCompleted[currentModuleIdx][currentLessonIdx] = true;
     saveState();
@@ -2299,12 +2678,12 @@ function startTrophyTest() {
     trophyAnswered = false;
     trophyTypedAnswer = '';
     showScreen('scr-trophy');
-    document.querySelector('.nav').style.display = 'none';
+    setNavVisible(false);
     renderTrophyQuestion();
 }
 
 function closeTrophy() {
-    document.querySelector('.nav').style.display = 'flex';
+    setNavVisible(true);
     showScreen('scr-home');
     openModule(currentModuleIdx);
     navActive(document.getElementById('nav-home'));
@@ -2468,11 +2847,22 @@ function unlockModuleRewards(mi) {
 }
 
 function closeTrophyFinish() {
-    document.querySelector('.nav').style.display = 'flex';
+    setNavVisible(true);
     showScreen('scr-home');
     backToModules();
     navActive(document.getElementById('nav-home'));
 }
+
+// main.js — ES-модуль, поэтому функции для inline-обработчиков нужно
+// явно выставлять в window (иначе кнопки теста молча не работают).
+window.startTrophyTest = startTrophyTest;
+window.closeTrophy = closeTrophy;
+window.trophyActClick = trophyActClick;
+window.onTrophyType = onTrophyType;
+window.insertChip = insertChip;
+window.checkTrophyAnswer = checkTrophyAnswer;
+window.nextTrophyQuestion = nextTrophyQuestion;
+window.closeTrophyFinish = closeTrophyFinish;
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
 function checkNewAchievements() {
@@ -3261,6 +3651,16 @@ function finishOnboard() {
     }
 }
 
+function selectLevel(level, silent) {
+    if (!LEVELS[level]) return;
+    profileData.level = level;
+    document.querySelectorAll('#registration .level-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.level === level);
+    });
+    if (!silent) playClick();
+}
+window.selectLevel = selectLevel
+
 function finishProfileSetup() {
     localStorage.setItem('geltcode_onboarded', '1');
     const name = document.getElementById('setup-name').value.trim();
@@ -3271,6 +3671,9 @@ function finishProfileSetup() {
     if (!name) { errEl.textContent = '❗ Введи своё имя'; return; }
     if (!user) { errEl.textContent = '❗ Введи имя пользователя'; return; }
     if (!pwd || pwd.length < 4) { errEl.textContent = '❗ Пароль должен быть не менее 4 символов'; return; }
+    const chosenLevel = document.querySelector('#registration .level-card.selected');
+    if (!chosenLevel) { errEl.textContent = '❗ Выбери, с чего начать обучение'; return; }
+    profileData.level = chosenLevel.dataset.level;
 
     const pwdHash = hashPassword(pwd);
     const normalized = user.toLowerCase().replace(/[^a-z0-9_.]/g, '');
@@ -3355,15 +3758,43 @@ function finishProfileSetup() {
 }
 window.finishProfileSetup = finishProfileSetup
 
+// Остальные inline-обработчики профиля и редактора персонажа.
+window.switchProfTab = switchProfTab;
+window.saveProfile = saveProfile;
+window.confirmReset = confirmReset;
+window.closeAvaModal = closeAvaModal;
+window.switchCharTab = switchCharTab;
+window.drawAvaUpload = drawAvaUpload;
+window.applyAvaUpload = applyAvaUpload;
+window.confirmAvatar = confirmAvatar;
+
+// Модальные окна: пароль, конфликт юзернейма, сброс, серия дней.
+window.showPasswordLoginModal = showPasswordLoginModal;
+window.closePasswordLoginModal = closePasswordLoginModal;
+window.confirmPasswordLogin = confirmPasswordLogin;
+window.showUsernameConflictModal = showUsernameConflictModal;
+window.closeUsernameConflictModal = closeUsernameConflictModal;
+window.closeResetModal = closeResetModal;
+window.resetStep2 = resetStep2;
+window.checkResetWord = checkResetWord;
+window.doReset = doReset;
+window.closeStreakModal = closeStreakModal;
+window.checkAndShowStreak = checkAndShowStreak;
+window.showXPPopup = showXPPopup;
+
 function showOnboardingIfNeeded() {
     if (!localStorage.getItem('geltcode_onboarded')) {
         window.changePage('welcome')
     } else if (!profileData.name) {
         // Already onboarded but no profile name (legacy save or reset)
         window.changePage('registration')
+        setTimeout(() => selectLevel(profileData.level || 'some', true), 0)
     } else {
         setTimeout(() => checkAndShowStreak(), 600);
         window.changePage('home')
+        selectLevel(profileData.level || 'some', true)
+        const h1 = document.querySelector('#home .page-header h1');
+        if (h1) h1.textContent = COURSE_LABELS[currentLang] || currentLang;
     }
 }
 
@@ -3536,8 +3967,14 @@ function flashWrong(el) {
 loadState();
 
 await window.waitForVariable(() => window.eelibMgr?.isLoaded, true)
+MODULES = COURSES[currentLang] || MODULES;
+applyLangProgress(currentLang);
 renderModulesList();
 updateStats();
+const homeTitle = document.querySelector('#home .page-header h1');
+if (homeTitle) homeTitle.textContent = COURSE_LABELS[currentLang] || currentLang;
+const homeSubtitle = document.querySelector('#home .page-header h3');
+if (homeSubtitle) homeSubtitle.textContent = `${trophyTestDone.filter(Boolean).length} из ${MODULES.length} модулей пройдено`;
 charState.bg = 0;
 
 // Splash → onboarding → app

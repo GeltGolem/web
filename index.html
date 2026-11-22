@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/panel/home.css">
     <link rel="stylesheet" href="css/panel/welcome.css">
     <link rel="stylesheet" href="css/panel/lesson.css">
+    <link rel="stylesheet" href="css/panel/practice.css">
     <link rel="stylesheet" href="css/panel/profile.css">
     <link rel="stylesheet" href="css/panel/league.css">
 </head>
@@ -32,7 +33,6 @@
                 <div class="pageContent">
                     <div id="langsModules">
                         <div id="pascalModules" class="langModule" data-lang="pascal"></div>
-                        <div id="javascriptModules" class="langModule" data-lang="javascript">Крутой текст</div>
                     </div>
                 </div>
             </div>
@@ -336,6 +336,20 @@
                 </div>
             </div>
         </div>
+        <div class="page block" id="scr-trophy">
+            <div class="trophy-head">
+                <button class="btn" style="padding:8px 12px;box-shadow:none;" onclick="closeTrophy()">←</button>
+                <div class="trophy-head-title">🏆 Финальный тест</div>
+                <div id="trophy-hearts-disp" style="font-size:14px;font-weight:800;">❤️3</div>
+                <div class="trophy-progress-track" style="max-width:110px;">
+                    <div class="trophy-progress-fill" id="trophy-prog"></div>
+                </div>
+            </div>
+            <div class="trophy-content">
+                <div id="trophy-area"></div>
+                <div class="action" id="trophy-act-area"></div>
+            </div>
+        </div>
         <div class="page block" id="splash">
             <div class="pageContainer">
                 <div class="pageContent">
@@ -391,6 +405,26 @@
                                 style="resize:none;line-height:1.5;"></textarea>
                             </div>
                             <div>
+                                <div class="edit-label" style="margin-bottom:8px;">С чего начнём?</div>
+                                <div class="level-grid" id="level-grid">
+                                    <button type="button" class="level-card" data-level="zero" onclick="selectLevel('zero')">
+                                        <span class="level-icon">🌱</span>
+                                        <span class="level-title">С нуля</span>
+                                        <span class="level-desc">Ничего не знаю — объясняй по шагам</span>
+                                    </button>
+                                    <button type="button" class="level-card" data-level="some" onclick="selectLevel('some')">
+                                        <span class="level-icon">📘</span>
+                                        <span class="level-title">Чуток знаю</span>
+                                        <span class="level-desc">Слышал про код, но не писал</span>
+                                    </button>
+                                    <button type="button" class="level-card" data-level="good" onclick="selectLevel('good')">
+                                        <span class="level-icon">⚡</span>
+                                        <span class="level-title">Шарю</span>
+                                        <span class="level-desc">Уже писал код — дай практику</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
                             <div class="edit-label" style="margin-bottom:8px;">Пароль <span
                                 style="font-weight:400;color:var(--text-muted);font-size:10px;">(для входа с других устройств)</span>
                             </div>
@@ -417,7 +451,69 @@
     </div>
 
     <div class="toast" id="toast"></div>
+    <div id="xp-popup" class="xp-popup"></div>
     <div id="modal" class="modal"><div id="modalForuse"></div></div>
+
+    <!-- Вход по паролю для существующего юзернейма -->
+    <div id="password-login-modal" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:24px;">
+        <div style="width:100%;max-width:340px;background:var(--surface);border:2px solid var(--surface-light);border-radius:22px;padding:22px;">
+            <div style="font-size:24px;margin-bottom:6px;">🔐</div>
+            <h3 style="margin:0 0 6px;font-size:18px;">Вход по паролю</h3>
+            <p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;">Аккаунт <b id="pwd-modal-username"></b></p>
+            <input class="edit-field" id="pwd-modal-input" type="password" placeholder="Пароль" autocomplete="off"
+                style="width:100%;margin-bottom:8px;"
+                onkeydown="if(event.key==='Enter') confirmPasswordLogin()" />
+            <div id="pwd-modal-error" style="font-size:12px;font-weight:800;color:var(--danger);min-height:18px;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn bad" style="flex:1;" onclick="closePasswordLoginModal()">ОТМЕНА</button>
+                <button class="btn go" style="flex:1;" onclick="confirmPasswordLogin()">ВОЙТИ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Юзернейм уже занят -->
+    <div id="username-conflict-modal" style="display:none;position:fixed;inset:0;z-index:121;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:24px;">
+        <div style="width:100%;max-width:320px;background:var(--surface);border:2px solid var(--gold);border-radius:22px;padding:22px;text-align:center;">
+            <div style="font-size:34px;margin-bottom:8px;">⚠️</div>
+            <h3 style="margin:0 0 8px;font-size:17px;">Имя уже занято</h3>
+            <p style="font-size:13px;color:var(--text-muted);line-height:1.45;">Пользователь <b id="conflict-username"></b> уже есть. Введи пароль или выбери другой юзернейм.</p>
+            <button class="btn go" style="width:100%;margin-top:14px;" onclick="closeUsernameConflictModal()">ПОНЯТНО</button>
+        </div>
+    </div>
+
+    <!-- Сброс прогресса в два шага -->
+    <div id="reset-modal-bg" class="modal-overlay">
+        <div class="modal-sheet" style="padding:22px;">
+            <div id="reset-modal-step1">
+                <h3 style="margin:0 0 8px;font-size:18px;">🗑️ Сбросить прогресс?</h3>
+                <p style="font-size:13px;color:var(--text-muted);line-height:1.5;">Все уроки, XP и достижения будут удалены с этого устройства.</p>
+                <div style="display:flex;gap:8px;margin-top:16px;">
+                    <button class="btn bad" style="flex:1;" onclick="closeResetModal()">ОТМЕНА</button>
+                    <button class="btn go" style="flex:1;" onclick="resetStep2()">ДАЛЬШЕ</button>
+                </div>
+            </div>
+            <div id="reset-modal-step2" style="display:none;">
+                <h3 style="margin:0 0 8px;font-size:18px;">Точно?</h3>
+                <p style="font-size:13px;color:var(--text-muted);line-height:1.5;">Напиши слово <b style="color:var(--danger);">СБРОС</b>, чтобы подтвердить.</p>
+                <input class="edit-field" id="reset-confirm-input" type="text" placeholder="СБРОС" style="width:100%;margin:10px 0 12px;"
+                    oninput="checkResetWord()" />
+                <div style="display:flex;gap:8px;">
+                    <button class="btn bad" style="flex:1;" onclick="closeResetModal()">ОТМЕНА</button>
+                    <button class="btn bad" id="reset-final-btn" style="flex:1;opacity:.4;" disabled onclick="doReset()">СБРОСИТЬ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Серия дней -->
+    <div id="streak-modal-bg" class="streak-modal-bg">
+        <div class="streak-modal">
+            <div style="font-size:58px;line-height:1;">🔥</div>
+            <h2 id="streak-modal-title" style="margin:10px 0 4px;font-size:20px;">Серия продолжается!</h2>
+            <p style="font-size:14px;color:var(--text-muted);">Дней подряд: <b id="streak-modal-days" style="color:var(--gold);font-size:20px;">0</b></p>
+            <button class="btn go" style="width:100%;margin-top:16px;" onclick="closeStreakModal()">ПРОДОЛЖИТЬ</button>
+        </div>
+    </div>
 
 </body>
 <script src="eelibs.js" type="module"></script>

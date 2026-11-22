@@ -1,27 +1,19 @@
+// Вкладки языков на главной: JavaScript / Pascal / C# / C++ / Python.
+// Каждая вкладка переключает реальный курс, а не только меняет заголовок.
 document.addEventListener('DOMContentLoaded', () => {
-    const langChose = document.querySelector('#home .page-header-btns .btnsList')
+    const buttons = document.querySelectorAll('#home .page-header-btns .btnsList button');
 
-    langChose.querySelectorAll('button').forEach(btn => {
+    buttons.forEach(btn => {
         btn.addEventListener('click', () => {
-            renderLang(btn.textContent.toLowerCase())
-        })
-    })
-})
+            const key = (window.normalizeLangKey || ((text) => String(text).trim().toLowerCase()))(btn.textContent);
+            if (window.switchLang) window.switchLang(key);
+        });
+    });
 
-function renderLang(lang) {
-    document.querySelectorAll('#langsModules .langModule').forEach(module => {
-        module.classList.remove('active')
-
-        if (module.dataset.lang === lang) module.classList.add('active')
-    })
-
-    document.querySelector('#home .page-header h1').textContent = lang[0].toUpperCase() + lang.slice(1)
-    document.querySelector('#home .page-header h3').textContent = "0 из 5 модулей пройдено"
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('#home .page-header-btns .btnsList button').forEach(btn => {
-        if (btn.textContent === 'Pascal') btn.classList.add('active')
-    })
-    renderLang('pascal')
-})
+    // Подсветим вкладку, на которой остановился пользователь
+    const current = window.getCourseLang ? window.getCourseLang() : 'pascal';
+    buttons.forEach(btn => {
+        const key = (window.normalizeLangKey || ((text) => String(text).trim().toLowerCase()))(btn.textContent);
+        btn.classList.toggle('active', key === current);
+    });
+});
