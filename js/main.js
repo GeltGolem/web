@@ -86,7 +86,8 @@ function loadState() {
     try {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return;
-        const d = JSON.parse(raw);
+        let d;
+        try { d = JSON.parse(raw); } catch (e) { return; }
         if (d.xp !== undefined) xp = d.xp;
         if (d.hearts !== undefined) hearts = Math.min(d.hearts, 3);
         if (d.lessonCompleted) {
@@ -201,11 +202,11 @@ function hashPassword(pwd) {
     return (h >>> 0).toString(16).padStart(8, '0');
 }
 
-// Dev accounts have fixed passwords derived from their secret codes
-const DEV_PASSWORD_HASHES = {
-    'imperor': hashPassword('EMPEROR77'),
-    'eenot': hashPassword('RACCOONDEV'),
-};
+// Единая нормализация имени пользователя (строчный, без небезопасных символов)
+function normalizeUsername(username) {
+    return (username || '').toLowerCase().replace(/[^a-z0-9_.]/g, '');
+}
+
 
 let _pendingSetupUsername = '';
 let _pendingSetupName = '';
@@ -233,18 +234,6 @@ function confirmPasswordLogin() {
     const normalized = username.toLowerCase().replace(/[^a-z0-9_.]/g, '');
     const enteredHash = hashPassword(pwd);
 
-    // Dev password check (local, no cloud needed)
-    if (DEV_PASSWORD_HASHES[normalized] !== undefined) {
-        if (enteredHash !== DEV_PASSWORD_HASHES[normalized]) {
-            errEl.textContent = '❌ Неверный пароль';
-            vibrateWrong();
-            return;
-        }
-        closePasswordLoginModal();
-        applyUsername(username, _pendingSetupName, _pendingSetupBio);
-        if (isDevUsername(username)) applyDevAccount(username);
-        return;
-    }
 
     errEl.textContent = '⏳ Проверяем...';
     document.getElementById('pwd-modal-input').disabled = true;
@@ -287,7 +276,7 @@ function confirmPasswordLogin() {
 
         if (cloudData) {
             // Apply cloud save to local storage and reload
-            localStorage.setItem(SAVE_KEY, JSON.stringify(cloudData));
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(cloudData)); } catch (e) { }
             showToast('☁️ Прогресс загружен!', 2000);
             setTimeout(() => location.reload(), 1500);
         } else {
@@ -3424,8 +3413,8 @@ function doReset() {
 }
 
 function saveProfile() {
-    const name = document.getElementById('edit-name').value.trim();
-    const user = document.getElementById('edit-username').value.trim();
+    const name = document.getElementById('edit-name').value.trim().replace(/<[^>]*>/g, '');
+    const user = normalizeUsername(document.getElementById('edit-username').value.trim());
     const bio = document.getElementById('edit-bio').value.trim();
     if (!name) { showToast('❗ Введи имя'); return; }
     if (!user) { showToast('❗ Введи юзернейм'); return; }
@@ -4113,6 +4102,10 @@ const LB_BOTS = [
     { name: 'NullPointer', username: 'null_ptr', xp: 280, ava: '💀' },
 ];
 
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function renderLeaderboard() {
     const myName = profileData.name || 'Ты';
     const myEntry = { name: myName, username: profileData.username || 'me', xp, ava: null, isMe: true };
@@ -4129,8 +4122,8 @@ function renderLeaderboard() {
       <div class="lb-rank">${medal}</div>
       <div class="lb-ava">${e.isMe && _avaImg ? `<canvas id="lb-me-canvas" width="42" height="42" style="width:42px;height:42px;border-radius:50%;"></canvas>` : `<span style="font-size:20px;">${e.ava || '👤'}</span>`}</div>
       <div class="lb-info">
-        <div class="lb-name">${e.name}${e.isMe ? ' <span style="color:var(--secondary);font-size:10px;">ВЫ</span>' : ''}</div>
-        <div class="lb-sub">@${e.username}</div>
+        <div class="lb-name">${escapeHtml(e.name)}${e.isMe ? ' <span style="color:var(--secondary);font-size:10px;">ВЫ</span>' : ''}</div>
+        <div class="lb-sub">@${escapeHtml(e.username)}</div>
       </div>
       <div class="lb-xp">⚡${e.xp}</div>
     </div>`;
