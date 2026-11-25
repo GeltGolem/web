@@ -55,7 +55,7 @@ class settingCard {
     }
 
     createInput() {
-        const columnInputTypes = ['range']
+        const columnInputTypes = ['range', 'text', 'textarea']
         const fullPoinersTypes = ['switch']
 
         if (columnInputTypes.includes(this.type) || this.params?.showModal === true) this.el.classList.add('column')
@@ -95,6 +95,21 @@ class settingCard {
                 this.buttons.appendChild(this.input)
                 break
 
+            case "text":
+            case "textarea":
+                this.input = document.createElement(this.type === 'textarea' ? 'textarea' : 'input')
+                if (this.type === 'text') this.input.type = 'text'
+                if (this.params?.placeholder) this.input.placeholder = this.params.placeholder
+                if (this.params?.maxLength !== undefined) this.input.maxLength = this.params.maxLength
+                if (this.type === 'textarea') this.input.rows = this.params?.rows ?? 4
+                this.input.value = this.params?.default ?? ''
+                this.value = this.input.value
+                this.input.addEventListener('input', e => {
+                    this.value = e.target.value
+                })
+                this.buttons.appendChild(this.input)
+                break
+
             case "switch":
                 this.div = document.createElement('label')
                 this.div.className = 'switcht'
@@ -124,7 +139,7 @@ class settingCard {
                     if (e.target === input) return
                     input.checked = !input.checked
                     updateSwitchState(input.checked)
-                    input.dispatchEvent(new Event('change'))
+                    input.dispatchEvent(new Event('change', {bubbles: true}))
                 })
 
                 break
@@ -156,7 +171,7 @@ class settingCard {
                     if (e.target === input) return
                     input.checked = !input.checked
                     updateSwitchState(input.checked)
-                    input.dispatchEvent(new Event('change'))
+                    input.dispatchEvent(new Event('change', {bubbles: true}))
                 })
 
                 break
@@ -189,7 +204,7 @@ class settingCard {
                     if (e.target === input) return
                     input.checked = true
                     updateSwitchState(input.checked)
-                    input.dispatchEvent(new Event('change'))
+                    input.dispatchEvent(new Event('change', {bubbles: true}))
                 })
 
                 break
