@@ -414,20 +414,20 @@
                             <div>
                                 <div class="edit-label" style="margin-bottom:8px;">С чего начнём?</div>
                                 <div class="level-grid" id="level-grid">
-                                    <button type="button" class="level-card" data-level="zero" onclick="selectLevel('zero')">
+                                    <button type="button" class="level-card selected" data-level="zero" onclick="selectLevel('zero')">
                                         <span class="level-icon">🌱</span>
-                                        <span class="level-title">С нуля</span>
-                                        <span class="level-desc">Ничего не знаю — объясняй по шагам</span>
+                                        <span class="level-title">Новичок</span>
+                                        <span class="level-desc">Только начинаю — объясняй по шагам</span>
                                     </button>
                                     <button type="button" class="level-card" data-level="some" onclick="selectLevel('some')">
                                         <span class="level-icon">📘</span>
-                                        <span class="level-title">Чуток знаю</span>
-                                        <span class="level-desc">Слышал про код, но не писал</span>
+                                        <span class="level-title">Продолжающий</span>
+                                        <span class="level-desc">Знаю основы — давай больше практики</span>
                                     </button>
                                     <button type="button" class="level-card" data-level="good" onclick="selectLevel('good')">
                                         <span class="level-icon">⚡</span>
-                                        <span class="level-title">Шарю</span>
-                                        <span class="level-desc">Уже писал код — дай практику</span>
+                                        <span class="level-title">Профи</span>
+                                        <span class="level-desc">Пишу код уверенно — дай сложные задачи</span>
                                     </button>
                                 </div>
                                 <button type="button" class="level-card test-mode-card" onclick="enterTestMode()">
@@ -530,6 +530,7 @@
 </body>
 <script src="eelibs.js?v=20261122n" type="module"></script>
 <script src="eelibs/import.js?v=20261122n" type="module"></script>
+<script src="js/glossary.js?v=20261122n" type="module"></script>
 <script src="js/main.js?v=20261122n" type="module"></script>
 <script src="js/panel/home.js?v=20261122n" type="module"></script>
 </html>

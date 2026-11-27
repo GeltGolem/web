@@ -1,5 +1,6 @@
 import { JS_MODULES, PY_MODULES, CS_MODULES, CPP_MODULES } from './courses.js';
 import MascotController from './mascot.js';
+import { GLOSSARY, linkTerms } from './glossary.js?v=20261122n';
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let xp = 0;
@@ -7,6 +8,7 @@ let hearts = 3;
 let currentModuleIdx = 0;
 let currentLessonIdx = 0;
 let currentQIdx = 0;
+let lessonIntroPending = false;
 let selectedOption = null;
 let shuffledQuestions = [];
 // lessonCompleted[moduleIdx][lessonIdx]
@@ -67,7 +69,7 @@ function saveState() {
             charState: { body: charState.body, outfit: charState.outfit, mask: charState.mask, bg: charState.bg },
             unlockedSecrets: [...unlockedSecrets],
             profileData,
-            level: profileData.level || 'some',
+            level: profileData.level || 'zero',
             lang: currentLang,
             introDone,
             testMode,
@@ -632,15 +634,15 @@ let profileData = {
     name: '', username: '', bio: '',
     bannerId: 'blue', patternId: 'none',
     equippedTitleId: null,
-    level: 'some', // zero | some | good — выбирается при регистрации
+    level: 'zero',
     lang: 'pascal',
 };
 
 // ─── УРОВНИ ПОДГОТОВКИ ────────────────────────────────────────────────────────
 const LEVELS = {
-    zero: { icon: '🌱', title: 'С нуля', desc: 'Ничего не знаю — объясняй по шагам', color: '#58CC02' },
-    some: { icon: '📘', title: 'Чуток знаю', desc: 'Слышал про код, но не писал', color: '#1CB0F6' },
-    good: { icon: '⚡', title: 'Шарю', desc: 'Уже писал код и хочу сложнее', color: '#FFC800' },
+    zero: { icon: '🌱', title: 'Новичок', desc: 'Только начинаю — объясняй по шагам', color: '#58CC02' },
+    some: { icon: '📘', title: 'Продолжающий', desc: 'Знаю основы — давай больше практики', color: '#1CB0F6' },
+    good: { icon: '⚡', title: 'Профи', desc: 'Пишу код уверенно — дай сложные задачи', color: '#FFC800' },
 };
 
 // Тестовый режим: все модули, уроки и финальные тесты доступны сразу.
@@ -1286,7 +1288,6 @@ let MODULES = [
         id: 0, title: 'Основы Pascal', icon: '📘', color: '#58CC02', colorDark: '#46A302',
         desc: 'Вывод, переменные, ввод и операторы',
         xpReward: 50, rewardOutfitIdx: -1,
-        // Показывается только тем, кто выбрал уровень «С нуля»
         introLesson: {
             title: 'Подготовка: данные и база данных',
             questions: [
@@ -1299,17 +1300,16 @@ let MODULES = [
             {
                 title: 'Вывод данных',
                 questions: [
-                    { q: 'Какая команда выводит текст в Pascal?', opts: ['writeln(\'Hi\')', 'print(\'Hi\')', 'echo \'Hi\''], correct: 0, exp: 'writeln — стандартный вывод с переходом на новую строку.', note: 'writeln читается как «райт-лайн»: записать строку и перейти на новую.' },
+                    { q: 'Какая команда выводит текст в Pascal?', opts: ['writeln(\'Hi\')', 'print(\'Hi\')', 'echo \'Hi\''], correct: 0, exp: 'writeln — стандартный вывод с переходом на новую строку.', note: 'writeln читается как "райт-лайн": записать строку и перейти на новую.' },
                     { q: 'Как вывести текст БЕЗ перевода строки?', opts: ['write(\'A\')', 'writeln(\'A\')', 'print(\'A\')'], correct: 0, exp: 'write не добавляет перенос строки в конце.', note: 'write и writeln — почти близнецы. У write нет слова line, значит и перехода строки нет.' },
                     { q: 'Что выведет writeln(2+3)?', opts: ['2+3', '5', 'Ошибка'], correct: 1, exp: 'Выражение вычисляется, потом выводится результат.', note: 'Компьютер сначала считает 2+3, а потом показывает ответ.' },
                     { q: 'Как вывести переменную x?', code: 'var x: integer;', opts: ['writeln(x)', 'writeln(\'x\')', 'write x'], correct: 0, exp: 'Без кавычек выводится значение переменной.', note: 'Кавычки превращают x в обычный текст. Без кавычек — это имя коробки со значением.' },
                     { q: 'Какой символ используется для строк в Pascal?', opts: ["Одинарная кавычка '", 'Двойная кавычка "', 'Обратный слеш \\'], correct: 0, exp: "В Pascal строки в одинарных кавычках: 'Hello'.", note: 'В Pascal строки пишутся в одинарных кавычках, в JavaScript — чаще в двойных.' },
                     { q: 'Что делает readln?', opts: ['Читает ввод с клавиатуры', 'Выводит текст', 'Очищает экран'], correct: 0, exp: 'readln ждёт ввода от пользователя и нажатия Enter.', note: 'readln — наоборот: не показывает, а получает данные от человека.' },
                 ],
-                // Дополнительная практика для тех, кто выбрал уровень «Шарю»
                 practice: {
                     type: 'practice',
-                    q: 'Допиши команду, которая выведет сообщение «Готово!»',
+                    q: 'Допиши команду, которая выведет сообщение "Готово!"',
                     note: 'В Pascal команда вывода заканчивается точкой с запятой, а строка — одинарными кавычками.',
                     code: "begin\n  ________\nend.",
                     starter: '',
@@ -1405,7 +1405,7 @@ let MODULES = [
                     { q: 'Что такое синтаксическая ошибка?', opts: ['Нарушение правил записи кода', 'Ошибка в логике', 'Ошибка при работе программы'], correct: 0, exp: 'Синтаксическая ошибка: компилятор не понимает код (например, пропущен ;).' },
                     { q: 'Что такое логическая ошибка?', opts: ['Программа работает, но даёт неверный результат', 'Программа не компилируется', 'Программа зависает'], correct: 0, exp: 'Логическая ошибка: код синтаксически верен, но алгоритм неправильный.' },
                     { q: 'Как обнаружить логическую ошибку?', opts: ['Тестировать с примерами и проверять вывод', 'Скомпилировать', 'Удалить комментарии'], correct: 0, exp: 'Тестируй программу с разными входными данными, включая граничные случаи.' },
-                    { q: 'Что означает ошибка «Division by zero»?', opts: ['Деление на ноль — недопустимая операция', 'Переменная равна нулю', 'Массив пустой'], correct: 0, exp: 'Деление на ноль вызывает ошибку времени выполнения.' },
+                    { q: 'Что означает ошибка "Division by zero"?', opts: ['Деление на ноль — недопустимая операция', 'Переменная равна нулю', 'Массив пустой'], correct: 0, exp: 'Деление на ноль вызывает ошибку времени выполнения.' },
                     { q: 'Как защититься от деления на ноль?', opts: ['if b <> 0 then writeln(a div b)', 'try/except', 'Нельзя защититься'], correct: 0, exp: 'Проверяй делитель перед операцией: if b <> 0 then ...' },
                 ]
             },
@@ -1429,7 +1429,7 @@ let MODULES = [
                     { q: 'Как начинается условие в Pascal?', opts: ['if ... then', 'when ... do', 'check ... :'], correct: 0, exp: 'Синтаксис: if условие then действие;' },
                     { q: 'Как проверить равенство x и 5?', opts: ['if x = 5 then', 'if x == 5 then', 'if x := 5 then'], correct: 0, exp: 'Сравнение в Pascal — один знак =.' },
                     { q: 'Что нужно для нескольких команд в then?', code: 'if x > 0 then\n  writeln(\'A\');\n  writeln(\'B\');', opts: ['begin ... end', '{ ... }', '( ... )'], correct: 0, exp: 'begin и end группируют несколько операторов.' },
-                    { q: 'Как проверить НЕРАВЕНСТВО?', opts: ['<>', '!=', '=/='], correct: 0, exp: '<> означает «не равно» в Pascal.' },
+                    { q: 'Как проверить НЕРАВЕНСТВО?', opts: ['<>', '!=', '=/='], correct: 0, exp: '<> означает "не равно" в Pascal.' },
                     { q: 'Что выведет код?', code: 'x := 10;\nif x > 5 then writeln(\'Да\');', opts: ['Да', 'Ничего', 'Ошибка'], correct: 0, exp: '10 > 5 — true, поэтому выполняется writeln.' },
                     { q: 'Когда выполняется else?', opts: ['Когда условие false', 'Всегда', 'Никогда'], correct: 0, exp: 'else — альтернативная ветка при ложном условии.' },
                 ]
@@ -1438,8 +1438,8 @@ let MODULES = [
                 title: 'Логика и else',
                 questions: [
                     { q: 'Что делает оператор not?', opts: ['Инвертирует boolean', 'Отрицает число', 'Завершает if'], correct: 0, exp: 'not true = false, not false = true.' },
-                    { q: 'Как объединить два условия «И»?', opts: ['and', '&&', '&'], correct: 0, exp: 'В Pascal логическое И пишется словом and.' },
-                    { q: 'Как объединить два условия «ИЛИ»?', opts: ['or', '||', '|'], correct: 0, exp: 'В Pascal логическое ИЛИ пишется словом or.' },
+                    { q: 'Как объединить два условия "И"?', opts: ['and', '&&', '&'], correct: 0, exp: 'В Pascal логическое И пишется словом and.' },
+                    { q: 'Как объединить два условия "ИЛИ"?', opts: ['or', '||', '|'], correct: 0, exp: 'В Pascal логическое ИЛИ пишется словом or.' },
                     { q: 'Нужна ли ; перед else?', code: 'if x > 0 then\n  writeln(\'+\')\n[?]\nelse\n  writeln(\'-\');', opts: ['Нет', 'Да', 'Зависит от ситуации'], correct: 0, exp: 'Перед else точку с запятой НЕ ставят!' },
                     { q: 'Что вернёт not (3 > 5)?', opts: ['true', 'false', '0'], correct: 0, exp: '3 > 5 = false, not false = true.' },
                 ]
@@ -1448,7 +1448,7 @@ let MODULES = [
                 title: 'Вложенные условия',
                 questions: [
                     { q: 'Как написать: если x > 0 и x < 10?', opts: ['if (x > 0) and (x < 10) then', 'if x > 0 && x < 10 then', 'if 0 < x < 10 then'], correct: 0, exp: 'В Pascal условия и/или скобках с and/or.' },
-                    { q: 'Что такое «вложенное if»?', opts: ['if внутри другого if', 'if без else', 'if с несколькими then'], correct: 0, exp: 'Вложенное if — условие внутри тела другого условия.' },
+                    { q: 'Что такое "вложенное if"?', opts: ['if внутри другого if', 'if без else', 'if с несколькими then'], correct: 0, exp: 'Вложенное if — условие внутри тела другого условия.' },
                     { q: 'Как проверить x в диапазоне [1, 100]?', opts: ['(x >= 1) and (x <= 100)', 'x in [1..100]', '1 <= x <= 100'], correct: 0, exp: 'Используй and для проверки двух границ диапазона.' },
                     { q: 'Что выведет код?', code: 'x := 0;\nif x > 0 then writeln(\'+\')\nelse if x < 0 then writeln(\'-\')\nelse writeln(\'0\');', opts: ['0', '+', '-'], correct: 0, exp: 'x = 0, поэтому сработает последний else.' },
                     { q: 'Как проверить x на чётность?', opts: ['if x mod 2 = 0 then', 'if x % 2 = 0 then', 'if even(x) then'], correct: 0, exp: 'mod 2 = 0 означает, что число делится на 2 нацело.' },
@@ -1472,15 +1472,15 @@ let MODULES = [
                     { q: 'Как проверить на нечётность?', opts: ['x mod 2 <> 0', 'x mod 2 = 1 or x mod 2 = -1', 'odd(x)'], correct: 2, exp: 'odd(x) возвращает true если x нечётное — стандартная функция.' },
                     { q: 'Что вернёт (5 > 3) and (2 < 1)?', opts: ['false', 'true', 'Ошибка типов'], correct: 0, exp: '5 > 3 = true, 2 < 1 = false. true and false = false.' },
                     { q: 'Как корректно написать abs(-7) > 5?', code: '', opts: ['if abs(-7) > 5 then', 'if -7 > 5 then', 'if |−7| > 5 then'], correct: 0, exp: 'abs(-7) = 7, 7 > 5 = true. Всё верно.' },
-                    { type: 'practice', q: 'Допиши условие: вывести «Да», если x положительное.', note: 'Условие пишется в круглых скобках после if. В Pascal сравнение — один знак =.', code: 'if (____) then writeln(\'Да\');', starter: '', answer: 'if (x > 0) then writeln(\'Да\');', caseSensitive: false, chips: ['x > 0', 'if', 'then'], exp: 'x > 0 — истина для положительных чисел.' },
+                    { type: 'practice', q: 'Допиши условие: вывести "Да", если x положительное.', note: 'Условие пишется в круглых скобках после if. В Pascal сравнение — один знак =.', code: 'if (____) then writeln(\'Да\');', starter: '', answer: 'if (x > 0) then writeln(\'Да\');', caseSensitive: false, chips: ['x > 0', 'if', 'then'], exp: 'x > 0 — истина для положительных чисел.' },
                 ]
             },
             {
                 title: 'Логические выражения',
                 questions: [
-                    { q: 'Что такое «короткое вычисление» (short-circuit)?', opts: ['Если первый операнд and=false — второй не проверяется', 'Оптимизация цикла', 'Ускорение сравнения'], correct: 0, exp: 'В FPC Pascal: в and — если первый false, второй не проверяется.' },
+                    { q: 'Что такое "короткое вычисление" (short-circuit)?', opts: ['Если первый операнд and=false — второй не проверяется', 'Оптимизация цикла', 'Ускорение сравнения'], correct: 0, exp: 'В FPC Pascal: в and — если первый false, второй не проверяется.' },
                     { q: 'Что вернёт not false?', opts: ['true', 'false', '0'], correct: 0, exp: 'not инвертирует: not false = true.' },
-                    { q: 'Как выразить «x от 1 до 5 включительно»?', opts: ['(x >= 1) and (x <= 5)', 'x in 1..5', '1 <= x <= 5'], correct: 0, exp: 'Pascal требует два условия с and.' },
+                    { q: 'Как выразить "x от 1 до 5 включительно"?', opts: ['(x >= 1) and (x <= 5)', 'x in 1..5', '1 <= x <= 5'], correct: 0, exp: 'Pascal требует два условия с and.' },
                     { q: 'Что вернёт true or false?', opts: ['true', 'false', 'Ошибка'], correct: 0, exp: 'В or достаточно одного true.' },
                     { q: 'Верно ли написано условие?', code: 'if x > 0 and x < 10 then', opts: ['Нет, нужны скобки: (x > 0) and (x < 10)', 'Да, верно', 'Только с begin'], correct: 0, exp: 'Приоритет and выше > — нужны скобки вокруг каждого сравнения.' },
                 ]
@@ -1488,9 +1488,9 @@ let MODULES = [
             {
                 title: 'Ветвления: сложные случаи',
                 questions: [
-                    { q: 'Что выведет вложенный if?', code: 'x := 5;\nif x > 0 then\n  if x > 10 then writeln(\'большой\')\n  else writeln(\'малый\')\nelse writeln(\'отриц\');', opts: ['малый', 'большой', 'отриц'], correct: 0, exp: '5 > 0 — true, 5 > 10 — false, выводится «малый».' },
+                    { q: 'Что выведет вложенный if?', code: 'x := 5;\nif x > 0 then\n  if x > 10 then writeln(\'большой\')\n  else writeln(\'малый\')\nelse writeln(\'отриц\');', opts: ['малый', 'большой', 'отриц'], correct: 0, exp: '5 > 0 — true, 5 > 10 — false, выводится "малый".' },
                     { q: 'К какому if относится else?', opts: ['К ближайшему if (dangling else)', 'К первому if', 'Нельзя определить'], correct: 0, exp: 'Правило: else относится к ближайшему незакрытому if.' },
-                    { q: 'Как сделать «иначе если»?', opts: ['else if условие then', 'elif', 'elseif'], correct: 0, exp: 'В Pascal: else if — два ключевых слова.' },
+                    { q: 'Как сделать "иначе если"?', opts: ['else if условие then', 'elif', 'elseif'], correct: 0, exp: 'В Pascal: else if — два ключевых слова.' },
                     { q: 'Что выведет?', code: 'x := 7;\ncase x of\n  1..5: writeln(\'мало\');\n  6..10: writeln(\'средне\');\nelse writeln(\'много\');\nend;', opts: ['средне', 'мало', 'много'], correct: 0, exp: '7 попадает в диапазон 6..10.' },
                     { q: 'Можно ли вставить begin...end в ветку case?', opts: ['Да', 'Нет', 'Только в else'], correct: 0, exp: 'Да: 1: begin writeln(a); writeln(b); end;' },
                 ]
@@ -1499,7 +1499,7 @@ let MODULES = [
                 title: 'Сравнение строк и символов',
                 questions: [
                     { q: 'Можно ли сравнивать char в if?', opts: ["Да: if c = 'A' then", 'Нет, только числа', 'Только с ord()'], correct: 0, exp: "Символы сравниваются как и числа: if c = 'A' then." },
-                    { q: 'Что вернёт ord(«A»)?', opts: ['65', '1', '41'], correct: 0, exp: "ASCII-код 'A' = 65." },
+                    { q: 'Что вернёт ord("A")?', opts: ['65', '1', '41'], correct: 0, exp: "ASCII-код 'A' = 65." },
                     { q: 'Как сравнить строки на равенство?', opts: ["if s = 'hello' then", "if s == 'hello' then", "if s.equals('hello') then"], correct: 0, exp: 'Строки сравниваются оператором = в Pascal.' },
                     { q: 'Что означает s > t для строк?', opts: ['s лексикографически больше t', 's длиннее t', 'Нельзя сравнивать'], correct: 0, exp: 'Строки сравниваются посимвольно по кодам ASCII.' },
                     { q: 'Как проверить, что строка пустая?', opts: ["if s = '' then", 'if length(s) = 0 then', 'Оба варианта верны'], correct: 2, exp: "Оба способа работают: s = '' или length(s) = 0." },
@@ -1511,7 +1511,7 @@ let MODULES = [
                     { q: 'Что выведет case с char?', code: "c := 'B';\ncase c of\n  'A': writeln('Alpha');\n  'B': writeln('Bravo');\nend;", opts: ['Bravo', 'Alpha', 'Ничего'], correct: 0, exp: "c = 'B', срабатывает ветка 'B': → Bravo." },
                     { q: 'Что будет, если значение не попало ни в одну ветку и нет else?', opts: ['Ничего не произойдёт', 'Ошибка', 'Выполнится последняя ветка'], correct: 0, exp: 'Без else case просто ничего не делает — никакой ошибки.' },
                     { q: 'Можно ли использовать boolean в case?', opts: ['Да', 'Нет', 'Только в FPC'], correct: 0, exp: 'boolean — порядковый тип, допустим в case: case b of true:... false:... end;' },
-                    { q: 'Какой вывод?', code: 'x := 3;\ncase x of\n  1,2: writeln(\'мало\');\n  3,4: writeln(\'норма\');\nend;', opts: ['норма', 'мало', 'Ошибка'], correct: 0, exp: 'x = 3, ветка 3,4: — выводит «норма».' },
+                    { q: 'Какой вывод?', code: 'x := 3;\ncase x of\n  1,2: writeln(\'мало\');\n  3,4: writeln(\'норма\');\nend;', opts: ['норма', 'мало', 'Ошибка'], correct: 0, exp: 'x = 3, ветка 3,4: — выводит "норма".' },
                     { q: 'Когда лучше case, а когда if?', opts: ['case — для дискретных значений, if — для диапазонов и сложных условий', 'case всегда лучше', 'if всегда лучше'], correct: 0, exp: 'case удобен при множестве конкретных значений одной переменной.' },
                 ]
             },
@@ -1519,15 +1519,15 @@ let MODULES = [
                 title: 'Практика: условия и выбор',
                 questions: [
                     { q: 'Напишите условие: x чётное И больше 10', opts: ['(x mod 2 = 0) and (x > 10)', 'x mod 2 = 0 and x > 10', '(x % 2 = 0) and (x > 10)'], correct: 0, exp: 'Нужны скобки вокруг каждого условия из-за приоритета and.' },
-                    { q: 'Что выведет?', code: 'n := 0;\nif n = 0 then writeln(\'ноль\')\nelse if n > 0 then writeln(\'плюс\')\nelse writeln(\'минус\');', opts: ['ноль', 'плюс', 'минус'], correct: 0, exp: 'n = 0, первое условие истинно → «ноль».' },
+                    { q: 'Что выведет?', code: 'n := 0;\nif n = 0 then writeln(\'ноль\')\nelse if n > 0 then writeln(\'плюс\')\nelse writeln(\'минус\');', opts: ['ноль', 'плюс', 'минус'], correct: 0, exp: 'n = 0, первое условие истинно → "ноль".' },
                     { q: 'Как проверить: символ c — цифра?', opts: ["(c >= '0') and (c <= '9')", "c in ['0'..'9']", 'isDigit(c)'], correct: 0, exp: "Цифры в ASCII идут подряд: '0'=48...'9'=57." },
                     { q: 'Найди ошибку в case:', code: "case x of\n  'a': writeln('A');\n  1: writeln('один');\nend;", opts: ['Нельзя смешивать типы в одном case', 'Нет else', 'Нет begin'], correct: 0, exp: 'Все ветки case должны иметь один тип: или char, или integer.' },
-                    { q: 'Что означает «треугольник неравенства»?', code: 'a:=3; b:=4; c:=6;', opts: ['(a+b>c) and (a+c>b) and (b+c>a)', 'a*a + b*b = c*c', 'a<b and b<c'], correct: 0, exp: 'Три стороны образуют треугольник если сумма любых двух > третьей.' },
+                    { q: 'Что означает "треугольник неравенства"?', code: 'a:=3; b:=4; c:=6;', opts: ['(a+b>c) and (a+c>b) and (b+c>a)', 'a*a + b*b = c*c', 'a<b and b<c'], correct: 0, exp: 'Три стороны образуют треугольник если сумма любых двух > третьей.' },
                 ]
             },
         ],
         trophyQuestions: [
-            { type: 'type', q: 'Напиши оператор сравнения «не равно»:', code: 'if x ___ 0 then ...', answer: '<>', chips: ['<>', '!=', '=/=', '<'], exp: '<> — не равно в Pascal.' },
+            { type: 'type', q: 'Напиши оператор сравнения "не равно":', code: 'if x ___ 0 then ...', answer: '<>', chips: ['<>', '!=', '=/=', '<'], exp: '<> — не равно в Pascal.' },
             { type: 'type', q: 'Как пишется логическое И в Pascal?', code: 'if (x>0) ___ (x<10) then ...', answer: 'and', chips: ['and', '&&', '&', 'AND'], exp: 'and — логическое И.' },
             { type: 'fix', q: 'Найди ошибку перед else:', code: "if x > 0 then writeln('+');\nelse writeln('-');", answer: "if x > 0 then writeln('+')\nelse writeln('-');", chips: ['if', 'x', '>', '0', 'then', "writeln('+')", ';', 'else'], exp: 'Перед else ; не ставится.' },
             { type: 'type', q: 'Напиши ключевое слово для множественного выбора:', code: '___ x of\n  1: writeln(\'один\');\nend;', answer: 'case', chips: ['case', 'switch', 'select', 'if'], exp: 'case of — множественный выбор в Pascal.' },
@@ -1606,16 +1606,16 @@ let MODULES = [
                     { q: 'Как перебрать все символы строки s?', opts: ['for i:=1 to length(s) do', 'for c in s do', 'while s <> \'\' do'], correct: 0, exp: 'Индексы строки в Pascal начинаются с 1.' },
                     { q: 'Как подсчитать количество пробелов в строке?', opts: ["Цикл + if s[i] = ' ' then cnt++", 'length(s) - length(trim(s))', 'Оба варианта'], correct: 2, exp: 'Оба подхода рабочие.' },
                     { q: 'Что выведет?', code: "s := 'abc';\nfor i:=1 to length(s) do\n  write(s[i], '-');", opts: ['a-b-c-', 'abc-', 'a b c'], correct: 0, exp: 'Каждый символ + дефис: a-b-c-' },
-                    { q: 'Как построить строку из N символов «*»?', opts: ['Цикл + s := s + \'*\'', 'writeln(\'*\':N)', 'stringOfChar(\'*\', N)'], correct: 0, exp: 'Конкатенация в цикле: s := s + \'*\'; N раз.' },
+                    { q: 'Как построить строку из N символов "*"?', opts: ['Цикл + s := s + \'*\'', 'writeln(\'*\':N)', 'stringOfChar(\'*\', N)'], correct: 0, exp: 'Конкатенация в цикле: s := s + \'*\'; N раз.' },
                     { q: 'Как развернуть строку задом наперёд?', opts: ['Цикл от length(s) downto 1 + s2 := s2 + s[i]', 'Reverse(s)', 's[length(s)..1]'], correct: 0, exp: 'Перебираем символы с конца и добавляем к новой строке.' },
                 ]
             },
             {
                 title: 'Вложенные циклы: практика',
                 questions: [
-                    { q: 'Как вывести прямоугольник из «*» размером N×M?', opts: ['Два вложенных for', 'Один for с N*M итераций', 'repeat + while'], correct: 0, exp: 'Внешний for — строки (N), внутренний — символы в строке (M).' },
+                    { q: 'Как вывести прямоугольник из "*" размером N×M?', opts: ['Два вложенных for', 'Один for с N*M итераций', 'repeat + while'], correct: 0, exp: 'Внешний for — строки (N), внутренний — символы в строке (M).' },
                     { q: 'Что выведет?', code: 'for i:=1 to 2 do\n  for j:=1 to 3 do\n    write(i*j, \' \');\n  writeln;', opts: ['1 2 3 2 4 6', '1 2 3 4 5 6', '2 4 6'], correct: 0, exp: 'i=1: 1 2 3; i=2: 2 4 6 с переносом строки.' },
-                    { q: 'Как вывести треугольник из «*»?', opts: ['Внешний for i, внутренний for j:=1 to i', 'Один цикл с if', 'Только рекурсия'], correct: 0, exp: 'Внутренний цикл идёт до i — на i-й строке i звёздочек.' },
+                    { q: 'Как вывести треугольник из "*"?', opts: ['Внешний for i, внутренний for j:=1 to i', 'Один цикл с if', 'Только рекурсия'], correct: 0, exp: 'Внутренний цикл идёт до i — на i-й строке i звёздочек.' },
                     { q: 'Как найти простые числа от 2 до N?', opts: ['Два вложенных цикла (решето)', 'Один цикл', 'Рекурсия'], correct: 0, exp: 'Классика: внешний for проходит по числам, внутренний проверяет делители.' },
                     { q: 'Как подсчитать количество пар (i,j) где i+j = 10, 1<=i,j<=10?', opts: ['Два вложенных for + if i+j=10 then cnt++', 'Математически: 9', 'Один цикл'], correct: 0, exp: 'Вложенный перебор: for i:=1 to 10 do for j:=1 to 10 do if i+j=10 then...' },
                 ]
@@ -1625,7 +1625,7 @@ let MODULES = [
                 questions: [
                     { q: 'Как читать числа пока не введут 0?', code: 'readln(x);\nwhile x ___ 0 do begin\n  {обработать x}\n  readln(x);\nend;', opts: ['<>', '=', '>'], correct: 0, exp: 'Условие продолжения: x <> 0 (пока не ноль).' },
                     { q: 'Что выведет?', code: 'x := 1;\nrepeat\n  x := x * 2;\nuntil x > 10;\nwriteln(x);', opts: ['16', '8', '12'], correct: 0, exp: '1→2→4→8→16, первое >10 это 16.' },
-                    { q: 'Как реализовать «меню до выхода»?', opts: ['repeat ... until выбор = 0', 'while true do + break', 'Оба варианта'], correct: 2, exp: 'Оба подхода правильны для цикла меню.' },
+                    { q: 'Как реализовать "меню до выхода"?', opts: ['repeat ... until выбор = 0', 'while true do + break', 'Оба варианта'], correct: 2, exp: 'Оба подхода правильны для цикла меню.' },
                     { q: 'Что выведет?', code: 'x := 100;\nwhile x > 1 do x := x div 2;\nwriteln(x);', opts: ['1', '0', '2'], correct: 0, exp: '100→50→25→12→6→3→1, последнее деление 3 div 2 = 1.' },
                     { q: 'Когда repeat безопаснее while?', opts: ['Когда тело нужно выполнить хотя бы раз (проверка ввода)', 'Когда нужна скорость', 'Никогда'], correct: 0, exp: 'repeat гарантирует выполнение тела — идеален для валидации ввода.' },
                 ]
@@ -1635,7 +1635,7 @@ let MODULES = [
                 questions: [
                     { q: 'Что выведет?', code: 'for i:=1 to 5 do\n  if i mod 2 = 0 then write(i, \' \');', opts: ['2 4', '1 3 5', '1 2 3 4 5'], correct: 0, exp: 'Выводятся чётные: 2 и 4.' },
                     { q: 'Как посчитать сумму цифр числа 123?', opts: ['Цикл: брать mod 10, делить на 10', 'Сложить символы', 'Использовать sum()'], correct: 0, exp: 'Алгоритм: n mod 10 — последняя цифра, n div 10 — отбросить её.' },
-                    { q: 'Какой цикл лучше для: «повторять пока пользователь не введёт правильный пароль»?', opts: ['repeat...until', 'for', 'while c заранее известным числом'], correct: 0, exp: 'repeat: спрашиваем минимум 1 раз, продолжаем пока пароль неверный.' },
+                    { q: 'Какой цикл лучше для: "повторять пока пользователь не введёт правильный пароль"?', opts: ['repeat...until', 'for', 'while c заранее известным числом'], correct: 0, exp: 'repeat: спрашиваем минимум 1 раз, продолжаем пока пароль неверный.' },
                     { q: 'Что выведет?', code: 'i := 1;\nwhile i <= 10 do begin\n  if i = 5 then break;\n  i := i + 1;\nend;\nwriteln(i);', opts: ['5', '10', '6'], correct: 0, exp: 'Цикл прерывается при i=5, writeln выведет 5.' },
                     { q: 'Как вывести числа Фибоначчи до 100?', opts: ['a:=1; b:=1; while a<=100 do begin write(a); c:=a+b; a:=b; b:=c; end', 'for i:=1 to 100', 'Только рекурсией'], correct: 0, exp: 'Итеративно: держим два последних числа и суммируем их.' },
                     { type: 'practice', q: 'Допиши заголовок цикла от 1 до 10.', note: 'for — цикл с известным числом повторов. После to указывается конечное значение включительно.', code: '____ i := 1 to 10 do writeln(i);', starter: '', answer: 'for i := 1 to 10 do writeln(i);', caseSensitive: false, chips: ['for', 'to', 'do'], exp: 'for i := 1 to 10 — десять проходов, i принимает значения 1..10.' },
@@ -1688,7 +1688,7 @@ let MODULES = [
             {
                 title: 'Сортировка',
                 questions: [
-                    { q: 'Что такое сортировка пузырьком?', opts: ['Соседние элементы сравниваются и меняются', 'Делим массив пополам', 'Ищем минимум и ставим вперёд'], correct: 0, exp: 'Пузырёк: проходим n-1 раз, каждый раз «всплывает» максимум.' },
+                    { q: 'Что такое сортировка пузырьком?', opts: ['Соседние элементы сравниваются и меняются', 'Делим массив пополам', 'Ищем минимум и ставим вперёд'], correct: 0, exp: 'Пузырёк: проходим n-1 раз, каждый раз "всплывает" максимум.' },
                     { q: 'Сколько проходов нужно пузырьку для массива из n элементов?', opts: ['n-1', 'n', 'n²'], correct: 0, exp: 'После n-1 прохода массив гарантированно отсортирован.' },
                     { q: 'Что такое сортировка выбором?', opts: ['Находим минимум, ставим в начало, повторяем', 'Сравниваем соседей', 'Делим пополам рекурсивно'], correct: 0, exp: 'Selection sort: находим минимум из оставшихся и ставим на место.' },
                     { q: 'Как определить, что массив уже отсортирован?', opts: ['Все a[i] <= a[i+1]', 'a[1] = минимум', 'Длина не изменилась'], correct: 0, exp: 'Если каждый следующий элемент >= предыдущего — массив отсортирован.' },
@@ -1834,7 +1834,7 @@ let MODULES = [
                 title: 'Рекурсия: практика',
                 questions: [
                     { q: 'Напиши рекурсивный факториал: Fact(0) = ?', opts: ['1', '0', '-1'], correct: 0, exp: 'Базовый случай: Fact(0) = 1. Рекурсия: Fact(n) = n * Fact(n-1).' },
-                    { q: 'Что такое «стек вызовов»?', opts: ['Память для хранения вложенных вызовов функций', 'Массив', 'Тип данных'], correct: 0, exp: 'Каждый вызов функции добавляет фрейм в стек. Переполнение — stack overflow.' },
+                    { q: 'Что такое "стек вызовов"?', opts: ['Память для хранения вложенных вызовов функций', 'Массив', 'Тип данных'], correct: 0, exp: 'Каждый вызов функции добавляет фрейм в стек. Переполнение — stack overflow.' },
                     { q: 'Fibonacci(6) = ?', code: 'Fib(1)=1, Fib(2)=1', opts: ['8', '13', '5'], correct: 0, exp: 'Fib: 1,1,2,3,5,8 — F(6)=8.' },
                     { q: 'Какова глубина рекурсии при Fact(5)?', opts: ['5 вызовов', '6 вызовов', '4 вызова'], correct: 0, exp: 'Fact(5)→Fact(4)→Fact(3)→Fact(2)→Fact(1)→Fact(0): 6 вызовов.' },
                     { q: 'Что лучше: рекурсия или цикл для факториала?', opts: ['Цикл: эффективнее по памяти', 'Рекурсия: короче', 'Оба одинаковы'], correct: 0, exp: 'Рекурсия расходует стек, итеративный подход эффективнее для факториала.' },
@@ -1843,11 +1843,11 @@ let MODULES = [
             {
                 title: 'Вложенные функции и области видимости',
                 questions: [
-                    { q: 'Что такое «область видимости» переменной?', opts: ['Где в коде переменная доступна', 'Размер переменной', 'Тип данных'], correct: 0, exp: 'Локальные переменные видны только внутри своей функции/процедуры.' },
+                    { q: 'Что такое "область видимости" переменной?', opts: ['Где в коде переменная доступна', 'Размер переменной', 'Тип данных'], correct: 0, exp: 'Локальные переменные видны только внутри своей функции/процедуры.' },
                     { q: 'Может ли функция вызвать другую функцию?', opts: ['Да', 'Нет', 'Только из main'], correct: 0, exp: 'Функции могут вызывать другие функции — это основа структурного программирования.' },
                     { q: 'Где объявить вспомогательную процедуру чтобы её мог вызвать main?', opts: ['До begin главной программы', 'После begin', 'После end.'], correct: 0, exp: 'Подпрограммы объявляются до begin главного блока программы.' },
                     { q: 'Что произойдёт если использовать переменную процедуры вне её?', opts: ['Ошибка компиляции: переменная не видна', 'Вернёт 0', 'Вернёт мусор'], correct: 0, exp: 'Локальная переменная недоступна за пределами своей процедуры.' },
-                    { q: 'Можно ли объявить переменную с тем же именем в процедуре и в main?', opts: ['Да, это разные переменные', 'Нет, конфликт', 'Только если разные типы'], correct: 0, exp: 'Локальная переменная «затеняет» глобальную внутри процедуры.' },
+                    { q: 'Можно ли объявить переменную с тем же именем в процедуре и в main?', opts: ['Да, это разные переменные', 'Нет, конфликт', 'Только если разные типы'], correct: 0, exp: 'Локальная переменная "затеняет" глобальную внутри процедуры.' },
                 ]
             },
             {
@@ -1867,7 +1867,7 @@ let MODULES = [
                     { q: 'Напиши заголовок функции, возвращающей boolean:', opts: ['function IsEven(n: integer): boolean;', 'boolean function IsEven(n);', 'function IsEven(n): bool;'], correct: 0, exp: 'Тип возврата указывается после параметров через двоеточие.' },
                     { q: 'Что выведет?', code: 'function Cube(x: integer): integer;\nbegin Cube := x * x * x; end;\nwriteln(Cube(3));', opts: ['27', '9', '6'], correct: 0, exp: '3³ = 3 × 3 × 3 = 27.' },
                     { q: 'Как использовать функцию в выражении?', opts: ['writeln(Max(a,b) + Min(a,b))', 'result = Max(a,b); writeln(result + Min(a,b))', 'Оба варианта верны'], correct: 2, exp: 'Функцию можно встраивать в выражение или сначала сохранить результат.' },
-                    { q: 'Что такое «побочный эффект» функции?', opts: ['Изменение внешних данных (не через возврат)', 'Возвращаемое значение', 'Ошибка компиляции'], correct: 0, exp: 'Побочный эффект: функция меняет глобальные переменные или выводит данные помимо возврата.' },
+                    { q: 'Что такое "побочный эффект" функции?', opts: ['Изменение внешних данных (не через возврат)', 'Возвращаемое значение', 'Ошибка компиляции'], correct: 0, exp: 'Побочный эффект: функция меняет глобальные переменные или выводит данные помимо возврата.' },
                     { q: 'Как рекурсивно посчитать сумму 1+2+...+n?', opts: ['if n=0 then Sum:=0 else Sum:=n+Sum(n-1)', 'for i:=1 to n', 'Sum := n*(n+1) div 2'], correct: 0, exp: 'Рекурсия: Sum(n) = n + Sum(n-1), базовый случай Sum(0) = 0.' },
                 ]
             },
@@ -2050,11 +2050,11 @@ const ACHIEVEMENTS = {
 const TITLES = [
     { id: 'newbie', icon: '🌱', name: 'Новичок', req: 'Начни учиться', reqXP: 0, check: () => true },
     { id: 'coder', icon: '💻', name: 'Кодер', req: 'Пройди первый урок', reqXP: 0, check: () => lessonCompleted[0][0] },
-    { id: 'logician', icon: '🔀', name: 'Логик', req: 'Пройди модуль «Условия»', reqXP: 0, check: () => trophyTestDone[1] },
-    { id: 'looper', icon: '🔁', name: 'Циклопед', req: 'Пройди модуль «Циклы»', reqXP: 0, check: () => trophyTestDone[2] },
-    { id: 'archivist', icon: '📦', name: 'Архивариус', req: 'Пройди модуль «Массивы»', reqXP: 0, check: () => trophyTestDone[3] },
+    { id: 'logician', icon: '🔀', name: 'Логик', req: 'Пройди модуль "Условия"', reqXP: 0, check: () => trophyTestDone[1] },
+    { id: 'looper', icon: '🔁', name: 'Циклопед', req: 'Пройди модуль "Циклы"', reqXP: 0, check: () => trophyTestDone[2] },
+    { id: 'archivist', icon: '📦', name: 'Архивариус', req: 'Пройди модуль "Массивы"', reqXP: 0, check: () => trophyTestDone[3] },
     { id: 'champion', icon: '🏆', name: 'Чемпион', req: 'Пройди первый финальный тест', reqXP: 0, check: () => trophyTestDone[0] },
-    { id: 'engineer', icon: '⚙️', name: 'Инженер', req: 'Пройди модуль «Функции»', reqXP: 0, check: () => trophyTestDone[4] },
+    { id: 'engineer', icon: '⚙️', name: 'Инженер', req: 'Пройди модуль "Функции"', reqXP: 0, check: () => trophyTestDone[4] },
     { id: 'master', icon: '🎓', name: 'Мастер Pascal', req: 'Пройди все 5 модулей', reqXP: 0, check: () => trophyTestDone.every(Boolean) },
     { id: 'perfectionist', icon: '💯', name: 'Перфекционист', req: 'Пройди все уроки без ошибок', reqXP: 0, check: () => MODULES.every((m, mi) => m.lessons.every((_, i) => perfectLessons[mi][i])) },
     { id: 'legend', icon: '⚡', name: 'Легенда', req: '500 XP', reqXP: 500, check: () => xp >= 500 },
@@ -2065,11 +2065,11 @@ const TITLES = [
 
 // Rewards unlocked for completing modules
 const MODULE_REWARDS = [
-    { id: 'rew_m1', icon: '🎨', name: 'Набор «Основы»', desc: 'Разблокирован наряд Синяя футболка', check: () => trophyTestDone[0] },
-    { id: 'rew_m2', icon: '🎽', name: 'Набор «Условия»', desc: 'Разблокирован наряд Худи', check: () => trophyTestDone[1] },
-    { id: 'rew_m3', icon: '🛡️', name: 'Набор «Циклы»', desc: 'Разблокирована броня', check: () => trophyTestDone[2] },
-    { id: 'rew_m4', icon: '👑', name: 'Набор «Массивы»', desc: 'Разблокирована корона Короля', check: () => trophyTestDone[3] },
-    { id: 'rew_m5', icon: '🥷', name: 'Набор «Функции»', desc: 'Разблокирован наряд Ниндзя', check: () => trophyTestDone[4] },
+    { id: 'rew_m1', icon: '🎨', name: 'Набор "Основы"', desc: 'Разблокирован наряд Синяя футболка', check: () => trophyTestDone[0] },
+    { id: 'rew_m2', icon: '🎽', name: 'Набор "Условия"', desc: 'Разблокирован наряд Худи', check: () => trophyTestDone[1] },
+    { id: 'rew_m3', icon: '🛡️', name: 'Набор "Циклы"', desc: 'Разблокирована броня', check: () => trophyTestDone[2] },
+    { id: 'rew_m4', icon: '👑', name: 'Набор "Массивы"', desc: 'Разблокирована корона Короля', check: () => trophyTestDone[3] },
+    { id: 'rew_m5', icon: '🥷', name: 'Набор "Функции"', desc: 'Разблокирован наряд Ниндзя', check: () => trophyTestDone[4] },
     { id: 'rew_all', icon: '🌟', name: 'Мастер-комплект', desc: 'Разблокирована Галактика + Лунная маска', check: () => trophyTestDone.every(Boolean) },
 ];
 
@@ -2229,7 +2229,6 @@ function backToModules() {
     renderModulesList();
 }
 
-// eelibs «назад» возвращает на последнюю страницу и застревает между уроком и модулем.
 // Явно возвращаем: урок → модуль, модуль → главная.
 function setupBackButtons() {
     const lessonBack = document.querySelector('#lesson .leftBtnsNav');
@@ -2351,7 +2350,6 @@ function startLesson(idx) {
     updateStats();
     const lesson = MODULES[currentModuleIdx].lessons[idx];
     const baseQuestions = shuffle([...lesson.questions]);
-    // Практическое задание есть в каждом уроке; «Шарю» получает его первым
     if (lesson.practice) {
         if (currentModuleIdx === 0 && idx === 0 && profileData.level === 'good') {
             shuffledQuestions = [lesson.practice, ...baseQuestions];
@@ -2369,11 +2367,44 @@ function startLesson(idx) {
             <div class="hearts-lesson">❤️ <span id="h-lesson">3</span></div>
         `
     }
+    lessonIntroPending = profileData.level === 'zero';
     window.changePage('lesson', idx)
-    //document.querySelector('.nav').style.display = 'none';
-    renderQuestion();
+    if (lessonIntroPending) renderLessonIntro();
+    else renderQuestion();
 }
 window.startLesson = startLesson
+
+function renderLessonIntro() {
+    const lesson = MODULES[currentModuleIdx].lessons[currentLessonIdx];
+    const first = lesson.questions[0] || {};
+    const area = document.getElementById('q-area');
+    const act = document.getElementById('act-area');
+    act.style.display = 'none';
+    const code = first.code || (lesson.practice && (lesson.practice.code || lesson.practice.starter)) || '';
+    const text = [first.note, first.theory].filter(Boolean).join(' ');
+    area.innerHTML = `
+    <div class="lesson-intro">
+      <div class="mascot-row">
+        <div id="lesson-mascot-slot" class="mascot-slot"></div>
+        <div class="bubble">🌱 Начнём с главного</div>
+      </div>
+      <div class="intro-label">ВВЕДЕНИЕ В УРОК</div>
+      <div class="intro-title">${esc(lesson.title)}</div>
+      <div class="intro-text">${linkTerms(text)}</div>
+      ${code ? `<div class="code-box">${esc(code)}</div>` : ''}
+      <button class="btn go intro-btn" onclick="dismissLessonIntro()">ПОНЯТНО, К ПРАКТИКЕ</button>
+    </div>`;
+    MascotController.mountLesson(area.querySelector('#lesson-mascot-slot'));
+    mascotEvent('question');
+}
+window.renderLessonIntro = renderLessonIntro
+
+function dismissLessonIntro() {
+    lessonIntroPending = false;
+    document.getElementById('act-area').style.display = '';
+    renderQuestion();
+}
+window.dismissLessonIntro = dismissLessonIntro
 
 function startIntroLesson() {
     const intro = MODULES[currentModuleIdx] && MODULES[currentModuleIdx].introLesson;
@@ -2388,7 +2419,6 @@ function startIntroLesson() {
     answered = false;
     isIntroLesson = true;
     updateStats();
-    // Подготовку не перемешиваем: сначала «данные», потом «база данных», затем «зачем»
     shuffledQuestions = [...intro.questions];
     if (!document.querySelector('#lesson .page-header-btns .lefthead .progress-track')) {
         document.querySelector('#lesson .page-header-btns .lefthead').innerHTML = `
@@ -2429,9 +2459,55 @@ function esc(value) {
         .replace(/"/g, '&quot;');
 }
 
-// Mobile keyboards may capitalize the first typed character, and password
-// managers may inject their own glyphs. Every answer field gets the same
-// explicit attributes so code answers stay exactly as typed.
+let termPopover = null;
+
+function hideTermPopover() {
+    if (!termPopover) return;
+    termPopover.remove();
+    termPopover = null;
+}
+
+function showTermPopover(link) {
+    hideTermPopover();
+    const key = link.dataset.term;
+    const definition = GLOSSARY[key];
+    if (!definition) return;
+    const pop = document.createElement('div');
+    pop.className = 'term-popover';
+    pop.innerHTML = `<button type="button" class="term-popover-close" aria-label="Закрыть">✕</button><strong>${esc(key)}</strong><p>${esc(definition)}</p>`;
+    document.body.appendChild(pop);
+    const rect = link.getBoundingClientRect();
+    const width = pop.offsetWidth;
+    const height = pop.offsetHeight;
+    const left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+    const above = rect.top - height - 10;
+    const top = above >= 12 ? above : rect.bottom + 10;
+    pop.style.left = `${left}px`;
+    pop.style.top = `${Math.max(12, Math.min(top, window.innerHeight - height - 12))}px`;
+    pop.addEventListener('click', event => event.stopPropagation());
+    pop.querySelector('.term-popover-close').addEventListener('click', hideTermPopover);
+    termPopover = pop;
+}
+
+document.addEventListener('click', event => {
+    const link = event.target.closest('.term-link');
+    if (link) {
+        event.preventDefault();
+        event.stopPropagation();
+        showTermPopover(link);
+        return;
+    }
+    if (termPopover && !event.target.closest('.term-popover')) hideTermPopover();
+});
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') hideTermPopover();
+    if ((event.key === 'Enter' || event.key === ' ') && event.target.classList?.contains('term-link')) {
+        event.preventDefault();
+        showTermPopover(event.target);
+    }
+});
+
 function safeInputAttrs(extra = '') {
     return [
         'autocomplete="off"',
@@ -2543,6 +2619,8 @@ document.addEventListener('keydown', e => {
 });
 
 function renderQuestion() {
+    const actArea = document.getElementById('act-area');
+    if (actArea) actArea.style.display = '';
     const q = isReviewMode ? errorQuestions[currentQIdx] : shuffledQuestions[currentQIdx];
     const total = isReviewMode ? errorQuestions.length : shuffledQuestions.length;
     const area = document.getElementById('q-area');
@@ -2574,7 +2652,7 @@ function renderQuestion() {
              <button type="button" class="spoiler-head" aria-expanded="false">
                <span>${esc(label)}</span><span class="spoiler-arrow" aria-hidden="true">▾</span>
              </button>
-             <div class="spoiler-body"><div class="spoiler-clip"><div class="spoiler-content">${esc(text)}</div></div></div>
+             <div class="spoiler-body"><div class="spoiler-clip"><div class="spoiler-content">${linkTerms(text)}</div></div></div>
            </div>`
         : '';
 
@@ -2846,7 +2924,7 @@ function _finishLesson() {
     openModule(currentModuleIdx);
     const mTitle = MODULES[currentModuleIdx].lessons[currentLessonIdx].title;
     const perfMsg = isPerfect ? ' ⭐ Идеально!' : '';
-    showToast('🏅 Урок «' + mTitle + '» пройден! +20 XP' + perfMsg, 2200);
+    showToast('🏅 Урок "' + mTitle + '" пройден! +20 XP' + perfMsg, 2200);
     window.changePage('langmodule')
     checkNewAchievements();
 }
@@ -4101,11 +4179,11 @@ function showOnboardingIfNeeded() {
     } else if (!profileData.name) {
         // Already onboarded but no profile name (legacy save or reset)
         window.changePage('registration')
-        setTimeout(() => selectLevel(profileData.level || 'some', true), 0)
+        setTimeout(() => selectLevel(profileData.level || 'zero', true), 0)
     } else {
         setTimeout(() => checkAndShowStreak(), 600);
         window.changePage('home')
-        selectLevel(profileData.level || 'some', true)
+        selectLevel(profileData.level || 'zero', true)
         const h1 = document.querySelector('#home .page-header h1');
         if (h1) h1.textContent = COURSE_LABELS[currentLang] || currentLang;
     }

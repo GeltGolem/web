@@ -115,6 +115,18 @@
     line-height: 1.5;
 }
 
+.term-link {
+    color: var(--secondary);
+    border-bottom: 1px dashed rgba(28, 176, 246, 0.75);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.term-link:focus-visible {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+}
+
 /* ─── ПРАКТИЧЕСКОЕ ЗАДАНИЕ ──────────────────────────────────────────────────── */
 .practice-card {
     display: flex;
