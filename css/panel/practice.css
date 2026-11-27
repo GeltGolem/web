@@ -66,29 +66,53 @@
     line-height: 1.35;
 }
 
-/* ─── ПОДСКАЗКА ПЕРЕД ВОПРОСОМ ──────────────────────────────────────────────── */
-.note-card {
+.spoiler {
+    margin: 0 0 6px;
+    border: 1.5px solid rgba(28, 176, 246, .35);
+    border-radius: 12px;
+    background: rgba(28, 176, 246, .08);
+    overflow: hidden;
+}
+
+.spoiler-theory { border-color: rgba(155, 89, 182, .4); background: rgba(155, 89, 182, .08); }
+
+.spoiler-head {
     display: flex;
-    gap: 10px;
-    margin: 0 0 14px;
-    padding: 12px 14px;
-    border: 1.5px solid rgba(28, 176, 246, 0.35);
-    border-radius: 14px;
-    background: rgba(28, 176, 246, 0.08);
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 32px;
+    padding: 6px 12px;
+    border: 0;
+    background: transparent;
     color: var(--text);
-    font-size: 13px;
-    line-height: 1.45;
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.note-card strong {
-    color: var(--secondary);
+.spoiler-theory .spoiler-head { color: var(--gold); text-transform: uppercase; }
+
+.spoiler-arrow { transition: transform .25s ease; flex: none; }
+.spoiler.open .spoiler-arrow { transform: rotate(180deg); }
+
+.spoiler-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .3s cubic-bezier(.34, 1.56, .64, 1);
+}
+.spoiler.open .spoiler-body { grid-template-rows: 1fr; }
+.spoiler-clip { overflow: hidden; }
+.spoiler-content {
+    padding: 0 12px 8px;
+    white-space: pre-line;
     font-size: 12px;
-    letter-spacing: 0.4px;
-}
-
-.note-icon {
-    font-size: 18px;
-    flex: 0 0 auto;
+    line-height: 1.5;
 }
 
 /* ─── ПРАКТИЧЕСКОЕ ЗАДАНИЕ ──────────────────────────────────────────────────── */

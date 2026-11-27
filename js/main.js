@@ -1,4 +1,5 @@
 import { JS_MODULES, PY_MODULES, CS_MODULES, CPP_MODULES } from './courses.js';
+import MascotController from './mascot.js';
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let xp = 0;
@@ -239,6 +240,7 @@ function confirmPasswordLogin() {
     document.getElementById('pwd-modal-input').disabled = true;
 
     const checkAndLoad = async () => {
+        mascotEvent('loading');
         // Check password via Firebase if available
         let pwdResult = 'error';
         if (window._fb) {
@@ -287,6 +289,7 @@ function confirmPasswordLogin() {
     };
 
     checkAndLoad().catch(() => {
+        mascotEvent('error');
         errEl.textContent = '❌ Ошибка соединения';
         document.getElementById('pwd-modal-input').disabled = false;
     });
@@ -2099,6 +2102,9 @@ function shuffle(arr) {
 function actClick() { if (!answered) checkAnswer(); }
 window.actClick = actClick
 
+function mascotEvent(name) {
+    window.dispatchEvent(new Event('mascot-' + name));
+}
 function showToast(msg, duration = 1500) {
     /*window.notification.success(msg)
     return*/
@@ -2195,6 +2201,7 @@ function renderModulesList() {
     </div>`;
     });
     el.innerHTML = html;
+    el.querySelectorAll('.module-card').forEach((c, i) => { c.style.animationDelay = (i * 0.08) + 's'; });
     renderIcons(el);
 }
 
@@ -2503,6 +2510,29 @@ function codeDiffHtml(userCode, correctCode) {
 let currentPracticeChips = [];
 const usedPracticeChips = new Set();
 
+document.addEventListener('click', e => {
+    const head = e.target.closest('.spoiler-head');
+    if (!head) return;
+    const box = head.closest('.spoiler');
+    head.setAttribute('aria-expanded', String(box.classList.toggle('open')));
+});
+
+document.addEventListener('keydown', e => {
+    if (!document.querySelector('#lesson.active') || e.repeat || e.target.matches('input, textarea')) return;
+    const num = ['1', '2', '3'].indexOf(e.key);
+    if (num >= 0 && !answered) {
+        const opt = document.querySelectorAll('#opts-container .opt')[num];
+        if (opt) { e.preventDefault(); opt.click(); }
+        return;
+    }
+    if (e.key === 'Enter') {
+        const btn = document.querySelector('#act-area .btn:not(:disabled)');
+        if (!btn || e.target === btn) return;
+        e.preventDefault();
+        btn.click();
+    }
+});
+
 function renderQuestion() {
     const q = isReviewMode ? errorQuestions[currentQIdx] : shuffledQuestions[currentQIdx];
     const total = isReviewMode ? errorQuestions.length : shuffledQuestions.length;
@@ -2530,9 +2560,17 @@ function renderQuestion() {
         ? `<div class="review-banner">🔁 Исправь ошибку! ${currentQIdx + 1} из ${total}</div>`
         : '';
 
-    const noteBlock = q.note
-        ? `<div class="note-card"><span class="note-icon">💡</span><div><strong>Подсказка</strong><br>${esc(q.note)}</div></div>`
+    const spoiler = (cls, label, text) => text
+        ? `<div class="spoiler ${cls}">
+             <button type="button" class="spoiler-head" aria-expanded="false">
+               <span>${esc(label)}</span><span class="spoiler-arrow" aria-hidden="true">▾</span>
+             </button>
+             <div class="spoiler-body"><div class="spoiler-clip"><div class="spoiler-content">${esc(text)}</div></div></div>
+           </div>`
         : '';
+
+    const theoryBlock = spoiler('spoiler-theory', 'First Principles', q.theory);
+    const noteBlock = spoiler('spoiler-note', '💡 Подсказка', q.note);
 
     const answerBlock = isPractice
         ? `<div class="practice-card">
@@ -2545,26 +2583,23 @@ function renderQuestion() {
             ${enterHint ? `<div class="practice-foot">${esc(enterHint)} — чтобы проверить</div>` : ''}
           </div>`
         : `<div class="opts" id="opts-container">
-            ${shuffledOpts.map((o, i) => `<button class="opt" onclick="selectOption(${i})">${esc(o)}</button>`).join('')}
+            ${shuffledOpts.map((o, i) => `<button class="opt" data-key="${i + 1}" onclick="selectOption(${i})">${esc(o)}</button>`).join('')}
           </div>`;
 
     area.innerHTML = `
     ${reviewBanner}
     <div class="mascot-row">
-      <svg class="golem-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-        <rect x="8" y="12" width="48" height="40" rx="12" fill="#4A41C0"/>
-        <rect x="18" y="22" width="10" height="10" rx="4" fill="#00E5FF"/>
-        <rect x="36" y="22" width="10" height="10" rx="4" fill="#00E5FF"/>
-        <path d="M28 38 Q32 42 36 38" stroke="#00E5FF" stroke-width="3" fill="none"/>
-        <circle cx="52" cy="18" r="4" fill="#FFC800" opacity="0.8"/>
-      </svg>
+      <div id="lesson-mascot-slot" class="mascot-slot"></div>
       <div class="bubble">${isReviewMode ? '🔁 Исправь ошибки!' : isIntroLesson ? '🌱 Подготовка' : `Вопрос ${currentQIdx + 1} из ${total}`}</div>
     </div>
     <div class="q-title">${esc(q.q)}</div>
+    ${theoryBlock}
     ${noteBlock}
     ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
     ${answerBlock}
   `;
+    MascotController.mountLesson(area.querySelector('#lesson-mascot-slot'));
+    mascotEvent('question');
     resetUI();
 }
 window.renderQuestion = renderQuestion
@@ -2618,9 +2653,10 @@ function checkAnswer() {
         updateStats();
         flashCorrect(btns[selectedOption]);
         showXPPopup(10);
+        mascotEvent('success');
         act.innerHTML = `
-      <div style="color:var(--primary);font-weight:800;font-size:18px;margin-bottom:10px;">✅ Верно!</div>
-      <button class="btn go" onclick="nextQuestion()">ДАЛЕЕ</button>`;
+      <div class="feedback-title">✅ Верно!</div>
+      <button class="btn go" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
     } else {
         btns[selectedOption].classList.add('err');
         btns[currentShuffledCorrect].classList.add('ok');
@@ -2628,6 +2664,7 @@ function checkAnswer() {
         lessonErrors++;
         updateStats();
         flashWrong(btns[selectedOption]);
+        mascotEvent('wrong');
         // Track error question for review
         if (!isReviewMode) {
             errorQuestions.push(q);
@@ -2638,22 +2675,22 @@ function checkAnswer() {
             // In review mode — finish lesson anyway (no hearts but tried)
             if (isReviewMode) {
                 act.innerHTML = `
-          <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">💔 Нет сердец!</div>
-          <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;">Закончились сердца. Урок завершён.</div>
+          <div class="feedback-title bad">💔 Нет сердец!</div>
+          <div class="feedback-exp">Закончились сердца. Урок завершён.</div>
           <button class="btn bad" onclick="nextQuestion()">ЗАВЕРШИТЬ УРОК</button>`;
                 act.classList.add('show');
                 return;
             }
             act.innerHTML = `
-        <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">💔 Нет сердец!</div>
-        <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;">Урок начнётся заново.</div>
+        <div class="feedback-title bad">💔 Нет сердец!</div>
+        <div class="feedback-exp">Урок начнётся заново.</div>
         <button class="btn bad" onclick="${isIntroLesson ? 'startIntroLesson()' : `startLesson(${currentLessonIdx})`}">НАЧАТЬ ЗАНОВО</button>`;
             act.classList.add('show');
             return;
         }
         act.innerHTML = `
-      <div style="color:var(--danger);font-weight:800;font-size:18px;margin-bottom:4px;">❌ Ошибка</div>
-      <div style="color:var(--text-muted);font-size:14px;margin-bottom:14px;line-height:1.4;">💡 ${q.exp}</div>
+      <div class="feedback-title bad">❌ Ошибка</div>
+      <div class="feedback-exp">💡 ${esc(q.exp)}</div>
       <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
     }
     act.classList.add('show');
@@ -2683,10 +2720,11 @@ function checkPracticeAnswer(q) {
         if (inp) inp.classList.add('ok');
         flashCorrect(inp || document.getElementById('q-area'));
         showXPPopup(10);
+        mascotEvent('success');
         act.innerHTML = `
-      <div style="color:var(--primary);font-weight:800;font-size:18px;margin-bottom:8px;">✅ Верно! +10 XP</div>
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${esc(q.exp || '')}</div>
-      <button class="btn go" onclick="nextQuestion()">ДАЛЕЕ</button>`;
+      <div class="feedback-title">✅ Верно! +10 XP</div>
+      <div class="feedback-exp">💡 ${esc(q.exp || '')}</div>
+      <button class="btn go" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
         act.classList.add('show');
         return;
     }
@@ -2696,24 +2734,25 @@ function checkPracticeAnswer(q) {
     updateStats();
     if (inp) inp.classList.add('err');
     flashWrong(inp || document.getElementById('q-area'));
+    mascotEvent('wrong');
     if (!isReviewMode) errorQuestions.push(q);
     else q._hadErrorThisRound = true;
 
     if (hearts === 0) {
         if (isIntroLesson) {
             act.innerHTML = `
-          <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
-          <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Начнём подготовку заново.</div>
+          <div class="feedback-title bad">💔 Нет сердец!</div>
+          <div class="feedback-exp">Начнём подготовку заново.</div>
           <button class="btn bad" onclick="startIntroLesson()">НАЧАТЬ ЗАНОВО</button>`;
         } else if (isReviewMode) {
             act.innerHTML = `
-          <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
-          <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Урок завершён, попробуй ещё раз позже.</div>
+          <div class="feedback-title bad">💔 Нет сердец!</div>
+          <div class="feedback-exp">Урок завершён, попробуй ещё раз позже.</div>
           <button class="btn bad" onclick="nextQuestion()">ЗАВЕРШИТЬ УРОК</button>`;
         } else {
             act.innerHTML = `
-          <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">💔 Нет сердец!</div>
-          <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Урок начнётся заново.</div>
+          <div class="feedback-title bad">💔 Нет сердец!</div>
+          <div class="feedback-exp">Урок начнётся заново.</div>
           <button class="btn bad" onclick="startLesson(${currentLessonIdx})">НАЧАТЬ ЗАНОВО</button>`;
         }
         act.classList.add('show');
@@ -2721,9 +2760,9 @@ function checkPracticeAnswer(q) {
     }
 
     act.innerHTML = `
-      <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:6px;">❌ Почти!</div>
+      <div class="feedback-title bad">❌ Почти!</div>
       ${codeDiffHtml(inp ? inp.value : '', q.answer || '')}
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${esc(q.exp || '')}</div>
+      <div class="feedback-exp">💡 ${esc(q.exp || '')}</div>
       <button class="btn bad" onclick="nextQuestion()">ПРОДОЛЖИТЬ</button>`;
     act.classList.add('show');
 }
@@ -2753,7 +2792,7 @@ function _finishLesson() {
         saveState();
         xp += 10;
         updateStats();
-        vibrateSuccess(); playLevelUp();
+        vibrateSuccess(); playLevelUp(); mascotEvent('success');
         showXPPopup(10);
         window.changePage('langmodule')
         openModule(currentModuleIdx);
@@ -2767,7 +2806,7 @@ function _finishLesson() {
     saveState();
     xp += 20;
     updateStats();
-    vibrateSuccess(); playLevelUp();
+    vibrateSuccess(); playLevelUp(); mascotEvent('success');
     showXPPopup(20);
     showScreenAnimated('scr-home');
     openModule(currentModuleIdx);
@@ -2974,7 +3013,7 @@ function showTrophyResult() {
     updateStats();
     saveState();
     checkNewAchievements();
-    vibrateSuccess(); playLevelUp();
+    vibrateSuccess(); playLevelUp(); mascotEvent('success');
     showXPPopup(bonusXP);
     unlockModuleRewards(currentModuleIdx);
     const resultIcon = passed ? 'trophy' : 'star';
@@ -3805,7 +3844,7 @@ function skipOnboard() {
 
 function finishOnboard() {
     window.changePage('registration')
-    vibrateSuccess(); playLevelUp();
+    vibrateSuccess(); playLevelUp(); mascotEvent('success');
     // Show profile setup if user has no name yet
     if (!profileData.name) {
         setTimeout(() => {
@@ -4267,11 +4306,12 @@ window.renderProfileScreen  = renderProfileScreen
 window.renderLeagueScreen   = renderLeagueScreen
 window.renderLeaderboard    = renderLeaderboard
 
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        initAvaUpload()
-    }, 200);
-})
+const initMascot = () => {
+    setTimeout(() => { initAvaUpload() }, 200);
+    MascotController.bindEvents();
+};
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMascot);
+else initMascot();
 
 renderProfileScreen()
 renderLeagueScreen()
