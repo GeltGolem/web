@@ -151,6 +151,10 @@
     border-color: var(--secondary);
 }
 
+.practice-input::selection {
+    background: rgba(28, 176, 246, 0.35);
+}
+
 .practice-input.ok {
     border-color: var(--primary);
 }

@@ -2288,10 +2288,19 @@ function setNavVisible(visible) {
     if (navEl) navEl.style.display = visible ? 'flex' : 'none';
 }
 
+function resetPageScroll() {
+    const content = document.getElementById('content');
+    if (!content) return;
+    content.scrollLeft = 0;
+    if (content.parentElement) content.parentElement.scrollLeft = 0;
+}
+
 function showScreen(id) {
     const pageId = SCREEN_TO_PAGE[id] || id;
     if (document.getElementById(pageId)) window.changePage(pageId);
     if (id === 'scr-home') { renderModulesList(); updateStats(); }
+    requestAnimationFrame(resetPageScroll);
+    setTimeout(resetPageScroll, 450);
 }
 
 function goHome(el) {
@@ -2578,6 +2587,7 @@ function renderQuestion() {
             <textarea id="practice-input" class="practice-input" rows="4"
               ${safeInputAttrs()} placeholder="Напиши код..."
               oninput="onPracticeInput(this)"
+              onfocus="focusGap(this)"
               onkeydown="handlePracticeKey(event)">${esc(q.starter || '')}</textarea>
             ${currentPracticeChips.length ? `<div class="practice-chips">${currentPracticeChips.map((c, i) => `<button class="practice-chip" onclick="insertPracticeChip(${i})">${esc(c)}</button>`).join('')}</div>` : ''}
             ${enterHint ? `<div class="practice-foot">${esc(enterHint)} — чтобы проверить</div>` : ''}
@@ -2611,18 +2621,42 @@ function onPracticeInput(inp) {
 }
 window.onPracticeInput = onPracticeInput
 
+function gapRange(value, from, to) {
+    if (from !== to) return { from, to };
+    const gap = /_{3,}/.exec(value);
+    return gap ? { from: gap.index, to: gap.index + gap[0].length } : { from, to };
+}
+
+function insertIntoGap(inp, text) {
+    if (!inp || typeof inp.setRangeText !== 'function') return false;
+    const value = inp.value;
+    const start = inp.selectionStart === null ? value.length : inp.selectionStart;
+    const end = inp.selectionEnd === null ? start : inp.selectionEnd;
+    const range = gapRange(value, start, end);
+    inp.setRangeText(text, range.from, range.to, 'end');
+    const next = /_{3,}/.exec(inp.value);
+    if (next) inp.setSelectionRange(next.index, next.index + next[0].length);
+    return true;
+}
+
+function focusGap(inp) {
+    if (!inp || inp.selectionStart !== inp.selectionEnd) return;
+    const gap = /_{3,}/.exec(inp.value);
+    if (!gap) return;
+    const pos = inp.selectionStart;
+    if (pos < gap.index || pos > gap.index + gap[0].length) {
+        inp.setSelectionRange(gap.index, gap.index + gap[0].length);
+    }
+}
+window.focusGap = focusGap
+
 function insertPracticeChip(idx) {
     const inp = document.getElementById('practice-input');
     const text = currentPracticeChips[idx];
     if (!inp || answered || text === undefined || usedPracticeChips.has(idx)) return;
-    if (typeof inp.setRangeText === 'function') {
-        const start = inp.selectionStart === undefined ? inp.value.length : inp.selectionStart;
-        const end = inp.selectionEnd === undefined ? start : inp.selectionEnd;
-        inp.setRangeText(text, start, end, 'end');
-    } else {
-        inp.value = inp.value + ' ' + text;
-    }
-    inp.focus();
+    insertIntoGap(inp, text);
+    inp.focus({ preventScroll: true });
+    focusGap(inp);
     onPracticeInput(inp);
     usedPracticeChips.add(idx);
     const chip = document.querySelectorAll('.practice-chip')[idx];
@@ -2893,36 +2927,51 @@ function renderTrophyQuestion() {
     usedTrophyChips.clear();
     updateTrophyHead();
     const area = document.getElementById('trophy-area');
-    const safeCode = q.code ? q.code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+    const isPractice = q.type === 'practice';
+    const chips = q.chips || [];
+    const safeCode = !isPractice && q.code ? esc(q.code) : '';
+    const chipAttrs = c => `onclick="insertChip(${esc(JSON.stringify(c))})"`;
+    const answerField = isPractice
+        ? `<div class="trophy-field">
+             <div class="trophy-field-label">Твой ответ</div>
+             <textarea id="trophy-type-input" class="practice-input" rows="4"
+               ${safeInputAttrs()} oninput="onTrophyType(this)" onfocus="focusGap(this)"
+               onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!trophyAnswered) checkTrophyAnswer()">${esc(q.starter || q.code || '')}</textarea>
+             <div class="practice-chips">${chips.map((c, i) => `<button type="button" class="practice-chip" ${chipAttrs(c)} id="chip-${i}">${esc(c)}</button>`).join('')}</div>
+           </div>`
+        : `<div class="trophy-field">
+             <div class="trophy-field-label">Твой ответ</div>
+             <div class="type-input-wrap">
+               <input type="text" class="type-input" id="trophy-type-input"
+                 ${safeInputAttrs('enterkeyhint="done"')}
+                 oninput="onTrophyType(this)"
+                 onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"/>
+             </div>
+           </div>
+           <div class="trophy-field">
+             <div class="trophy-field-label"><span data-icon="bulb"></span> Подсказки</div>
+             <div class="hint-chips" id="hint-chips-row">
+               ${chips.map((c, i) => `<button type="button" class="hint-chip" ${chipAttrs(c)} id="chip-${i}">${esc(c)}</button>`).join('')}
+             </div>
+           </div>`;
     area.innerHTML = `
     <div class="trophy-question-card">
       <div class="trophy-q-top">
         <span class="trophy-q-label">Вопрос ${trophyQIdx + 1} из ${trophyQuestions.length}</span>
         <span class="trophy-q-step">${Math.round(((trophyQIdx + 1) / trophyQuestions.length) * 100)}%</span>
       </div>
-      <div class="trophy-q-title">${q.q}</div>
+      <div class="trophy-q-title">${esc(q.q)}</div>
       ${safeCode ? `<div class="code-box">${safeCode}</div>` : ''}
-      <div class="trophy-field">
-        <div class="trophy-field-label">Твой ответ</div>
-        <div class="type-input-wrap">
-          <input type="text" class="type-input" id="trophy-type-input"
-            ${safeInputAttrs('enterkeyhint="done"')}
-            oninput="onTrophyType(this)"
-            onkeydown="if(event.key==='Enter' && !trophyAnswered) checkTrophyAnswer()"/>
-        </div>
-      </div>
-      <div class="trophy-field">
-        <div class="trophy-field-label"><span data-icon="bulb"></span> Подсказки</div>
-        <div class="hint-chips" id="hint-chips-row">
-          ${q.chips.map((c, i) => `<button type="button" class="hint-chip" onclick="insertChip('${c.replace(/'/g, "\\'")}', ${i})" id="chip-${i}">${c}</button>`).join('')}
-        </div>
-      </div>
+      ${answerField}
     </div>`;
     renderIcons(area);
     resetTrophyAct();
     requestAnimationFrame(() => {
         const inp = document.getElementById('trophy-type-input');
-        if (inp) inp.focus();
+        if (inp) {
+            inp.focus({ preventScroll: true });
+            focusGap(inp);
+        }
     });
 }
 
@@ -2940,13 +2989,25 @@ function onTrophyType(inp) {
 
 function insertChip(text, idx) {
     const inp = document.getElementById('trophy-type-input');
-    if (!inp || trophyAnswered || usedTrophyChips.has(idx)) return;
-    usedTrophyChips.add(idx);
-    inp.value = (inp.value + ' ' + text).trim();
+    if (!inp || trophyAnswered) return;
+    const buttons = Array.from(document.querySelectorAll('#trophy-area .hint-chip, #trophy-area .practice-chip'));
+    let chip = idx === undefined ? buttons.find(b => b.textContent === text && !b.classList.contains('used')) : document.getElementById(`chip-${idx}`);
+    if (!chip) return;
+    const position = buttons.indexOf(chip);
+    if (position < 0 || usedTrophyChips.has(position)) return;
+    let token = text;
+    if (!/_{3,}/.test(inp.value) && inp.value.trim() && !/\s$/.test(inp.value)) token = ' ' + token;
+    if (!insertIntoGap(inp, token)) {
+        inp.value += token;
+        inp.setSelectionRange(inp.value.length, inp.value.length);
+    }
+    usedTrophyChips.add(position);
     trophyTypedAnswer = inp.value;
-    document.getElementById(`chip-${idx}`).classList.add('used');
-    document.getElementById('trophy-act-btn').disabled = false;
-    inp.focus();
+    chip.classList.add('used');
+    const actBtn = document.getElementById('trophy-act-btn');
+    if (actBtn) actBtn.disabled = !inp.value.trim();
+    inp.focus({ preventScroll: true });
+    focusGap(inp);
 }
 
 function normalizeAnswer(s) {
@@ -2956,9 +3017,13 @@ function normalizeAnswer(s) {
 function checkTrophyAnswer() {
     if (trophyAnswered) return;
     const inp = document.getElementById('trophy-type-input');
-    const userAns = normalizeAnswer(inp ? inp.value : trophyTypedAnswer);
     const q = trophyQuestions[trophyQIdx];
-    const accepted = [q.answer, ...(q.accept || [])].map(normalizeAnswer);
+    const isPractice = q.type === 'practice';
+    const normalize = isPractice
+        ? s => normalizePracticeCode(s, q.caseSensitive !== false)
+        : normalizeAnswer;
+    const userAns = normalize(inp ? inp.value : trophyTypedAnswer);
+    const accepted = [q.answer, ...(q.accept || [])].map(normalize);
     trophyAnswered = true;
     const act = document.getElementById('trophy-act-area');
     if (inp) inp.disabled = true;
@@ -2971,7 +3036,7 @@ function checkTrophyAnswer() {
         showXPPopup(15);
         act.innerHTML = `
       <div style="color:var(--primary);font-weight:800;font-size:17px;margin-bottom:4px;">✅ Верно!</div>
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${q.exp}</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${esc(q.exp)}</div>
       <button class="btn trophy-btn" onclick="nextTrophyQuestion()">ДАЛЕЕ</button>`;
     } else {
         trophyErrors++;
@@ -2981,8 +3046,8 @@ function checkTrophyAnswer() {
         flashWrong(inp || document.getElementById('trophy-area'));
         act.innerHTML = `
       <div style="color:var(--danger);font-weight:800;font-size:17px;margin-bottom:4px;">❌ Ошибка</div>
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Правильный ответ: <span style="color:var(--primary);font-family:monospace;">${[q.answer, ...(q.accept || [])].join(' или ')}</span></div>
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${q.exp}</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Правильный ответ: <span style="color:var(--primary);font-family:monospace;">${esc([q.answer, ...(q.accept || [])].join(' или '))}</span></div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:12px;line-height:1.4;">💡 ${esc(q.exp)}</div>
       <button class="btn bad" onclick="nextTrophyQuestion()">ПРОДОЛЖИТЬ</button>`;
     }
     act.classList.add('show');
