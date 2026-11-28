@@ -167,6 +167,56 @@
     background: rgba(28, 176, 246, 0.35);
 }
 
+.run-btn {
+    margin-top: 2px;
+    min-height: 44px;
+    font-size: 14px;
+    border-color: var(--secondary);
+    color: var(--secondary);
+    background: transparent;
+}
+
+.run-btn .ui-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.run-terminal {
+    min-height: 46px;
+    max-height: 120px;
+    overflow: auto;
+    padding: 10px 12px;
+    border: 2px solid var(--surface-light);
+    border-radius: 12px;
+    background: #05090c;
+    color: #9be89b;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.combo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255, 200, 0, 0.14);
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+}
+
+.combo-badge .ui-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--gold);
+}
+
 .practice-input.ok {
     border-color: var(--primary);
 }
