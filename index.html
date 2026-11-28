@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Gelt Code App</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="eelibs/import.css?v=20261122n">
-    <script src="js/firebase.js?v=20261122n" type="module"></script>
-    <link rel="stylesheet" href="css/main.css?v=20261122n">
-    <link rel="stylesheet" href="css/panel/header.css?v=20261122n">
-    <link rel="stylesheet" href="css/panel/home.css?v=20261122n">
-    <link rel="stylesheet" href="css/panel/welcome.css?v=20261122n">
-    <link rel="stylesheet" href="css/panel/lesson.css?v=20261122n">
-    <link rel="stylesheet" href="css/panel/practice.css?v=20261122n">
-    <link rel="stylesheet" href="css/panel/profile.css?v=20261122n">
-    <link rel="stylesheet" href="css/panel/league.css?v=20261122n">
+    <link rel="stylesheet" href="eelibs/import.css?v=20261128j">
+    <script src="js/firebase.js?v=20261128j" type="module"></script>
+    <link rel="stylesheet" href="css/main.css?v=20261128j">
+    <link rel="stylesheet" href="css/panel/header.css?v=20261128j">
+    <link rel="stylesheet" href="css/panel/home.css?v=20261128j">
+    <link rel="stylesheet" href="css/panel/welcome.css?v=20261128j">
+    <link rel="stylesheet" href="css/panel/lesson.css?v=20261128j">
+    <link rel="stylesheet" href="css/panel/practice.css?v=20261128j">
+    <link rel="stylesheet" href="css/panel/profile.css?v=20261128j">
+    <link rel="stylesheet" href="css/panel/league.css?v=20261128j">
 </head>
 <body style="display: flex;">
     <div id="nav" class="">
@@ -32,7 +32,7 @@
             <div class="pageContainer">
                 <div class="pageContent">
                     <div id="test-mode-badge" style="display:none;align-items:center;justify-content:space-between;gap:10px;background:rgba(155,89,182,0.15);border:2px dashed #9B59B6;border-radius:14px;padding:10px 12px;margin-bottom:12px;">
-                        <span style="font-size:12px;font-weight:900;color:#9B59B6;">🧪 ТЕСТОВЫЙ РЕЖИМ — всё открыто</span>
+                        <span style="font-size:12px;font-weight:900;color:#9B59B6;">🧪 ТЕСТОВЫЙ РЕЖИМ, всё открыто</span>
                         <button class="btn" style="padding:6px 10px;font-size:11px;color:#9B59B6;border-color:#9B59B6;background:transparent;" onclick="exitTestMode()">ВЫЙТИ</button>
                     </div>
                     <div id="langsModules">
@@ -126,44 +126,70 @@
                         </div>
 
                         <div class="streak-row">
-                            <div class="streak-pill">🔥 <span id="p-streak">3</span> дней</div>
                             <div class="streak-pill">⚡ <span id="p-xp">0</span> XP</div>
                             <div class="streak-pill">✅ <span id="p-lessons">0/5</span></div>
+                            <div class="streak-pill">❤️ <span id="p-hearts">3</span></div>
+                            <div class="streak-pill">🎯 <span id="p-accuracy">0%</span></div>
+                        </div>
+                        <div class="stats-meta-row">
+                            <div class="streak-pill">🔥 <span id="p-streak">3</span> <span id="p-streak-word">дней</span></div>
+                            <div class="streak-pill">⏱ <span id="p-time">0 мин</span></div>
                         </div>
 
-                        <!-- OVERALL PROGRESS STATS -->
-                        <div id="overall-stats-block"
-                            style="margin:12px 0 4px;background:var(--surface-light);border-radius:16px;padding:14px 16px;">
-                            <div
-                            style="font-size:11px;font-weight:800;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:10px;">📊
-                            ОБЩИЙ ПРОГРЕСС</div>
-                            <div style="display:flex;gap:10px;margin-bottom:12px;">
-                            <div style="flex:1;text-align:center;">
-                                <div style="font-size:26px;font-weight:900;color:var(--primary);" id="stat-lessons-pct">0%</div>
-                                <div style="font-size:10px;color:var(--text-muted);font-weight:700;">УРОКОВ</div>
+                        <div class="health-dashboard" id="health-dashboard">
+                            <div class="health-card rings-card">
+                                <div class="health-title">КОЛЬЦА АКТИВНОСТИ ДНЯ</div>
+                                <div class="rings-wrap">
+                                    <svg class="rings-svg" viewBox="0 0 120 120" aria-hidden="true">
+                                        <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+                                        <circle class="ring-fill ring-one" id="ring-lessons" cx="60" cy="60" r="50"></circle>
+                                        <circle class="ring-track" cx="60" cy="60" r="40"></circle>
+                                        <circle class="ring-fill ring-two" id="ring-tasks" cx="60" cy="60" r="40"></circle>
+                                        <circle class="ring-track" cx="60" cy="60" r="30"></circle>
+                                        <circle class="ring-fill ring-three" id="ring-accuracy" cx="60" cy="60" r="30"></circle>
+                                    </svg>
+                                    <div class="rings-center">
+                                        <span data-icon="runeLit"></span>
+                                        <strong id="ring-center-value">0%</strong>
+                                        <small>ДЕНЬ</small>
+                                    </div>
+                                </div>
+                                <div class="ring-legend">
+                                    <span><i class="dot-one"></i>Уроки <b id="dash-lessons">0</b></span>
+                                    <span><i class="dot-two"></i>Задачи <b id="dash-tasks">0</b></span>
+                                    <span><i class="dot-three"></i>Точность <b id="dash-accuracy">0%</b></span>
+                                </div>
                             </div>
-                            <div style="flex:1;text-align:center;">
-                                <div style="font-size:26px;font-weight:900;color:var(--gold);" id="stat-tests-pct">0%</div>
-                                <div style="font-size:10px;color:var(--text-muted);font-weight:700;">ТЕСТОВ</div>
+                            <div class="health-card streak-card">
+                                <div class="health-title">УДАРНЫЙ РЕЖИМ</div>
+                                <div class="streak-big"><span data-icon="shard"></span><strong id="dash-streak">0</strong> <span id="dash-streak-word">дней</span></div>
+                                <div class="week-track" id="week-track"></div>
+                                <div class="streak-record">Рекорд: <strong id="streak-record">0</strong> <span id="streak-record-word">дней</span></div>
                             </div>
-                            <div style="flex:1;text-align:center;">
-                                <div style="font-size:26px;font-weight:900;color:#9B59B6;" id="stat-perfect-pct">0%</div>
-                                <div style="font-size:10px;color:var(--text-muted);font-weight:700;">ИДЕАЛЬНО</div>
+                            <div class="health-card chart-card">
+                                <div class="health-title">ГРАФИК АКТИВНОСТИ ЗА 7 ДНЕЙ</div>
+                                <div class="week-chart" id="week-chart"></div>
+                                <div class="goal-switch">
+                                    <button type="button" onclick="setDailyGoal(5)">5 мин</button>
+                                    <button type="button" onclick="setDailyGoal(15)">15 мин</button>
+                                    <button type="button" onclick="setDailyGoal(30)">30 мин</button>
+                                </div>
+                                <div class="goal-label">Цель: <strong id="dash-goal">15</strong> мин</div>
                             </div>
+                            <div class="health-card langs-card">
+                                <div class="health-title">ПРОГРЕСС ПО ЯЗЫКАМ</div>
+                                <div id="dash-langs"></div>
                             </div>
-                            <div style="height:8px;background:var(--surface);border-radius:8px;overflow:hidden;margin-bottom:4px;">
-                            <div id="stat-total-bar"
-                                style="height:100%;border-radius:8px;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width 0.6s;width:0%;">
+                            <div class="health-card runes-card">
+                                <div class="health-title">РУНИЧЕСКИЕ ДОСТИЖЕНИЯ</div>
+                                <div id="dash-runes"></div>
                             </div>
-                            </div>
-                            <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;" id="stat-total-label">
-                            Общий прогресс: 0%</div>
                         </div>
 
                         <!-- Profile Tabs -->
                         <div class="prof-tabs">
                             <div class="prof-tab active" id="ptab-edit" onclick="switchProfTab('edit')">Профиль</div>
-                            <div class="prof-tab" id="ptab-look" onclick="switchProfTab('look')">Внешний вид</div>
+                            <div class="prof-tab" id="ptab-look" onclick="switchProfTab('look')">Дизайн</div>
                             <div class="prof-tab" id="ptab-devs" onclick="switchProfTab('devs')">Разрабы</div>
                         </div>
 
@@ -188,7 +214,7 @@
                             </div>
                             <div class="save-wrap" style="display:flex;gap:8px;">
                             <button class="btn go" style="flex:1;min-width:0;" onclick="saveProfile()">СОХРАНИТЬ</button>
-                            <button class="btn bad" style="flex:1;min-width:0;" onclick="confirmReset()">🗑️ СБРОС</button>
+                            <button class="btn bad" style="flex:1;min-width:0;" onclick="confirmReset()"><span data-icon="trash"></span> СБРОС</button>
                             </div>
                             <button class="btn" id="profile-test-mode-btn" style="width:100%;margin-top:8px;border:2px dashed #9B59B6;background:transparent;color:#9B59B6;font-size:12px;" onclick="toggleTestMode()">🧪 Включить тестовый режим</button>
                         </div>
@@ -205,7 +231,7 @@
                             </div>
                             <div style="padding-bottom:20px;display:flex;gap:8px;">
                             <button class="btn go" style="flex:1;min-width:0;" onclick="saveProfile()">СОХРАНИТЬ</button>
-                            <button class="btn bad" style="flex:1;min-width:0;" onclick="confirmReset()">🗑️ СБРОС</button>
+                            <button class="btn bad" style="flex:1;min-width:0;" onclick="confirmReset()"><span data-icon="trash"></span> СБРОС</button>
                             </div>
                             <!-- SECRET CODE PANEL -->
                             <div class="edit-section" style="margin-top:8px;">
@@ -239,8 +265,9 @@
                             style="background:var(--surface);border:1.5px solid var(--surface-light);border-radius:18px;padding:18px;margin-bottom:20px;">
                             <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
                                 <div
-                                style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#58CC02,#46A302);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">
-                                📚</div>
+                                class="dev-icon-circle"
+                                style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#58CC02,#46A302);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <span data-icon="books"></span></div>
                                 <div>
                                 <div style="font-size:15px;font-weight:900;color:var(--primary);">Команда педагогов</div>
                                 <div style="font-size:11px;color:var(--text-muted);font-weight:700;margin-top:2px;">Методисты</div>
@@ -380,7 +407,7 @@
                     </div>
                     <div class="onboard-graphic" id="ob-graphic">🐲</div>
                     <div class="onboard-title" id="ob-title">Добро пожаловать в Gelt Code!</div>
-                    <div class="onboard-sub" id="ob-sub">Изучай Pascal через короткие интерактивные уроки — как игру. Прокачивай персонажа и собирай достижения.</div>
+                    <div class="onboard-sub" id="ob-sub">Изучай Pascal через короткие интерактивные уроки, как игру. Прокачивай персонажа и собирай достижения.</div>
                     <div class="onboard-actions">
                         <button class="btn go" onclick="onboardNext()">ДАЛЕЕ →</button>
                         <button class="btn" onclick="window.changePage('registration')">Пропустить</button>
@@ -417,23 +444,23 @@
                                     <button type="button" class="level-card selected" data-level="zero" onclick="selectLevel('zero')">
                                         <span class="level-icon">🌱</span>
                                         <span class="level-title">Новичок</span>
-                                        <span class="level-desc">Только начинаю — объясняй по шагам</span>
+                                        <span class="level-desc">Только начинаю, объясняй по шагам</span>
                                     </button>
                                     <button type="button" class="level-card" data-level="some" onclick="selectLevel('some')">
                                         <span class="level-icon">📘</span>
                                         <span class="level-title">Продолжающий</span>
-                                        <span class="level-desc">Знаю основы — давай больше практики</span>
+                                        <span class="level-desc">Знаю основы, давай больше практики</span>
                                     </button>
                                     <button type="button" class="level-card" data-level="good" onclick="selectLevel('good')">
                                         <span class="level-icon">⚡</span>
                                         <span class="level-title">Профи</span>
-                                        <span class="level-desc">Пишу код уверенно — дай сложные задачи</span>
+                                        <span class="level-desc">Пишу код уверенно, дай сложные задачи</span>
                                     </button>
                                 </div>
                                 <button type="button" class="level-card test-mode-card" onclick="enterTestMode()">
                                     <span class="level-icon">🧪</span>
                                     <span class="level-title">Тестовый режим</span>
-                                    <span class="level-desc">Все модули, уроки и тесты сразу открыты — проверяй без прохождения</span>
+                                    <span class="level-desc">Все модули, уроки и тесты сразу открыты, проверяй без прохождения</span>
                                 </button>
                             </div>
                             <div>
@@ -528,9 +555,9 @@
     </div>
 
 </body>
-<script src="eelibs.js?v=20261122n" type="module"></script>
-<script src="eelibs/import.js?v=20261122n" type="module"></script>
-<script src="js/glossary.js?v=20261122n" type="module"></script>
-<script src="js/main.js?v=20261122n" type="module"></script>
-<script src="js/panel/home.js?v=20261122n" type="module"></script>
+<script src="eelibs.js?v=20261128j" type="module"></script>
+<script src="eelibs/import.js?v=20261128j" type="module"></script>
+<script src="js/glossary.js?v=20261128j" type="module"></script>
+<script src="js/main.js?v=20261128j" type="module"></script>
+<script src="js/panel/home.js?v=20261128j" type="module"></script>
 </html>
